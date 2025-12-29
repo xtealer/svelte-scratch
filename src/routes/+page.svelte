@@ -24,7 +24,7 @@
   let isScratchSoundPlaying = false;
   let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prize odds (50% RTP, ~7.6% win rate)
+  // Prize odds (50% RTP, ~8.1% win rate)
   // Based on 10,000 tickets = $5,000 total prizes
   // Fixed: $500×2, $250×4, $100×10 = $3,000
   // Remaining $2,000 distributed across lower tiers
@@ -36,10 +36,9 @@
     { amount: 50, odds: 2500 },     // 4 in 10,000 ($200)
     { amount: 20, odds: 1000 },     // 10 in 10,000 ($200)
     { amount: 10, odds: 500 },      // 20 in 10,000 ($200)
-    { amount: 5, odds: 250 },       // 40 in 10,000 ($200)
-    { amount: 3, odds: 100 },       // 100 in 10,000 ($300)
-    { amount: 2, odds: 56 },        // 180 in 10,000 ($360)
-    { amount: 1, odds: 26 },        // 390 in 10,000 ($390)
+    { amount: 5, odds: 192 },       // 52 in 10,000 ($260)
+    { amount: 3, odds: 71 },        // 140 in 10,000 ($420)
+    { amount: 1, odds: 18 },        // 570 in 10,000 ($570)
     { amount: 0, odds: 0 },         // Loss
   ];
 
@@ -63,7 +62,6 @@
     10: "🪙",
     5: "🪙",
     3: "🪶",
-    2: "🪶",
     1: "🪶",
   };
 

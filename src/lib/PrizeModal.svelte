@@ -15,10 +15,9 @@
     { symbol: '🎰', amount: 50, odds: '1 in 2,500' },
     { symbol: '💰', amount: 20, odds: '1 in 1,000' },
     { symbol: '🪙', amount: 10, odds: '1 in 500' },
-    { symbol: '🪙', amount: 5, odds: '1 in 250' },
-    { symbol: '🪶', amount: 3, odds: '1 in 100' },
-    { symbol: '🪶', amount: 2, odds: '1 in 56' },
-    { symbol: '🪶', amount: 1, odds: '1 in 26' }
+    { symbol: '🪙', amount: 5, odds: '1 in 192' },
+    { symbol: '🪶', amount: 3, odds: '1 in 71' },
+    { symbol: '🪶', amount: 1, odds: '1 in 18' }
   ];
 
   function close(): void {
