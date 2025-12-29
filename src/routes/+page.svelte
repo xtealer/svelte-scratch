@@ -2,6 +2,8 @@
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
   import PrizeModal from "$lib/PrizeModal.svelte";
+  import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
+  import ClaimModal from "$lib/ClaimModal.svelte";
 
   interface PrizeConfig {
     amount: number;
@@ -71,17 +73,26 @@
     100, 100, 100, 50, 50, 50, 200, 300, 500, 40, 25, 20, 10,
   ];
 
-  // State
-  let ticketsBought = $state(0);
-  let totalSpent = $state(0);
-  let totalWon = $state(0);
+  // Game state
   let currentPrize = $state(0);
   let symbols = $state<string[]>([]);
   let nearMissText = $state("");
   let prizeText = $state("-");
   let muted = $state(false);
-  let showPrizeModal = $state(false);
   let revealed = $state(false);
+
+  // Session state (from scratch code)
+  let currentCode = $state("");
+  let playsLeft = $state(0);
+  let sessionWinnings = $state(0);
+  let hasActiveSession = $derived(currentCode !== "" && playsLeft >= 0);
+  let canPlay = $derived(playsLeft > 0 && revealed);
+  let canStartNewPlay = $derived(playsLeft > 0);
+
+  // Modal state
+  let showPrizeModal = $state(false);
+  let showCodeModal = $state(false);
+  let showClaimModal = $state(false);
 
   // Canvas state
   let canvas: HTMLCanvasElement;
@@ -94,11 +105,6 @@
 
   // Sounds
   let sounds: Sounds | null = null;
-
-  // Derived values
-  let rtp = $derived(
-    totalSpent > 0 ? ((totalWon / totalSpent) * 100).toFixed(2) : "0.00"
-  );
 
   onMount(() => {
     if (!browser) return;
@@ -123,16 +129,27 @@
     Object.values(sounds).forEach((s) => s.load());
 
     ctx = canvas.getContext("2d");
-    newTicket();
 
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("orientationchange", resizeCanvas);
+
+    // Initialize canvas with "Enter Code" message
+    setTimeout(() => {
+      resizeCanvas();
+      showWelcomeMessage();
+    }, 0);
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("orientationchange", resizeCanvas);
     };
   });
+
+  function showWelcomeMessage(): void {
+    symbols = ["❓", "❓", "❓"];
+    prizeText = "Enter Code to Play";
+    nearMissText = "";
+  }
 
   function playSound(key: keyof Sounds, volume = 1): void {
     if (muted || !sounds?.[key]) return;
@@ -255,7 +272,9 @@
     return nearMissPrizes[Math.floor(Math.random() * nearMissPrizes.length)];
   }
 
-  function newTicket(): void {
+  function startNewPlay(): void {
+    if (playsLeft <= 0) return;
+
     currentPrize = getPrize();
     symbols = generateSymbols(currentPrize);
 
@@ -270,9 +289,7 @@
       nearMissText = `Prize $${nearPrize}`;
     }
 
-    ticketsBought++;
-    totalSpent += 1;
-    totalWon += currentPrize;
+    playsLeft--;
 
     // Need to wait for DOM update before resizing canvas
     setTimeout(resizeCanvas, 0);
@@ -281,6 +298,12 @@
   function revealResult(): void {
     if (revealed) return; // Prevent playing sounds multiple times
     revealed = true;
+
+    // Add winnings to session
+    if (currentPrize > 0) {
+      sessionWinnings += currentPrize;
+    }
+
     prizeText =
       currentPrize > 0 ? `¡Ganaste $${currentPrize}!` : "¡Has Perdido!";
 
@@ -294,6 +317,7 @@
   }
 
   function revealAll(): void {
+    if (!hasActiveSession || revealed) return;
     if (ctx && canvas) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
@@ -320,6 +344,8 @@
   }
 
   function startScratch(e: MouseEvent | TouchEvent): void {
+    if (!hasActiveSession || revealed) return;
+
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
     scratch(e);
@@ -368,20 +394,72 @@
     ctx.fill();
   }
 
-  function resetStats(): void {
-    ticketsBought = 0;
-    totalSpent = 0;
-    totalWon = 0;
+  function openCodeModal(): void {
+    showCodeModal = true;
   }
 
   function openPrizeList(): void {
     showPrizeModal = true;
+  }
+
+  function openClaimModal(): void {
+    if (sessionWinnings > 0) {
+      showClaimModal = true;
+    }
+  }
+
+  function resetSession(): void {
+    currentCode = "";
+    playsLeft = 0;
+    sessionWinnings = 0;
+    revealed = false;
+    showWelcomeMessage();
+    setTimeout(resizeCanvas, 0);
+  }
+
+  async function handleCodeSubmit(code: string): Promise<void> {
+    const response = await fetch("/api/scratch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to validate code");
+    }
+
+    // Load the session
+    currentCode = data.code;
+    playsLeft = data.plays;
+    sessionWinnings = 0;
+
+    // Start first play automatically
+    startNewPlay();
   }
 </script>
 
 <h1>GOLD RUSH</h1>
 <p>Gana Hasta $1,000</p>
 <p class="expected">Ver Tabla de Premios</p>
+
+{#if hasActiveSession}
+  <div class="session-info">
+    <div class="info-item">
+      <span class="label">Code:</span>
+      <span class="value">{currentCode}</span>
+    </div>
+    <div class="info-item">
+      <span class="label">Plays Left:</span>
+      <span class="value plays">{playsLeft}</span>
+    </div>
+    <div class="info-item">
+      <span class="label">Winnings:</span>
+      <span class="value winnings">${sessionWinnings.toFixed(2)}</span>
+    </div>
+  </div>
+{/if}
 
 <div class="container">
   <div class="ticket">
@@ -409,23 +487,44 @@
 </div>
 
 <div class="buttons">
-  <button onclick={newTicket}>Buy New Ticket ($1)</button>
-  <button onclick={revealAll}>Reveal All Instantly</button>
+  {#if !hasActiveSession}
+    <button class="primary" onclick={openCodeModal}>Enter Scratch Code</button>
+  {:else if revealed && playsLeft > 0}
+    <button class="primary" onclick={startNewPlay}>
+      Next Play ({playsLeft} left)
+    </button>
+  {:else if revealed && playsLeft === 0}
+    <button class="primary" onclick={openCodeModal}>Enter New Code</button>
+  {/if}
+
+  {#if hasActiveSession && !revealed}
+    <button onclick={revealAll}>Reveal All Instantly</button>
+  {/if}
+
+  {#if sessionWinnings > 0}
+    <button class="claim" onclick={openClaimModal}>
+      Claim ${sessionWinnings.toFixed(2)}
+    </button>
+  {/if}
+
   <button onclick={openPrizeList}>View Prize List</button>
+
   <button class:mute={muted} onclick={toggleMute}>
     {muted ? "Unmute Sounds" : "Mute Sounds"}
   </button>
-  <button onclick={resetStats}>Reset Stats</button>
-</div>
 
-<div class="stats">
-  <p>Tickets Bought: <span>{ticketsBought}</span></p>
-  <p>Total Spent: $<span>{totalSpent.toFixed(2)}</span></p>
-  <p>Total Won: $<span>{totalWon.toFixed(2)}</span></p>
-  <p>Current RTP: <span>{rtp}</span>%</p>
+  {#if hasActiveSession}
+    <button class="secondary" onclick={resetSession}>End Session</button>
+  {/if}
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
+<ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
+<ClaimModal
+  bind:show={showClaimModal}
+  scratchCode={currentCode}
+  totalWinnings={sessionWinnings}
+/>
 
 <style>
   h1 {
@@ -445,6 +544,43 @@
     margin: 8px 0;
     color: #ffaa00;
     font-weight: bold;
+  }
+
+  .session-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 12px 20px;
+    border-radius: 10px;
+    margin: 10px auto;
+    max-width: 420px;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .info-item .label {
+    font-size: 0.8em;
+    color: #aaa;
+  }
+
+  .info-item .value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffd700;
+  }
+
+  .info-item .value.plays {
+    color: #00bfff;
+  }
+
+  .info-item .value.winnings {
+    color: #00ff00;
   }
 
   .container {
@@ -564,21 +700,25 @@
     transform: scale(1.03);
   }
 
+  button.primary {
+    background: linear-gradient(#00dd00, #008800);
+    color: #fff;
+    text-shadow: 1px 1px 3px #000;
+  }
+
+  button.claim {
+    background: linear-gradient(#ff6600, #cc4400);
+    color: #fff;
+    text-shadow: 1px 1px 3px #000;
+  }
+
+  button.secondary {
+    background: linear-gradient(#555, #333);
+    color: #fff;
+  }
+
   button.mute {
     background: linear-gradient(#888, #555);
-  }
-
-  .stats {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 18px;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 420px;
-    font-size: 1.1em;
-  }
-
-  .stats p {
-    margin: 10px 0;
   }
 
   @media (max-width: 480px) {
@@ -604,9 +744,9 @@
       padding: 16px;
       font-size: 1.3em;
     }
-    .stats {
-      padding: 15px;
-      font-size: 1em;
+    .session-info {
+      gap: 15px;
+      padding: 10px 15px;
     }
   }
 </style>
