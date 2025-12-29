@@ -284,8 +284,8 @@
 </script>
 
 <h1>GOLD RUSH</h1>
-<p>$1 Scratch-Off * Top Prize $500</p>
-<p class="expected">Expected: $0.50 per ticket (50% RTP)</p>
+<p>Gana Hasta $1,000</p>
+<p class="expected">Ver Tabla de Premios</p>
 
 <div class="container">
   <div class="ticket">
