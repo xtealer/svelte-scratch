@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
-  import PrizeModal from '$lib/PrizeModal.svelte';
+  import { onMount } from "svelte";
+  import { browser } from "$app/environment";
+  import PrizeModal from "$lib/PrizeModal.svelte";
 
   interface PrizeConfig {
     amount: number;
@@ -36,7 +36,7 @@
     { amount: 4, odds: 820 },
     { amount: 2, odds: 250 },
     { amount: 1, odds: 160 },
-    { amount: 0, odds: 0 }
+    { amount: 0, odds: 0 },
   ];
 
   // Calculate probabilities
@@ -50,23 +50,25 @@
   });
 
   const symbolMap: Record<number, string> = {
-    500: '⭐',
-    300: '⭐',
-    200: '🎰',
-    100: '💎',
-    50: '💰',
-    40: '💰',
-    25: '💰',
-    20: '💰',
-    10: '🪙',
-    5: '🪶',
-    4: '🪶',
-    2: '🪶',
-    1: '🪶'
+    500: "⭐",
+    300: "⭐",
+    200: "🎰",
+    100: "💎",
+    50: "💰",
+    40: "💰",
+    25: "💰",
+    20: "💰",
+    10: "🪙",
+    5: "🪶",
+    4: "🪶",
+    2: "🪶",
+    1: "🪶",
   };
 
-  const loseSymbols: string[] = ['🪙', '💰', '💎', '🪶', '🎰', '⭐'];
-  const nearMissPrizes: number[] = [100, 100, 100, 50, 50, 50, 200, 300, 500, 40, 25, 20, 10];
+  const loseSymbols: string[] = ["🪙", "💰", "💎", "🪶", "🎰", "⭐"];
+  const nearMissPrizes: number[] = [
+    100, 100, 100, 50, 50, 50, 200, 300, 500, 40, 25, 20, 10,
+  ];
 
   // State
   let ticketsBought = $state(0);
@@ -74,8 +76,8 @@
   let totalWon = $state(0);
   let currentPrize = $state(0);
   let symbols = $state<string[]>([]);
-  let nearMissText = $state('');
-  let prizeText = $state('-');
+  let nearMissText = $state("");
+  let prizeText = $state("-");
   let muted = $state(false);
   let showPrizeModal = $state(false);
   let revealed = $state(false);
@@ -93,37 +95,41 @@
   let sounds: Sounds | null = null;
 
   // Derived values
-  let rtp = $derived(totalSpent > 0 ? ((totalWon / totalSpent) * 100).toFixed(2) : '0.00');
+  let rtp = $derived(
+    totalSpent > 0 ? ((totalWon / totalSpent) * 100).toFixed(2) : "0.00"
+  );
 
   onMount(() => {
     if (!browser) return;
 
     // Initialize Web Audio API for scratch sound
-    audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    audioContext = new (window.AudioContext ||
+      (window as typeof window & { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext)();
 
     // Initialize sounds
     sounds = {
       coins: new Audio(
-        'https://cdn.pixabay.com/download/audio/2022/03/24/audio_4e7c88c4d3.mp3?filename=jackpot-coins-falling-10609.mp3'
+        "https://cdn.pixabay.com/download/audio/2022/03/24/audio_4e7c88c4d3.mp3?filename=jackpot-coins-falling-10609.mp3"
       ),
       bigWin: new Audio(
-        'https://cdn.pixabay.com/download/audio/2023/01/24/audio_2d7d0b8c4d.mp3?filename=winning-fanfare-1-143095.mp3'
+        "https://cdn.pixabay.com/download/audio/2023/01/24/audio_2d7d0b8c4d.mp3?filename=winning-fanfare-1-143095.mp3"
       ),
       noWin: new Audio(
-        'https://cdn.pixabay.com/download/audio/2022/03/24/audio_9c8f7d8c9d.mp3?filename=sad-trombone-1-6869.mp3'
-      )
+        "https://cdn.pixabay.com/download/audio/2022/03/24/audio_9c8f7d8c9d.mp3?filename=sad-trombone-1-6869.mp3"
+      ),
     };
     Object.values(sounds).forEach((s) => s.load());
 
-    ctx = canvas.getContext('2d');
+    ctx = canvas.getContext("2d");
     newTicket();
 
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('orientationchange', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("orientationchange", resizeCanvas);
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      window.removeEventListener('orientationchange', resizeCanvas);
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("orientationchange", resizeCanvas);
     };
   });
 
@@ -146,13 +152,17 @@
     if (muted || !audioContext || isScratchSoundPlaying) return;
 
     // Resume audio context if suspended (browser autoplay policy)
-    if (audioContext.state === 'suspended') {
+    if (audioContext.state === "suspended") {
       audioContext.resume();
     }
 
     // Create noise buffer for scratch sound
     const bufferSize = audioContext.sampleRate * 0.5; // 0.5 second buffer
-    const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const noiseBuffer = audioContext.createBuffer(
+      1,
+      bufferSize,
+      audioContext.sampleRate
+    );
     const output = noiseBuffer.getChannelData(0);
 
     // Generate filtered noise that sounds like scratching
@@ -167,7 +177,7 @@
 
     // Create bandpass filter for scratch-like sound
     const bandpass = audioContext.createBiquadFilter();
-    bandpass.type = 'bandpass';
+    bandpass.type = "bandpass";
     bandpass.frequency.value = 2000;
     bandpass.Q.value = 0.5;
 
@@ -207,9 +217,9 @@
     canvas.height = scratchArea.offsetHeight;
     totalPixels = canvas.width * canvas.height;
     scratchedPixels = 0;
-    ctx.fillStyle = '#aaaaaa';
+    ctx.fillStyle = "#aaaaaa";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalCompositeOperation = 'destination-out';
+    ctx.globalCompositeOperation = "destination-out";
     scratchAreaRect = scratchArea.getBoundingClientRect();
   }
 
@@ -225,7 +235,7 @@
 
   function generateSymbols(prize: number): string[] {
     if (prize > 0) {
-      const sym = symbolMap[prize] || '🪙';
+      const sym = symbolMap[prize] || "🪙";
       return [sym, sym, sym];
     } else {
       let shuffled = [...loseSymbols];
@@ -245,11 +255,11 @@
     symbols = generateSymbols(currentPrize);
 
     // Hide result
-    prizeText = '-';
+    prizeText = "-";
     revealed = false;
 
     // Near-miss on losers
-    nearMissText = '';
+    nearMissText = "";
     if (currentPrize === 0) {
       const nearPrize = getNearMissPrize();
       nearMissText = `Prize $${nearPrize}`;
@@ -266,14 +276,17 @@
   function revealResult(): void {
     if (revealed) return; // Prevent playing sounds multiple times
     revealed = true;
-    prizeText = currentPrize > 0 ? `WIN $${currentPrize}!` : 'SORRY';
+    prizeText =
+      currentPrize > 0
+        ? `Ganaste $${currentPrize}!`
+        : "Buena Suerte la Proxima Vez!";
 
     // Play win or lose sound when result is revealed
     if (currentPrize > 0) {
-      playSound('coins', currentPrize >= 100 ? 1 : 0.7);
-      if (currentPrize >= 100) playSound('bigWin', 0.8);
+      playSound("coins", currentPrize >= 100 ? 1 : 0.7);
+      if (currentPrize >= 100) playSound("bigWin", 0.8);
     } else {
-      playSound('noWin', 0.6);
+      playSound("noWin", 0.6);
     }
   }
 
@@ -293,13 +306,13 @@
   }
 
   function getClampedPos(e: MouseEvent | TouchEvent): { x: number; y: number } {
-    const clientX = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX ?? 0;
-    const clientY = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY ?? 0;
+    const clientX = "clientX" in e ? e.clientX : (e.touches?.[0]?.clientX ?? 0);
+    const clientY = "clientY" in e ? e.clientY : (e.touches?.[0]?.clientY ?? 0);
     const x = clientX - scratchAreaRect.left;
     const y = clientY - scratchAreaRect.top;
     return {
       x: Math.max(0, Math.min(x, canvas.width)),
-      y: Math.max(0, Math.min(y, canvas.height))
+      y: Math.max(0, Math.min(y, canvas.height)),
     };
   }
 
@@ -308,25 +321,27 @@
     isScratching = true;
     startScratchSound();
     scratch(e);
-    document.addEventListener('mousemove', onDocumentScratch);
-    document.addEventListener('touchmove', onDocumentScratch, { passive: false });
-    document.addEventListener('mouseup', endScratch);
-    document.addEventListener('touchend', endScratch);
+    document.addEventListener("mousemove", onDocumentScratch);
+    document.addEventListener("touchmove", onDocumentScratch, {
+      passive: false,
+    });
+    document.addEventListener("mouseup", endScratch);
+    document.addEventListener("touchend", endScratch);
   }
 
   function endScratch(): void {
     isScratching = false;
     stopScratchSound();
-    document.removeEventListener('mousemove', onDocumentScratch);
-    document.removeEventListener('touchmove', onDocumentScratch);
-    document.removeEventListener('mouseup', endScratch);
-    document.removeEventListener('touchend', endScratch);
+    document.removeEventListener("mousemove", onDocumentScratch);
+    document.removeEventListener("touchmove", onDocumentScratch);
+    document.removeEventListener("mouseup", endScratch);
+    document.removeEventListener("touchend", endScratch);
     checkRevealProgress();
   }
 
   function onDocumentScratch(e: MouseEvent | TouchEvent): void {
     if (!isScratching) return;
-    if ('touches' in e) e.preventDefault();
+    if ("touches" in e) e.preventDefault();
     scratch(e);
     checkRevealProgress();
   }
@@ -384,7 +399,7 @@
   <button onclick={revealAll}>Reveal All Instantly</button>
   <button onclick={openPrizeList}>View Prize List</button>
   <button class:mute={muted} onclick={toggleMute}>
-    {muted ? 'Unmute Sounds' : 'Mute Sounds'}
+    {muted ? "Unmute Sounds" : "Mute Sounds"}
   </button>
   <button onclick={resetStats}>Reset Stats</button>
 </div>
