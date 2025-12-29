@@ -20,6 +20,7 @@
   let scratchNoiseSource: AudioBufferSourceNode | null = null;
   let scratchGain: GainNode | null = null;
   let isScratchSoundPlaying = false;
+  let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Prize odds (50% RTP)
   const prizes: PrizeConfig[] = [
@@ -195,6 +196,10 @@
   }
 
   function stopScratchSound(): void {
+    if (scratchSoundTimeout) {
+      clearTimeout(scratchSoundTimeout);
+      scratchSoundTimeout = null;
+    }
     if (scratchNoiseSource && isScratchSoundPlaying) {
       try {
         scratchNoiseSource.stop();
@@ -319,7 +324,6 @@
   function startScratch(e: MouseEvent | TouchEvent): void {
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
-    startScratchSound();
     scratch(e);
     document.addEventListener("mousemove", onDocumentScratch);
     document.addEventListener("touchmove", onDocumentScratch, {
@@ -344,6 +348,17 @@
     if ("touches" in e) e.preventDefault();
     scratch(e);
     checkRevealProgress();
+
+    // Play scratch sound only while moving
+    startScratchSound();
+
+    // Stop sound after 100ms of no movement
+    if (scratchSoundTimeout) {
+      clearTimeout(scratchSoundTimeout);
+    }
+    scratchSoundTimeout = setTimeout(() => {
+      stopScratchSound();
+    }, 100);
   }
 
   function scratch(e: MouseEvent | TouchEvent): void {
