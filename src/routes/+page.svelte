@@ -24,21 +24,20 @@
   let isScratchSoundPlaying = false;
   let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prize odds (50% RTP, ~8.2% win rate)
+  // Prize odds (50% RTP, ~20% win rate)
   // Based on 10,000 tickets = $5,000 total prizes
-  // Fixed: $500×2, $250×4, $100×10 = $3,000
-  // Remaining $2,000 distributed across lower tiers
+  // $1 prize hits every ~5 plays
   const prizes: PrizeConfig[] = [
     { amount: 500, odds: 5000 },    // 2 in 10,000 ($1,000)
-    { amount: 250, odds: 2500 },    // 4 in 10,000 ($1,000)
-    { amount: 100, odds: 1000 },    // 10 in 10,000 ($1,000)
-    { amount: 50, odds: 2500 },     // 4 in 10,000 ($200)
-    { amount: 20, odds: 1000 },     // 10 in 10,000 ($200)
-    { amount: 10, odds: 400 },      // 25 in 10,000 ($250)
-    { amount: 5, odds: 167 },       // 60 in 10,000 ($300)
-    { amount: 3, odds: 100 },       // 100 in 10,000 ($300)
-    { amount: 2, odds: 67 },        // 150 in 10,000 ($300)
-    { amount: 1, odds: 22 },        // 450 in 10,000 ($450)
+    { amount: 250, odds: 3333 },    // 3 in 10,000 ($750)
+    { amount: 100, odds: 1250 },    // 8 in 10,000 ($800)
+    { amount: 50, odds: 5000 },     // 2 in 10,000 ($100)
+    { amount: 20, odds: 2500 },     // 4 in 10,000 ($80)
+    { amount: 10, odds: 1250 },     // 8 in 10,000 ($80)
+    { amount: 5, odds: 667 },       // 15 in 10,000 ($75)
+    { amount: 3, odds: 333 },       // 30 in 10,000 ($90)
+    { amount: 2, odds: 167 },       // 60 in 10,000 ($120)
+    { amount: 1, odds: 5 },         // 1,905 in 10,000 ($1,905) - every 5 plays!
     { amount: 0, odds: 0 },         // Loss
   ];
 
