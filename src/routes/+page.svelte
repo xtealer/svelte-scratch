@@ -73,6 +73,7 @@
   let prizeText = $state('-');
   let muted = $state(false);
   let showPrizeModal = $state(false);
+  let revealed = $state(false);
 
   // Canvas state
   let canvas: HTMLCanvasElement;
@@ -179,6 +180,7 @@
 
     // Hide result
     prizeText = '-';
+    revealed = false;
 
     // Near-miss on losers
     nearMissText = '';
@@ -191,19 +193,22 @@
     totalSpent += 1;
     totalWon += currentPrize;
 
+    // Need to wait for DOM update before resizing canvas
+    setTimeout(resizeCanvas, 0);
+  }
+
+  function revealResult(): void {
+    if (revealed) return; // Prevent playing sounds multiple times
+    revealed = true;
+    prizeText = currentPrize > 0 ? `WIN $${currentPrize}!` : 'SORRY';
+
+    // Play win or lose sound when result is revealed
     if (currentPrize > 0) {
       playSound('coins', currentPrize >= 100 ? 1 : 0.7);
       if (currentPrize >= 100) playSound('bigWin', 0.8);
     } else {
       playSound('noWin', 0.6);
     }
-
-    // Need to wait for DOM update before resizing canvas
-    setTimeout(resizeCanvas, 0);
-  }
-
-  function revealResult(): void {
-    prizeText = currentPrize > 0 ? `WIN $${currentPrize}!` : 'SORRY';
   }
 
   function revealAll(): void {
