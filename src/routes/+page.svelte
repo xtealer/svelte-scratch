@@ -10,11 +10,16 @@
   }
 
   interface Sounds {
-    scratch: HTMLAudioElement;
     coins: HTMLAudioElement;
     bigWin: HTMLAudioElement;
     noWin: HTMLAudioElement;
   }
+
+  // Web Audio API for scratch sound
+  let audioContext: AudioContext | null = null;
+  let scratchNoiseSource: AudioBufferSourceNode | null = null;
+  let scratchGain: GainNode | null = null;
+  let isScratchSoundPlaying = false;
 
   // Prize odds (50% RTP)
   const prizes: PrizeConfig[] = [
@@ -93,11 +98,11 @@
   onMount(() => {
     if (!browser) return;
 
+    // Initialize Web Audio API for scratch sound
+    audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+
     // Initialize sounds
     sounds = {
-      scratch: new Audio(
-        'https://cdn.pixabay.com/download/audio/2022/03/24/audio_8b5e3b1e1a.mp3?filename=scratch-card-scratch-1-6559.mp3'
-      ),
       coins: new Audio(
         'https://cdn.pixabay.com/download/audio/2022/03/24/audio_4e7c88c4d3.mp3?filename=jackpot-coins-falling-10609.mp3'
       ),
@@ -108,7 +113,6 @@
         'https://cdn.pixabay.com/download/audio/2022/03/24/audio_9c8f7d8c9d.mp3?filename=sad-trombone-1-6869.mp3'
       )
     };
-    sounds.scratch.loop = true;
     Object.values(sounds).forEach((s) => s.load());
 
     ctx = canvas.getContext('2d');
@@ -133,6 +137,68 @@
 
   function toggleMute(): void {
     muted = !muted;
+    if (muted) {
+      stopScratchSound();
+    }
+  }
+
+  function startScratchSound(): void {
+    if (muted || !audioContext || isScratchSoundPlaying) return;
+
+    // Resume audio context if suspended (browser autoplay policy)
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+
+    // Create noise buffer for scratch sound
+    const bufferSize = audioContext.sampleRate * 0.5; // 0.5 second buffer
+    const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+
+    // Generate filtered noise that sounds like scratching
+    for (let i = 0; i < bufferSize; i++) {
+      output[i] = (Math.random() * 2 - 1) * 0.5;
+    }
+
+    // Create source node
+    scratchNoiseSource = audioContext.createBufferSource();
+    scratchNoiseSource.buffer = noiseBuffer;
+    scratchNoiseSource.loop = true;
+
+    // Create bandpass filter for scratch-like sound
+    const bandpass = audioContext.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.value = 2000;
+    bandpass.Q.value = 0.5;
+
+    // Create gain for volume control
+    scratchGain = audioContext.createGain();
+    scratchGain.gain.value = 0.3;
+
+    // Connect nodes
+    scratchNoiseSource.connect(bandpass);
+    bandpass.connect(scratchGain);
+    scratchGain.connect(audioContext.destination);
+
+    scratchNoiseSource.start();
+    isScratchSoundPlaying = true;
+  }
+
+  function stopScratchSound(): void {
+    if (scratchNoiseSource && isScratchSoundPlaying) {
+      try {
+        scratchNoiseSource.stop();
+      } catch {
+        // Already stopped
+      }
+      scratchNoiseSource.disconnect();
+      scratchNoiseSource = null;
+    }
+    if (scratchGain) {
+      scratchGain.disconnect();
+      scratchGain = null;
+    }
+    isScratchSoundPlaying = false;
   }
 
   function resizeCanvas(): void {
@@ -215,9 +281,7 @@
     if (ctx && canvas) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    if (sounds?.scratch) {
-      sounds.scratch.pause();
-    }
+    stopScratchSound();
     revealResult();
   }
 
@@ -242,7 +306,7 @@
   function startScratch(e: MouseEvent | TouchEvent): void {
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
-    playSound('scratch', 0.5);
+    startScratchSound();
     scratch(e);
     document.addEventListener('mousemove', onDocumentScratch);
     document.addEventListener('touchmove', onDocumentScratch, { passive: false });
@@ -252,9 +316,7 @@
 
   function endScratch(): void {
     isScratching = false;
-    if (sounds?.scratch) {
-      sounds.scratch.pause();
-    }
+    stopScratchSound();
     document.removeEventListener('mousemove', onDocumentScratch);
     document.removeEventListener('touchmove', onDocumentScratch);
     document.removeEventListener('mouseup', endScratch);
