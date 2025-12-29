@@ -24,21 +24,21 @@
   let isScratchSoundPlaying = false;
   let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prize odds (~80% RTP, ~29% win rate)
-  // 12 prize tiers for exciting gameplay
+  // Prize odds (50% RTP, ~14% win rate)
+  // 12 prize tiers
   const prizes: PrizeConfig[] = [
-    { amount: 500, odds: 100000 },  // Jackpot: 1 in 100,000
-    { amount: 250, odds: 40000 },   // 1 in 40,000
-    { amount: 100, odds: 10000 },   // 1 in 10,000
-    { amount: 75, odds: 4000 },     // 1 in 4,000
-    { amount: 50, odds: 1500 },     // 1 in 1,500
-    { amount: 30, odds: 600 },      // 1 in 600
-    { amount: 20, odds: 250 },      // 1 in 250
-    { amount: 10, odds: 100 },      // 1 in 100
-    { amount: 5, odds: 50 },        // 1 in 50
-    { amount: 3, odds: 25 },        // 1 in 25
-    { amount: 2, odds: 15 },        // 1 in 15
-    { amount: 1, odds: 7 },         // 1 in 7
+    { amount: 500, odds: 200000 },  // Jackpot: 1 in 200,000
+    { amount: 250, odds: 80000 },   // 1 in 80,000
+    { amount: 100, odds: 20000 },   // 1 in 20,000
+    { amount: 75, odds: 8000 },     // 1 in 8,000
+    { amount: 50, odds: 3000 },     // 1 in 3,000
+    { amount: 30, odds: 1200 },     // 1 in 1,200
+    { amount: 20, odds: 500 },      // 1 in 500
+    { amount: 10, odds: 200 },      // 1 in 200
+    { amount: 5, odds: 100 },       // 1 in 100
+    { amount: 3, odds: 50 },        // 1 in 50
+    { amount: 2, odds: 30 },        // 1 in 30
+    { amount: 1, odds: 14 },        // 1 in 14
     { amount: 0, odds: 0 },         // Loss
   ];
 
