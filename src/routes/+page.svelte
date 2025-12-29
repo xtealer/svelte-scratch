@@ -24,22 +24,20 @@
   let isScratchSoundPlaying = false;
   let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prize odds (50% RTP)
+  // Prize odds (~71% RTP, ~28% win rate)
+  // More frequent wins for exciting gameplay
   const prizes: PrizeConfig[] = [
-    { amount: 500, odds: 1958000 },
-    { amount: 300, odds: 246000 },
-    { amount: 200, odds: 388000 },
-    { amount: 100, odds: 71000 },
-    { amount: 50, odds: 55500 },
-    { amount: 40, odds: 52000 },
-    { amount: 25, odds: 27800 },
-    { amount: 20, odds: 4900 },
-    { amount: 10, odds: 1640 },
-    { amount: 5, odds: 1210 },
-    { amount: 4, odds: 820 },
-    { amount: 2, odds: 250 },
-    { amount: 1, odds: 160 },
-    { amount: 0, odds: 0 },
+    { amount: 100, odds: 8000 },   // Jackpot: 1 in 8000
+    { amount: 50, odds: 3000 },    // 1 in 3000
+    { amount: 25, odds: 1200 },    // 1 in 1200
+    { amount: 20, odds: 600 },     // 1 in 600
+    { amount: 15, odds: 300 },     // 1 in 300
+    { amount: 10, odds: 120 },     // 1 in 120
+    { amount: 5, odds: 50 },       // 1 in 50
+    { amount: 3, odds: 25 },       // 1 in 25
+    { amount: 2, odds: 15 },       // 1 in 15
+    { amount: 1, odds: 7 },        // 1 in 7
+    { amount: 0, odds: 0 },        // Loss
   ];
 
   // Calculate probabilities
@@ -53,25 +51,20 @@
   });
 
   const symbolMap: Record<number, string> = {
-    500: "⭐",
-    300: "⭐",
-    200: "🎰",
     100: "💎",
-    50: "💰",
-    40: "💰",
-    25: "💰",
+    50: "⭐",
+    25: "🎰",
     20: "💰",
+    15: "💰",
     10: "🪙",
-    5: "🪶",
-    4: "🪶",
+    5: "🪙",
+    3: "🪶",
     2: "🪶",
     1: "🪶",
   };
 
   const loseSymbols: string[] = ["🪙", "💰", "💎", "🪶", "🎰", "⭐"];
-  const nearMissPrizes: number[] = [
-    100, 100, 100, 50, 50, 50, 200, 300, 500, 40, 25, 20, 10,
-  ];
+  const nearMissPrizes: number[] = [100, 50, 50, 25, 25, 20, 20, 15, 15, 10];
 
   // Game state
   let currentPrize = $state(0);

@@ -8,19 +8,16 @@
   let { show = $bindable(false) }: { show: boolean } = $props();
 
   const prizes: Prize[] = [
-    { symbol: '⭐', amount: 500, odds: '1 in 1,958,000' },
-    { symbol: '⭐', amount: 300, odds: '1 in 246,000' },
-    { symbol: '🎰', amount: 200, odds: '1 in 388,000' },
-    { symbol: '💎', amount: 100, odds: '1 in 71,000' },
-    { symbol: '💰', amount: 50, odds: '1 in 55,500' },
-    { symbol: '💰', amount: 40, odds: '1 in 52,000' },
-    { symbol: '💰', amount: 25, odds: '1 in 27,800' },
-    { symbol: '💰', amount: 20, odds: '1 in 4,900' },
-    { symbol: '🪙', amount: 10, odds: '1 in 1,640' },
-    { symbol: '🪶', amount: 5, odds: '1 in 1,210' },
-    { symbol: '🪶', amount: 4, odds: '1 in 820' },
-    { symbol: '🪶', amount: 2, odds: '1 in 250' },
-    { symbol: '🪶', amount: 1, odds: '1 in 160' }
+    { symbol: '💎', amount: 100, odds: '1 in 8,000' },
+    { symbol: '⭐', amount: 50, odds: '1 in 3,000' },
+    { symbol: '🎰', amount: 25, odds: '1 in 1,200' },
+    { symbol: '💰', amount: 20, odds: '1 in 600' },
+    { symbol: '💰', amount: 15, odds: '1 in 300' },
+    { symbol: '🪙', amount: 10, odds: '1 in 120' },
+    { symbol: '🪙', amount: 5, odds: '1 in 50' },
+    { symbol: '🪶', amount: 3, odds: '1 in 25' },
+    { symbol: '🪶', amount: 2, odds: '1 in 15' },
+    { symbol: '🪶', amount: 1, odds: '1 in 7' }
   ];
 
   function close(): void {
