@@ -11,13 +11,13 @@
     { symbol: '👑', amount: 500, odds: '1 in 5,000' },
     { symbol: '💎', amount: 250, odds: '1 in 2,500' },
     { symbol: '⭐', amount: 100, odds: '1 in 1,000' },
-    { symbol: '🎰', amount: 75, odds: '1 in 5,000' },
     { symbol: '🎰', amount: 50, odds: '1 in 2,500' },
     { symbol: '💰', amount: 20, odds: '1 in 1,000' },
-    { symbol: '🪙', amount: 10, odds: '1 in 500' },
-    { symbol: '🪙', amount: 5, odds: '1 in 192' },
-    { symbol: '🪶', amount: 3, odds: '1 in 71' },
-    { symbol: '🪶', amount: 1, odds: '1 in 18' }
+    { symbol: '🪙', amount: 10, odds: '1 in 400' },
+    { symbol: '🪙', amount: 5, odds: '1 in 167' },
+    { symbol: '🪶', amount: 3, odds: '1 in 100' },
+    { symbol: '🪶', amount: 2, odds: '1 in 67' },
+    { symbol: '🪶', amount: 1, odds: '1 in 22' }
   ];
 
   function close(): void {

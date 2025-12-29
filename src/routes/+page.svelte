@@ -24,7 +24,7 @@
   let isScratchSoundPlaying = false;
   let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prize odds (50% RTP, ~8.1% win rate)
+  // Prize odds (50% RTP, ~8.2% win rate)
   // Based on 10,000 tickets = $5,000 total prizes
   // Fixed: $500×2, $250×4, $100×10 = $3,000
   // Remaining $2,000 distributed across lower tiers
@@ -32,13 +32,13 @@
     { amount: 500, odds: 5000 },    // 2 in 10,000 ($1,000)
     { amount: 250, odds: 2500 },    // 4 in 10,000 ($1,000)
     { amount: 100, odds: 1000 },    // 10 in 10,000 ($1,000)
-    { amount: 75, odds: 5000 },     // 2 in 10,000 ($150)
     { amount: 50, odds: 2500 },     // 4 in 10,000 ($200)
     { amount: 20, odds: 1000 },     // 10 in 10,000 ($200)
-    { amount: 10, odds: 500 },      // 20 in 10,000 ($200)
-    { amount: 5, odds: 192 },       // 52 in 10,000 ($260)
-    { amount: 3, odds: 71 },        // 140 in 10,000 ($420)
-    { amount: 1, odds: 18 },        // 570 in 10,000 ($570)
+    { amount: 10, odds: 400 },      // 25 in 10,000 ($250)
+    { amount: 5, odds: 167 },       // 60 in 10,000 ($300)
+    { amount: 3, odds: 100 },       // 100 in 10,000 ($300)
+    { amount: 2, odds: 67 },        // 150 in 10,000 ($300)
+    { amount: 1, odds: 22 },        // 450 in 10,000 ($450)
     { amount: 0, odds: 0 },         // Loss
   ];
 
@@ -56,17 +56,17 @@
     500: "👑",
     250: "💎",
     100: "⭐",
-    75: "🎰",
     50: "🎰",
     20: "💰",
     10: "🪙",
     5: "🪙",
     3: "🪶",
+    2: "🪶",
     1: "🪶",
   };
 
   const loseSymbols: string[] = ["🪙", "💰", "💎", "🪶", "🎰", "⭐"];
-  const nearMissPrizes: number[] = [500, 250, 100, 75, 50, 50, 20, 20, 10, 10];
+  const nearMissPrizes: number[] = [500, 250, 100, 100, 50, 50, 20, 20, 10, 10];
 
   // Game state
   let currentPrize = $state(0);
