@@ -323,6 +323,16 @@
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
     scratch(e);
+
+    // Play scratch sound on initial click/tap
+    startScratchSound();
+    if (scratchSoundTimeout) {
+      clearTimeout(scratchSoundTimeout);
+    }
+    scratchSoundTimeout = setTimeout(() => {
+      stopScratchSound();
+    }, 100);
+
     document.addEventListener("mousemove", onDocumentScratch);
     document.addEventListener("touchmove", onDocumentScratch, {
       passive: false,
