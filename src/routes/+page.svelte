@@ -1,9 +1,23 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
-  import PrizeModal from './lib/PrizeModal.svelte';
+  import { browser } from '$app/environment';
+  import PrizeModal from '$lib/PrizeModal.svelte';
+
+  interface PrizeConfig {
+    amount: number;
+    odds: number;
+    prob?: number;
+  }
+
+  interface Sounds {
+    scratch: HTMLAudioElement;
+    coins: HTMLAudioElement;
+    bigWin: HTMLAudioElement;
+    noWin: HTMLAudioElement;
+  }
 
   // Prize odds (50% RTP)
-  const prizes = [
+  const prizes: PrizeConfig[] = [
     { amount: 500, odds: 1958000 },
     { amount: 300, odds: 246000 },
     { amount: 200, odds: 388000 },
@@ -17,7 +31,7 @@
     { amount: 4, odds: 820 },
     { amount: 2, odds: 250 },
     { amount: 1, odds: 160 },
-    { amount: 0, odds: 0 },
+    { amount: 0, odds: 0 }
   ];
 
   // Calculate probabilities
@@ -30,7 +44,7 @@
     p.prob = p.amount > 0 ? 1 / p.odds : loseProb;
   });
 
-  const symbolMap = {
+  const symbolMap: Record<number, string> = {
     500: '⭐',
     300: '⭐',
     200: '🎰',
@@ -43,39 +57,41 @@
     5: '🪶',
     4: '🪶',
     2: '🪶',
-    1: '🪶',
+    1: '🪶'
   };
 
-  const loseSymbols = ['🪙', '💰', '💎', '🪶', '🎰', '⭐'];
-  const nearMissPrizes = [100, 100, 100, 50, 50, 50, 200, 300, 500, 40, 25, 20, 10];
+  const loseSymbols: string[] = ['🪙', '💰', '💎', '🪶', '🎰', '⭐'];
+  const nearMissPrizes: number[] = [100, 100, 100, 50, 50, 50, 200, 300, 500, 40, 25, 20, 10];
 
   // State
   let ticketsBought = $state(0);
   let totalSpent = $state(0);
   let totalWon = $state(0);
   let currentPrize = $state(0);
-  let symbols = $state([]);
+  let symbols = $state<string[]>([]);
   let nearMissText = $state('');
   let prizeText = $state('-');
   let muted = $state(false);
   let showPrizeModal = $state(false);
 
   // Canvas state
-  let canvas;
-  let ctx;
-  let scratchArea;
+  let canvas: HTMLCanvasElement;
+  let ctx: CanvasRenderingContext2D | null;
+  let scratchArea: HTMLDivElement;
   let isScratching = false;
-  let scratchAreaRect;
+  let scratchAreaRect: DOMRect;
   let scratchedPixels = 0;
   let totalPixels = 0;
 
   // Sounds
-  let sounds = {};
+  let sounds: Sounds | null = null;
 
   // Derived values
   let rtp = $derived(totalSpent > 0 ? ((totalWon / totalSpent) * 100).toFixed(2) : '0.00');
 
   onMount(() => {
+    if (!browser) return;
+
     // Initialize sounds
     sounds = {
       scratch: new Audio(
@@ -89,7 +105,7 @@
       ),
       noWin: new Audio(
         'https://cdn.pixabay.com/download/audio/2022/03/24/audio_9c8f7d8c9d.mp3?filename=sad-trombone-1-6869.mp3'
-      ),
+      )
     };
     sounds.scratch.loop = true;
     Object.values(sounds).forEach((s) => s.load());
@@ -106,20 +122,20 @@
     };
   });
 
-  function playSound(key, volume = 1) {
-    if (muted || !sounds[key]) return;
+  function playSound(key: keyof Sounds, volume = 1): void {
+    if (muted || !sounds?.[key]) return;
     const sound = sounds[key];
     sound.currentTime = 0;
     sound.volume = volume;
     sound.play().catch(() => {});
   }
 
-  function toggleMute() {
+  function toggleMute(): void {
     muted = !muted;
   }
 
-  function resizeCanvas() {
-    if (!canvas || !scratchArea) return;
+  function resizeCanvas(): void {
+    if (!canvas || !scratchArea || !ctx) return;
     canvas.width = scratchArea.offsetWidth;
     canvas.height = scratchArea.offsetHeight;
     totalPixels = canvas.width * canvas.height;
@@ -130,17 +146,17 @@
     scratchAreaRect = scratchArea.getBoundingClientRect();
   }
 
-  function getPrize() {
+  function getPrize(): number {
     const rand = Math.random();
     let cum = 0;
     for (const p of prizes) {
-      cum += p.prob;
+      cum += p.prob ?? 0;
       if (rand <= cum) return p.amount;
     }
     return 0;
   }
 
-  function generateSymbols(prize) {
+  function generateSymbols(prize: number): string[] {
     if (prize > 0) {
       const sym = symbolMap[prize] || '🪙';
       return [sym, sym, sym];
@@ -153,11 +169,11 @@
     }
   }
 
-  function getNearMissPrize() {
+  function getNearMissPrize(): number {
     return nearMissPrizes[Math.floor(Math.random() * nearMissPrizes.length)];
   }
 
-  function newTicket() {
+  function newTicket(): void {
     currentPrize = getPrize();
     symbols = generateSymbols(currentPrize);
 
@@ -186,39 +202,39 @@
     setTimeout(resizeCanvas, 0);
   }
 
-  function revealResult() {
+  function revealResult(): void {
     prizeText = currentPrize > 0 ? `WIN $${currentPrize}!` : 'SORRY';
   }
 
-  function revealAll() {
-    if (ctx) {
+  function revealAll(): void {
+    if (ctx && canvas) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    if (sounds.scratch) {
+    if (sounds?.scratch) {
       sounds.scratch.pause();
     }
     revealResult();
   }
 
-  function checkRevealProgress() {
+  function checkRevealProgress(): void {
     scratchedPixels += Math.PI * 50 * 50;
     if (scratchedPixels > totalPixels * 0.35) {
       revealResult();
     }
   }
 
-  function getClampedPos(e) {
-    const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    const clientY = e.clientY ?? e.touches?.[0]?.clientY ?? 0;
+  function getClampedPos(e: MouseEvent | TouchEvent): { x: number; y: number } {
+    const clientX = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX ?? 0;
+    const clientY = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY ?? 0;
     const x = clientX - scratchAreaRect.left;
     const y = clientY - scratchAreaRect.top;
     return {
       x: Math.max(0, Math.min(x, canvas.width)),
-      y: Math.max(0, Math.min(y, canvas.height)),
+      y: Math.max(0, Math.min(y, canvas.height))
     };
   }
 
-  function startScratch(e) {
+  function startScratch(e: MouseEvent | TouchEvent): void {
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
     playSound('scratch', 0.5);
@@ -229,9 +245,9 @@
     document.addEventListener('touchend', endScratch);
   }
 
-  function endScratch() {
+  function endScratch(): void {
     isScratching = false;
-    if (sounds.scratch) {
+    if (sounds?.scratch) {
       sounds.scratch.pause();
     }
     document.removeEventListener('mousemove', onDocumentScratch);
@@ -241,27 +257,28 @@
     checkRevealProgress();
   }
 
-  function onDocumentScratch(e) {
+  function onDocumentScratch(e: MouseEvent | TouchEvent): void {
     if (!isScratching) return;
-    if (e.touches) e.preventDefault();
+    if ('touches' in e) e.preventDefault();
     scratch(e);
     checkRevealProgress();
   }
 
-  function scratch(e) {
+  function scratch(e: MouseEvent | TouchEvent): void {
+    if (!ctx) return;
     const pos = getClampedPos(e);
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, 50, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  function resetStats() {
+  function resetStats(): void {
     ticketsBought = 0;
     totalSpent = 0;
     totalWon = 0;
   }
 
-  function openPrizeList() {
+  function openPrizeList(): void {
     showPrizeModal = true;
   }
 </script>
@@ -315,28 +332,6 @@
 <PrizeModal bind:show={showPrizeModal} />
 
 <style>
-  :global(*) {
-    box-sizing: border-box;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-
-  :global(body) {
-    margin: 0;
-    padding: 10px;
-    font-family: 'Arial Black', Arial, sans-serif;
-    background: linear-gradient(#0f0f0f, #1a0a00);
-    color: #ffd700;
-    text-align: center;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    touch-action: manipulation;
-  }
-
   h1 {
     font-size: 2.4em;
     text-shadow:

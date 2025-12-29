@@ -1,7 +1,0 @@
-/* App-level CSS resets - component styles are in App.svelte */
-#app {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}

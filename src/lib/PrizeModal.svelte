@@ -1,7 +1,13 @@
-<script>
-  let { show = $bindable(false) } = $props();
+<script lang="ts">
+  interface Prize {
+    symbol: string;
+    amount: number;
+    odds: string;
+  }
 
-  const prizes = [
+  let { show = $bindable(false) }: { show: boolean } = $props();
+
+  const prizes: Prize[] = [
     { symbol: '⭐', amount: 500, odds: '1 in 1,958,000' },
     { symbol: '⭐', amount: 300, odds: '1 in 246,000' },
     { symbol: '🎰', amount: 200, odds: '1 in 388,000' },
@@ -14,14 +20,14 @@
     { symbol: '🪶', amount: 5, odds: '1 in 1,210' },
     { symbol: '🪶', amount: 4, odds: '1 in 820' },
     { symbol: '🪶', amount: 2, odds: '1 in 250' },
-    { symbol: '🪶', amount: 1, odds: '1 in 160' },
+    { symbol: '🪶', amount: 1, odds: '1 in 160' }
   ];
 
-  function close() {
+  function close(): void {
     show = false;
   }
 
-  function handleBackdropClick(event) {
+  function handleBackdropClick(event: MouseEvent): void {
     if (event.target === event.currentTarget) {
       close();
     }
