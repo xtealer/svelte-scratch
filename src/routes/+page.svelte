@@ -24,20 +24,22 @@
   let isScratchSoundPlaying = false;
   let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prize odds (~71% RTP, ~28% win rate)
-  // More frequent wins for exciting gameplay
+  // Prize odds (~80% RTP, ~29% win rate)
+  // 12 prize tiers for exciting gameplay
   const prizes: PrizeConfig[] = [
-    { amount: 100, odds: 8000 },   // Jackpot: 1 in 8000
-    { amount: 50, odds: 3000 },    // 1 in 3000
-    { amount: 25, odds: 1200 },    // 1 in 1200
-    { amount: 20, odds: 600 },     // 1 in 600
-    { amount: 15, odds: 300 },     // 1 in 300
-    { amount: 10, odds: 120 },     // 1 in 120
-    { amount: 5, odds: 50 },       // 1 in 50
-    { amount: 3, odds: 25 },       // 1 in 25
-    { amount: 2, odds: 15 },       // 1 in 15
-    { amount: 1, odds: 7 },        // 1 in 7
-    { amount: 0, odds: 0 },        // Loss
+    { amount: 500, odds: 100000 },  // Jackpot: 1 in 100,000
+    { amount: 250, odds: 40000 },   // 1 in 40,000
+    { amount: 100, odds: 10000 },   // 1 in 10,000
+    { amount: 75, odds: 4000 },     // 1 in 4,000
+    { amount: 50, odds: 1500 },     // 1 in 1,500
+    { amount: 30, odds: 600 },      // 1 in 600
+    { amount: 20, odds: 250 },      // 1 in 250
+    { amount: 10, odds: 100 },      // 1 in 100
+    { amount: 5, odds: 50 },        // 1 in 50
+    { amount: 3, odds: 25 },        // 1 in 25
+    { amount: 2, odds: 15 },        // 1 in 15
+    { amount: 1, odds: 7 },         // 1 in 7
+    { amount: 0, odds: 0 },         // Loss
   ];
 
   // Calculate probabilities
@@ -51,11 +53,13 @@
   });
 
   const symbolMap: Record<number, string> = {
-    100: "💎",
-    50: "⭐",
-    25: "🎰",
+    500: "👑",
+    250: "💎",
+    100: "⭐",
+    75: "🎰",
+    50: "🎰",
+    30: "💰",
     20: "💰",
-    15: "💰",
     10: "🪙",
     5: "🪙",
     3: "🪶",
@@ -64,7 +68,7 @@
   };
 
   const loseSymbols: string[] = ["🪙", "💰", "💎", "🪶", "🎰", "⭐"];
-  const nearMissPrizes: number[] = [100, 50, 50, 25, 25, 20, 20, 15, 15, 10];
+  const nearMissPrizes: number[] = [500, 250, 100, 75, 50, 50, 30, 30, 20, 20];
 
   // Game state
   let currentPrize = $state(0);
