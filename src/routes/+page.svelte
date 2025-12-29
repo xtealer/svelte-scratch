@@ -24,20 +24,20 @@
   let isScratchSoundPlaying = false;
   let scratchSoundTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  // Prize odds (50% RTP, ~20% win rate)
-  // Based on 10,000 tickets = $5,000 total prizes
+  // Prize odds (~68% RTP, ~28% win rate)
+  // Based on 10,000 tickets = $6,800 total prizes
   // $1 prize hits every ~5 plays
   const prizes: PrizeConfig[] = [
-    { amount: 500, odds: 5000 },    // 2 in 10,000 ($1,000)
-    { amount: 250, odds: 3333 },    // 3 in 10,000 ($750)
-    { amount: 100, odds: 1250 },    // 8 in 10,000 ($800)
-    { amount: 50, odds: 5000 },     // 2 in 10,000 ($100)
-    { amount: 20, odds: 2500 },     // 4 in 10,000 ($80)
-    { amount: 10, odds: 1250 },     // 8 in 10,000 ($80)
-    { amount: 5, odds: 667 },       // 15 in 10,000 ($75)
-    { amount: 3, odds: 333 },       // 30 in 10,000 ($90)
-    { amount: 2, odds: 167 },       // 60 in 10,000 ($120)
-    { amount: 1, odds: 5 },         // 1,905 in 10,000 ($1,905) - every 5 plays!
+    { amount: 500, odds: 10000 },   // 1 in 10,000 ($500)
+    { amount: 250, odds: 5000 },    // 2 in 10,000 ($500)
+    { amount: 100, odds: 2000 },    // 5 in 10,000 ($500)
+    { amount: 50, odds: 1000 },     // 10 in 10,000 ($500)
+    { amount: 20, odds: 500 },      // 20 in 10,000 ($400)
+    { amount: 10, odds: 200 },      // 50 in 10,000 ($500)
+    { amount: 5, odds: 100 },       // 100 in 10,000 ($500)
+    { amount: 3, odds: 50 },        // 200 in 10,000 ($600)
+    { amount: 2, odds: 25 },        // 400 in 10,000 ($800)
+    { amount: 1, odds: 5 },         // 2,000 in 10,000 ($2,000)
     { amount: 0, odds: 0 },         // Loss
   ];
 
@@ -52,7 +52,7 @@
   });
 
   const symbolMap: Record<number, string> = {
-    500: "👑",
+    500: "💎",
     250: "💎",
     100: "⭐",
     50: "🎰",
