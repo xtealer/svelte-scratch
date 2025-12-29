@@ -1,19 +1,8 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
+import { getTicket, useTicket } from "$lib/server/scratchStore";
 
-// Mock database of scratch codes
-// In production, this would be a real database
-const scratchCodes: Record<
-  string,
-  { plays: number; used: boolean; createdAt: Date }
-> = {
-  GOLD123: { plays: 3, used: false, createdAt: new Date() },
-  LUCKY456: { plays: 5, used: false, createdAt: new Date() },
-  WIN789: { plays: 1, used: false, createdAt: new Date() },
-  MEGA000: { plays: 10, used: false, createdAt: new Date() },
-  TEST001: { plays: 2, used: false, createdAt: new Date() },
-};
-
+// POST - Validate and use a scratch code
 export const POST: RequestHandler = async ({ request }) => {
   try {
     const { code } = await request.json();
@@ -23,31 +12,34 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const upperCode = code.toUpperCase().trim();
-    const scratchData = scratchCodes[upperCode];
+    const ticket = getTicket(upperCode);
 
-    if (!scratchData) {
+    if (!ticket) {
       return json({ error: "Code not found" }, { status: 404 });
     }
 
-    if (scratchData.used) {
+    if (ticket.used) {
       return json({ error: "Code already used" }, { status: 400 });
     }
 
     // Mark code as used
-    scratchData.used = true;
+    const usedTicket = useTicket(upperCode);
+    if (!usedTicket) {
+      return json({ error: "Failed to use code" }, { status: 500 });
+    }
 
     return json({
       success: true,
       code: upperCode,
-      plays: scratchData.plays,
-      message: `Loaded ${scratchData.plays} play${scratchData.plays > 1 ? "s" : ""}!`,
+      plays: usedTicket.plays,
+      message: `Loaded ${usedTicket.plays} play${usedTicket.plays > 1 ? "s" : ""}!`,
     });
   } catch {
     return json({ error: "Server error" }, { status: 500 });
   }
 };
 
-// GET endpoint to check code status (optional)
+// GET - Check code status
 export const GET: RequestHandler = async ({ url }) => {
   const code = url.searchParams.get("code");
 
@@ -56,15 +48,16 @@ export const GET: RequestHandler = async ({ url }) => {
   }
 
   const upperCode = code.toUpperCase().trim();
-  const scratchData = scratchCodes[upperCode];
+  const ticket = getTicket(upperCode);
 
-  if (!scratchData) {
+  if (!ticket) {
     return json({ exists: false });
   }
 
   return json({
     exists: true,
-    used: scratchData.used,
-    plays: scratchData.used ? 0 : scratchData.plays,
+    used: ticket.used,
+    plays: ticket.used ? 0 : ticket.plays,
+    createdAt: ticket.createdAt,
   });
 };
