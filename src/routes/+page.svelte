@@ -282,9 +282,7 @@
     if (revealed) return; // Prevent playing sounds multiple times
     revealed = true;
     prizeText =
-      currentPrize > 0
-        ? `Ganaste $${currentPrize}!`
-        : "Buena Suerte la Proxima Vez!";
+      currentPrize > 0 ? `¡Ganaste $${currentPrize}!` : "¡Has Perdido!";
 
     // Play win or lose sound when result is revealed
     if (currentPrize > 0) {
