@@ -11,14 +11,14 @@ export interface ScratchTicket {
 // In-memory database
 const scratchCodes: Map<string, ScratchTicket> = new Map();
 
-// Generate a random alphanumeric code
-function generateCode(length = 8): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed confusing chars (0, O, 1, I)
-  let code = "";
-  for (let i = 0; i < length; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+// Sequential counter for code generation
+let codeCounter = 0;
+
+// Generate sequential code in format: GOLD-001-000000001
+function generateCode(): string {
+  codeCounter++;
+  const sequenceNumber = codeCounter.toString().padStart(9, "0");
+  return `GOLD-001-${sequenceNumber}`;
 }
 
 // Generate a unique code that doesn't exist in the store
