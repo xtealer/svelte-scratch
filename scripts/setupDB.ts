@@ -33,51 +33,6 @@ function question(prompt: string): Promise<string> {
   });
 }
 
-function questionHidden(prompt: string): Promise<string> {
-  return new Promise((resolve) => {
-    process.stdout.write(prompt);
-
-    const stdin = process.stdin;
-    const oldRawMode = stdin.isRaw;
-    stdin.setRawMode(true);
-    stdin.resume();
-
-    let password = '';
-
-    const onData = (char: Buffer) => {
-      const c = char.toString('utf8');
-
-      switch (c) {
-        case '\n':
-        case '\r':
-        case '\u0004': // Ctrl+D
-          stdin.setRawMode(oldRawMode);
-          stdin.pause();
-          stdin.removeListener('data', onData);
-          process.stdout.write('\n');
-          resolve(password);
-          break;
-        case '\u0003': // Ctrl+C
-          process.exit();
-          break;
-        case '\u007F': // Backspace
-          if (password.length > 0) {
-            password = password.slice(0, -1);
-            process.stdout.clearLine(0);
-            process.stdout.cursorTo(0);
-            process.stdout.write(prompt + '*'.repeat(password.length));
-          }
-          break;
-        default:
-          password += c;
-          process.stdout.write('*');
-          break;
-      }
-    };
-
-    stdin.on('data', onData);
-  });
-}
 
 async function main() {
   console.log('\n🎰 Casino Admin - Database Setup\n');
@@ -128,7 +83,7 @@ async function main() {
       process.exit(1);
     }
 
-    const password = await questionHidden('Password: ');
+    const password = await question('Password: ');
     if (!password || password.length < 6) {
       console.log('❌ Password must be at least 6 characters');
       rl.close();
@@ -136,7 +91,7 @@ async function main() {
       process.exit(1);
     }
 
-    const confirmPassword = await questionHidden('Confirm Password: ');
+    const confirmPassword = await question('Confirm Password: ');
     if (password !== confirmPassword) {
       console.log('❌ Passwords do not match');
       rl.close();
