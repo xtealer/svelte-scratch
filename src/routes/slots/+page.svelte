@@ -5,6 +5,7 @@
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
   import { prizes, symbolMap, loseSymbols, getPrize, getWinSymbols, getLoseSymbols, getNearMissSymbols } from "$lib/prizeConfig";
+  import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
 
   const MAX_PRIZE = 500; // Cap max win at $500
   const MIN_BET = 1;
@@ -280,20 +281,24 @@
     <div class="machine-controls">
       <div class="control-left">
         <a href="/" class="control-btn back-btn" title="Volver al Menú">
-          <span class="control-icon">←</span>
+          <ArrowLeft size={20} />
         </a>
         <button class="control-btn" onclick={openPrizeList} title="Ver Premios">
-          <span class="control-icon">🏆</span>
+          <Trophy size={20} />
         </button>
       </div>
       <div class="control-right">
         {#if hasActiveSession}
           <button class="control-btn end-btn" onclick={resetSession} title="Terminar Sesión">
-            <span class="control-icon">✕</span>
+            <X size={20} />
           </button>
         {/if}
         <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Activar Sonido" : "Silenciar"}>
-          <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
+          {#if muted}
+            <VolumeX size={20} />
+          {:else}
+            <Volume2 size={20} />
+          {/if}
         </button>
       </div>
     </div>
@@ -466,8 +471,12 @@
     background: rgba(255, 100, 100, 0.3);
   }
 
-  .control-icon {
-    font-size: 1.2em;
+  .control-btn :global(svg) {
+    color: #ffd700;
+  }
+
+  .control-btn.end-btn :global(svg) {
+    color: #ff6666;
   }
 
   .machine-title {
@@ -806,8 +815,9 @@
       height: 34px;
     }
 
-    .control-icon {
-      font-size: 1em;
+    .control-btn :global(svg) {
+      width: 16px;
+      height: 16px;
     }
 
     .bet-btn {

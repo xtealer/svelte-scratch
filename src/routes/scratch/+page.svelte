@@ -4,6 +4,7 @@
   import PrizeModal from "$lib/PrizeModal.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
+  import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
 
   interface PrizeConfig {
     amount: number;
@@ -501,10 +502,10 @@
     <div class="ticket-controls">
       <div class="control-left">
         <a href="/" class="control-btn back-btn" title="Volver al Menú">
-          <span class="control-icon">←</span>
+          <ArrowLeft size={20} />
         </a>
         <button class="control-btn" onclick={openPrizeList} title="Ver Premios">
-          <span class="control-icon">🏆</span>
+          <Trophy size={20} />
         </button>
       </div>
       <div class="control-right">
@@ -514,7 +515,7 @@
             onclick={resetSession}
             title="Terminar Sesión"
           >
-            <span class="control-icon">✕</span>
+            <X size={20} />
           </button>
         {/if}
         <button
@@ -523,7 +524,11 @@
           onclick={toggleMute}
           title={muted ? "Activar Sonido" : "Silenciar"}
         >
-          <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
+          {#if muted}
+            <VolumeX size={20} />
+          {:else}
+            <Volume2 size={20} />
+          {/if}
         </button>
       </div>
     </div>
@@ -688,8 +693,12 @@
     opacity: 0.6;
   }
 
-  .control-icon {
-    font-size: 1.2em;
+  .control-btn :global(svg) {
+    color: #ffd700;
+  }
+
+  .control-btn.end-btn :global(svg) {
+    color: #ff6666;
   }
 
   .control-left {
@@ -948,8 +957,9 @@
       width: 34px;
       height: 34px;
     }
-    .control-icon {
-      font-size: 1em;
+    .control-btn :global(svg) {
+      width: 16px;
+      height: 16px;
     }
     .ticket-title {
       font-size: 1.8em;

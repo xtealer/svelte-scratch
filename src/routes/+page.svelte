@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Ticket, Dices } from "lucide-svelte";
 </script>
 
 <div class="menu">
@@ -7,14 +8,18 @@
 
   <div class="games">
     <a href="/scratch" class="game-card">
-      <div class="game-icon">🎫</div>
+      <div class="game-icon">
+        <Ticket size={48} />
+      </div>
       <div class="game-title">RASCA Y GANA</div>
       <div class="game-desc">¡Rasca y Gana!</div>
       <div class="game-prize">Gana hasta $500</div>
     </a>
 
     <a href="/slots" class="game-card">
-      <div class="game-icon">🎰</div>
+      <div class="game-icon">
+        <Dices size={48} />
+      </div>
       <div class="game-title">TRAGAMONEDAS</div>
       <div class="game-desc">¡Gira y Gana!</div>
       <div class="game-prize">Gana hasta $500</div>
@@ -86,8 +91,12 @@
   }
 
   .game-icon {
-    font-size: 3em;
     margin-bottom: 10px;
+    color: #ffd700;
+  }
+
+  .game-icon :global(svg) {
+    stroke-width: 1.5;
   }
 
   .game-title {
@@ -132,8 +141,11 @@
       max-width: 220px;
     }
     .game-icon {
-      font-size: 3.5em;
       margin-bottom: 14px;
+    }
+    .game-icon :global(svg) {
+      width: 56px;
+      height: 56px;
     }
     .game-title {
       font-size: 1.4em;
