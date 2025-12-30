@@ -5,7 +5,7 @@
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
   import SlotSymbol from "$lib/SlotSymbols.svelte";
-  import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
+  import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play } from "lucide-svelte";
 
   const MAX_PRIZE = 500;
   const MIN_BET = 1;
@@ -45,23 +45,19 @@
   prizes.forEach((p) => {
     if (p.amount > 0) totalProb += 1 / p.odds;
   });
-  const loseProb = 1 - totalProb;
 
   // Game state
   let currentPrize = $state(0);
-  // Each reel shows 3 symbols [top, middle, bottom]
+  let lastWin = $state(0);
+  // 3x3 grid: reels[col][row]
   let reels = $state<string[][]>([
-    ["cherry", "plum", "lemon"],
-    ["bell", "seven", "bar"],
-    ["diamond", "star", "cherry"]
+    ["bar", "bar", "cherry"],
+    ["bar", "bar", "bar"],
+    ["bar", "bar", "bar"]
   ]);
-  let prizeText = $state("INGRESA CÓDIGO");
   let muted = $state(false);
   let spinning = $state(false);
   let betSize = $state(1);
-
-  // Reel animation offsets
-  let reelOffsets = $state([0, 0, 0]);
 
   // Session state
   let hasActiveSession = $state(false);
@@ -94,7 +90,6 @@
         lose: new Audio("https://assets.mixkit.co/active_storage/sfx/2001/2001-preview.mp3"),
       };
 
-      // Restore session from localStorage
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         try {
@@ -104,7 +99,6 @@
             credits = session.credits || 0;
             sessionWinnings = session.sessionWinnings || 0;
             hasActiveSession = true;
-            prizeText = "¡GIRA Y GANA!";
           } else {
             localStorage.removeItem(STORAGE_KEY);
           }
@@ -171,15 +165,6 @@
     }
   }
 
-  function maxBet() {
-    for (let i = BET_STEPS.length - 1; i >= 0; i--) {
-      if (BET_STEPS[i] <= credits) {
-        betSize = BET_STEPS[i];
-        return;
-      }
-    }
-  }
-
   function getRandomSymbol(): string {
     return allSymbols[Math.floor(Math.random() * allSymbols.length)];
   }
@@ -201,7 +186,7 @@
   }
 
   function getWinReels(symbol: string): string[][] {
-    // All three middle symbols match
+    // Middle row (index 1) all match
     return [
       [getRandomSymbol(), symbol, getRandomSymbol()],
       [getRandomSymbol(), symbol, getRandomSymbol()],
@@ -213,17 +198,17 @@
     let r: string[][];
     do {
       r = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
-    } while (r[0][1] === r[1][1] && r[1][1] === r[2][1]); // Ensure middle row doesn't match
+    } while (r[0][1] === r[1][1] && r[1][1] === r[2][1]);
     return r;
   }
 
   function getNearMissReels(): string[][] {
-    const symbol = allSymbols[Math.floor(Math.random() * 3)]; // Pick a valuable symbol
+    const symbol = allSymbols[Math.floor(Math.random() * 3)];
     const otherSymbol = allSymbols.find(s => s !== symbol) || "lemon";
     return [
       [getRandomSymbol(), symbol, getRandomSymbol()],
       [getRandomSymbol(), symbol, getRandomSymbol()],
-      [getRandomSymbol(), otherSymbol, getRandomSymbol()] // Near miss - last one different
+      [getRandomSymbol(), otherSymbol, getRandomSymbol()]
     ];
   }
 
@@ -246,7 +231,7 @@
     hasActiveSession = true;
     betSize = Math.min(betSize, credits);
     if (betSize < 1) betSize = 1;
-    prizeText = "¡GIRA Y GANA!";
+    lastWin = 0;
     reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
     saveSession();
   }
@@ -259,8 +244,8 @@
     credits = 0;
     sessionWinnings = 0;
     currentPrize = 0;
+    lastWin = 0;
     reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
-    prizeText = "INGRESA CÓDIGO";
     betSize = 1;
   }
 
@@ -275,6 +260,14 @@
     autoplaySpinsLeft = 0;
   }
 
+  function toggleAutoplay() {
+    if (autoplayActive) {
+      stopAutoplay();
+    } else {
+      startAutoplay(50);
+    }
+  }
+
   async function spin() {
     if (spinning || credits < betSize || !hasActiveSession) {
       if (autoplayActive) stopAutoplay();
@@ -284,33 +277,25 @@
     spinning = true;
     credits -= betSize;
     currentPrize = 0;
-    prizeText = "";
+    lastWin = 0;
     playSound(sounds?.spin);
 
-    // Animate spinning with offset animation
     const spinDuration = 2000;
     const spinInterval = 60;
 
     const spinAnimation = setInterval(() => {
       reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
-      reelOffsets = [
-        Math.random() * 10 - 5,
-        Math.random() * 10 - 5,
-        Math.random() * 10 - 5
-      ];
     }, spinInterval);
 
     await new Promise((resolve) => setTimeout(resolve, spinDuration));
     clearInterval(spinAnimation);
-    reelOffsets = [0, 0, 0];
 
-    // Determine result
     const result = getPrize();
 
     if (result.amount > 0) {
       currentPrize = Math.min(result.amount * betSize, MAX_PRIZE);
+      lastWin = currentPrize;
       reels = getWinReels(result.symbol);
-      prizeText = `¡GANASTE $${currentPrize}!`;
       sessionWinnings += currentPrize;
 
       if (currentPrize >= 50) {
@@ -321,10 +306,8 @@
     } else {
       if (Math.random() < 0.3) {
         reels = getNearMissReels();
-        prizeText = "¡CASI!";
       } else {
         reels = getLoseReels();
-        prizeText = "¡OTRA VEZ!";
       }
       playSound(sounds?.lose);
     }
@@ -354,136 +337,109 @@
 </script>
 
 <div class="container">
+  <!-- Top controls -->
+  <div class="top-controls">
+    <a href="/" class="control-btn back-btn" title="Volver al Menú">
+      <ArrowLeft size={20} />
+    </a>
+    <div class="spacer"></div>
+    {#if hasActiveSession}
+      <button class="control-btn end-btn" onclick={resetSession} title="Terminar Sesión">
+        <X size={20} />
+      </button>
+    {/if}
+    <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Activar Sonido" : "Silenciar"}>
+      {#if muted}
+        <VolumeX size={20} />
+      {:else}
+        <Volume2 size={20} />
+      {/if}
+    </button>
+  </div>
+
+  <!-- Win display -->
+  <div class="win-display" class:winner={lastWin > 0}>
+    WIN: ${lastWin}
+  </div>
+
+  <!-- Slot machine reels -->
   <div class="slot-machine">
-    <div class="machine-controls">
-      <div class="control-left">
-        <a href="/" class="control-btn back-btn" title="Volver al Menú">
-          <ArrowLeft size={20} />
-        </a>
-        <button class="control-btn" onclick={openPrizeList} title="Ver Premios">
-          <Trophy size={20} />
-        </button>
-      </div>
-      <div class="control-right">
-        {#if hasActiveSession}
-          <button class="control-btn end-btn" onclick={resetSession} title="Terminar Sesión">
-            <X size={20} />
-          </button>
-        {/if}
-        <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Activar Sonido" : "Silenciar"}>
-          {#if muted}
-            <VolumeX size={20} />
-          {:else}
-            <Volume2 size={20} />
-          {/if}
-        </button>
-      </div>
-    </div>
-
-    <div class="machine-title">TRAGAMONEDAS</div>
-    <div class="machine-subtitle">¡3 Iguales Ganan!</div>
-
     <div class="reels-container">
-      <div class="reels-frame">
-        <div class="reels">
-          {#each reels as reel, i}
-            <div class="reel" class:spinning style="--offset: {reelOffsets[i]}px">
-              <div class="reel-strip">
-                {#each reel as symbol, j}
-                  <div class="symbol-wrapper" class:center={j === 1}>
-                    <SlotSymbol {symbol} size={55} />
-                  </div>
-                {/each}
-              </div>
+      {#each reels as reel, colIdx}
+        <div class="reel-column">
+          {#each reel as symbol, rowIdx}
+            <div class="symbol-cell" class:center-row={rowIdx === 1} class:spinning>
+              <SlotSymbol {symbol} size={65} />
             </div>
           {/each}
         </div>
-        <!-- Win line indicator -->
-        <div class="win-line"></div>
-        <!-- Gradient overlays for classic look -->
-        <div class="reel-shadow top"></div>
-        <div class="reel-shadow bottom"></div>
-      </div>
+      {/each}
     </div>
+  </div>
 
-    <div class="prize-display" class:winner={currentPrize > 0 && !spinning}>
-      {prizeText}
-    </div>
-
-    {#if hasActiveSession}
-      <div class="bet-control">
-        <button class="bet-btn" onclick={decreaseBet} disabled={spinning || betSize <= MIN_BET}>−</button>
-        <div class="bet-display">
-          <span class="bet-label">APUESTA</span>
-          <span class="bet-value">${betSize}</span>
+  <!-- Bottom controls -->
+  {#if hasActiveSession}
+    <div class="bottom-controls">
+      <div class="left-info">
+        <div class="info-row">
+          <span class="info-label">Credit:</span>
+          <span class="info-value">${credits}</span>
         </div>
-        <button class="bet-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > credits}>+</button>
-        <button class="max-bet-btn" onclick={maxBet} disabled={spinning || betSize >= credits}>MÁX</button>
-      </div>
-
-      <div class="machine-footer">
-        <div class="footer-left">
-          <div class="credits-display">
-            <span class="credits-label">Créditos:</span>
-            <span class="credits-value">${credits}</span>
-          </div>
-          {#if sessionWinnings > 0}
-            <button class="claim-btn" onclick={openClaimModal}>
-              Cobrar ${sessionWinnings}
-            </button>
-          {/if}
-        </div>
-
-        <div class="footer-right">
-          {#if credits >= betSize}
-            {#if autoplayActive}
-              <button class="spin-btn stop-btn" onclick={stopAutoplay}>
-                PARAR ({autoplaySpinsLeft})
-              </button>
-            {:else}
-              <button
-                class="spin-btn"
-                onclick={spin}
-                disabled={spinning}
-                class:spinning
-              >
-                {#if spinning}
-                  GIRANDO...
-                {:else}
-                  GIRAR
-                {/if}
-              </button>
-            {/if}
-          {:else}
-            <button class="spin-btn new-code" onclick={openCodeModal}>
-              NUEVO CÓDIGO
-            </button>
-          {/if}
+        <div class="info-row">
+          <span class="info-label">Bet:</span>
+          <span class="info-value">${betSize}</span>
         </div>
       </div>
 
-      {#if credits >= betSize && !autoplayActive && !spinning}
-        <div class="autoplay-control">
-          <span class="autoplay-label">Auto:</span>
-          {#each AUTOPLAY_OPTIONS as option}
-            <button
-              class="autoplay-btn"
-              onclick={() => startAutoplay(option)}
-              disabled={credits < betSize}
-            >
-              {option}
-            </button>
-          {/each}
-        </div>
-      {/if}
-    {:else}
-      <div class="enter-code-container">
-        <button class="enter-code-btn" onclick={openCodeModal}>
-          Ingresar Código
+      <div class="center-controls">
+        <button class="bet-adjust-btn" onclick={decreaseBet} disabled={spinning || betSize <= MIN_BET}>
+          −
+        </button>
+
+        {#if credits >= betSize}
+          <button
+            class="spin-btn"
+            onclick={spin}
+            disabled={spinning}
+            class:spinning
+          >
+            <RotateCw size={24} />
+            <span>SPIN</span>
+          </button>
+        {:else}
+          <button class="spin-btn new-code" onclick={openCodeModal}>
+            <span>CÓDIGO</span>
+          </button>
+        {/if}
+
+        <button class="bet-adjust-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > credits}>
+          +
         </button>
       </div>
-    {/if}
-  </div>
+
+      <div class="right-controls">
+        <button class="side-btn" onclick={openPrizeList}>
+          <Grid3x3 size={16} />
+          <span>Pay Table</span>
+        </button>
+        <button class="side-btn" onclick={toggleAutoplay} class:active={autoplayActive}>
+          <Play size={16} />
+          <span>AUTO | {autoplayActive ? 'ON' : 'OFF'}</span>
+        </button>
+        {#if sessionWinnings > 0}
+          <button class="claim-btn" onclick={openClaimModal}>
+            Cobrar ${sessionWinnings}
+          </button>
+        {/if}
+      </div>
+    </div>
+  {:else}
+    <div class="enter-code-container">
+      <button class="enter-code-btn" onclick={openCodeModal}>
+        Ingresar Código
+      </button>
+    </div>
+  {/if}
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
@@ -499,35 +455,23 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     min-height: 100vh;
-    padding: 20px;
+    padding: 15px;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
   }
 
-  .slot-machine {
-    position: relative;
+  .top-controls {
+    display: flex;
     width: 100%;
-    max-width: 380px;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border-radius: 20px;
-    padding: 20px;
-    box-shadow:
-      0 15px 40px rgba(0, 0, 0, 0.9),
-      inset 0 0 30px rgba(255, 215, 0, 0.2);
-    border: 3px solid #ffd700;
+    max-width: 400px;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
   }
 
-  .machine-controls {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-  }
-
-  .control-left,
-  .control-right {
-    display: flex;
-    gap: 8px;
+  .spacer {
+    flex: 1;
   }
 
   .control-btn {
@@ -569,153 +513,17 @@
     color: #ff6666;
   }
 
-  .machine-title {
-    font-size: 2.2em;
+  .win-display {
+    font-size: 2em;
+    font-weight: bold;
     color: #ffd700;
-    text-shadow:
-      0 0 15px #ff0,
-      3px 3px 10px #000;
-    font-weight: bold;
-    text-align: center;
-  }
-
-  .machine-subtitle {
-    font-size: 1.1em;
-    color: #fff;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
-  .reels-container {
-    background: linear-gradient(180deg, #0a0a0a, #1a1a1a, #0a0a0a);
-    border-radius: 15px;
-    padding: 15px;
+    text-shadow: 2px 2px 4px #000;
     margin-bottom: 15px;
-    box-shadow:
-      inset 0 5px 20px rgba(0, 0, 0, 0.9),
-      0 0 15px rgba(255, 215, 0, 0.3);
-    border: 2px solid #333;
   }
 
-  .reels-frame {
-    position: relative;
-    overflow: hidden;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #111 0%, #222 50%, #111 100%);
-  }
-
-  .reels {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 5px;
-  }
-
-  .reel {
-    width: 90px;
-    height: 180px;
-    background: linear-gradient(
-      180deg,
-      #1a1a1a 0%,
-      #e8e8e8 15%,
-      #ffffff 50%,
-      #e8e8e8 85%,
-      #1a1a1a 100%
-    );
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow:
-      inset 2px 0 8px rgba(0, 0, 0, 0.3),
-      inset -2px 0 8px rgba(0, 0, 0, 0.3);
-    border: 1px solid #444;
-  }
-
-  .reel.spinning .reel-strip {
-    animation: reelSpin 0.1s linear infinite;
-  }
-
-  .reel-strip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transform: translateY(var(--offset, 0));
-    transition: transform 0.05s ease-out;
-  }
-
-  .symbol-wrapper {
-    width: 100%;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.5;
-  }
-
-  .symbol-wrapper.center {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-
-  @keyframes reelSpin {
-    0% { transform: translateY(-20px); }
-    100% { transform: translateY(0); }
-  }
-
-  .win-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #ffd700, transparent);
-    transform: translateY(-50%);
-    box-shadow: 0 0 10px #ffd700;
-    pointer-events: none;
-    z-index: 5;
-  }
-
-  .reel-shadow {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 50px;
-    pointer-events: none;
-    z-index: 10;
-  }
-
-  .reel-shadow.top {
-    top: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(10, 10, 10, 0.95) 0%,
-      rgba(10, 10, 10, 0.7) 40%,
-      transparent 100%
-    );
-  }
-
-  .reel-shadow.bottom {
-    bottom: 0;
-    background: linear-gradient(
-      0deg,
-      rgba(10, 10, 10, 0.95) 0%,
-      rgba(10, 10, 10, 0.7) 40%,
-      transparent 100%
-    );
-  }
-
-  .prize-display {
-    text-align: center;
-    font-size: 1.6em;
-    font-weight: bold;
-    color: #fff;
-    min-height: 40px;
-    margin-bottom: 15px;
-    text-shadow: 2px 2px 5px #000;
-  }
-
-  .prize-display.winner {
+  .win-display.winner {
     color: #00ff00;
-    text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+    text-shadow: 0 0 15px #0f0, 0 0 30px #0f0;
     animation: pulse 0.5s ease-in-out infinite alternate;
   }
 
@@ -724,124 +532,204 @@
     to { transform: scale(1.05); }
   }
 
-  .bet-control {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
+  .slot-machine {
+    background: #1a1a2a;
+    border-radius: 20px;
+    padding: 15px;
+    box-shadow:
+      0 10px 40px rgba(0, 0, 0, 0.8),
+      inset 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 3px solid #333;
   }
 
-  .bet-btn {
+  .reels-container {
+    display: flex;
+    gap: 10px;
+  }
+
+  .reel-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .symbol-cell {
+    width: 95px;
+    height: 85px;
+    background: linear-gradient(180deg, #2a2a3a 0%, #1a1a2a 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #333;
+    transition: all 0.2s;
+  }
+
+  .symbol-cell.center-row {
+    border-color: #555;
+    background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
+  }
+
+  .symbol-cell.spinning {
+    opacity: 0.8;
+  }
+
+  .bottom-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  .left-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 90px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .info-label {
+    font-size: 0.9em;
+    color: #aaa;
+    font-weight: bold;
+  }
+
+  .info-value {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #fff;
+  }
+
+  .center-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .bet-adjust-btn {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 2px solid #ffd700;
-    background: rgba(0, 0, 0, 0.5);
-    color: #ffd700;
+    border: none;
+    background: #2a2a3a;
+    color: #fff;
     font-size: 1.5em;
     font-weight: bold;
     cursor: pointer;
-    transition: transform 0.1s, background 0.2s;
+    transition: all 0.2s;
   }
 
-  .bet-btn:hover:not(:disabled) {
+  .bet-adjust-btn:hover:not(:disabled) {
+    background: #3a3a4a;
     transform: scale(1.1);
-    background: rgba(255, 215, 0, 0.3);
   }
 
-  .bet-btn:disabled {
+  .bet-adjust-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
 
-  .max-bet-btn {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 2px solid #ffd700;
-    background: rgba(0, 0, 0, 0.5);
-    color: #ffd700;
-    font-size: 0.9em;
+  .spin-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 15px 30px;
+    font-size: 1.2em;
     font-weight: bold;
+    background: linear-gradient(180deg, #c94040 0%, #8b2020 100%);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
     cursor: pointer;
-    transition: transform 0.1s, background 0.2s;
+    box-shadow:
+      0 4px 15px rgba(0, 0, 0, 0.5),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    transition: all 0.2s;
+    text-shadow: 1px 1px 2px #000;
   }
 
-  .max-bet-btn:hover:not(:disabled) {
+  .spin-btn:hover:not(:disabled) {
     transform: scale(1.05);
-    background: rgba(255, 215, 0, 0.3);
+    background: linear-gradient(180deg, #d95050 0%, #9b3030 100%);
   }
 
-  .max-bet-btn:disabled {
-    opacity: 0.4;
+  .spin-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .spin-btn:disabled {
+    background: linear-gradient(180deg, #555 0%, #333 100%);
     cursor: not-allowed;
   }
 
-  .bet-display {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 70px;
+  .spin-btn.spinning {
+    background: linear-gradient(180deg, #ff9900 0%, #cc6600 100%);
   }
 
-  .bet-label {
-    font-size: 0.8em;
-    color: #aaa;
+  .spin-btn.spinning :global(svg) {
+    animation: spin 0.5s linear infinite;
   }
 
-  .bet-value {
-    font-size: 1.6em;
-    font-weight: bold;
-    color: #ffd700;
-    text-shadow: 0 0 8px #ffd700;
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 
-  .machine-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
+  .spin-btn.new-code {
+    background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
+    color: #000;
   }
 
-  .footer-left {
+  .right-controls {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 100px;
   }
 
-  .footer-right {
+  .side-btn {
     display: flex;
     align-items: center;
-  }
-
-  .credits-display {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    justify-content: center;
     gap: 6px;
-  }
-
-  .credits-label {
-    font-size: 0.9em;
-    color: #aaa;
-  }
-
-  .credits-value {
-    font-size: 1.5em;
+    padding: 8px 12px;
+    font-size: 0.75em;
     font-weight: bold;
-    color: #00bfff;
-    text-shadow: 0 0 10px #00bfff;
+    background: #2a2a3a;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .side-btn:hover {
+    background: #3a3a4a;
+  }
+
+  .side-btn.active {
+    background: #4a4a5a;
+    color: #0f0;
   }
 
   .claim-btn {
-    padding: 8px 16px;
-    font-size: 0.95em;
-    background: linear-gradient(#ff6600, #cc4400);
+    padding: 8px 12px;
+    font-size: 0.8em;
+    background: linear-gradient(180deg, #ff6600 0%, #cc4400 100%);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 20px;
     cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
     font-weight: bold;
     transition: transform 0.1s;
     text-shadow: 1px 1px 2px #000;
@@ -851,99 +739,21 @@
     transform: scale(1.05);
   }
 
-  .spin-btn {
-    padding: 15px 30px;
-    font-size: 1.3em;
-    background: linear-gradient(#00dd00, #008800);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
-    font-weight: bold;
-    transition: transform 0.1s;
-    text-shadow: 1px 1px 3px #000;
-  }
-
-  .spin-btn:hover:not(:disabled) {
-    transform: scale(1.05);
-  }
-
-  .spin-btn:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-
-  .spin-btn:disabled {
-    background: linear-gradient(#555, #333);
-    cursor: not-allowed;
-  }
-
-  .spin-btn.spinning {
-    background: linear-gradient(#ff9900, #cc6600);
-  }
-
-  .spin-btn.new-code {
-    background: linear-gradient(#ffd700, #b8860b);
-    color: #000;
-  }
-
-  .spin-btn.stop-btn {
-    background: linear-gradient(#ff4444, #cc2222);
-  }
-
-  .autoplay-control {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-  }
-
-  .autoplay-label {
-    font-size: 0.9em;
-    color: #aaa;
-  }
-
-  .autoplay-btn {
-    padding: 6px 12px;
-    font-size: 0.9em;
-    background: rgba(0, 0, 0, 0.5);
-    color: #ffd700;
-    border: 2px solid #ffd700;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.1s, background 0.2s;
-  }
-
-  .autoplay-btn:hover:not(:disabled) {
-    transform: scale(1.05);
-    background: rgba(255, 215, 0, 0.3);
-  }
-
-  .autoplay-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
   .enter-code-container {
     display: flex;
     justify-content: center;
-    padding: 10px 0;
+    margin-top: 20px;
   }
 
   .enter-code-btn {
-    padding: 14px 28px;
+    padding: 16px 32px;
     font-size: 1.3em;
-    background: linear-gradient(#ffd700, #b8860b);
+    background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
     color: #000;
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     font-weight: bold;
     transition: transform 0.1s;
   }
@@ -952,57 +762,66 @@
     transform: scale(1.05);
   }
 
-  @media (max-width: 400px) {
-    .slot-machine {
-      padding: 15px;
+  @media (max-width: 420px) {
+    .container {
+      padding: 10px;
     }
 
-    .machine-title {
-      font-size: 1.8em;
+    .symbol-cell {
+      width: 80px;
+      height: 72px;
     }
 
-    .reel {
-      width: 75px;
-      height: 150px;
-    }
-
-    .symbol-wrapper {
+    .symbol-cell :global(svg) {
+      width: 50px;
       height: 50px;
     }
 
-    .symbol-wrapper :global(svg) {
-      width: 45px;
-      height: 45px;
+    .spin-btn {
+      padding: 12px 20px;
+      font-size: 1em;
     }
 
-    .spin-btn {
-      padding: 12px 24px;
-      font-size: 1.1em;
+    .bottom-controls {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .left-info {
+      order: 1;
+      flex-direction: row;
+      gap: 15px;
+      width: 100%;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .center-controls {
+      order: 2;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .right-controls {
+      order: 3;
+      flex-direction: row;
+      width: 100%;
+      justify-content: center;
+      margin-top: 10px;
     }
 
     .control-btn {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
     }
 
     .control-btn :global(svg) {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
     }
 
-    .bet-btn {
-      width: 35px;
-      height: 35px;
-      font-size: 1.3em;
-    }
-
-    .bet-value {
-      font-size: 1.4em;
-    }
-
-    .claim-btn {
-      padding: 6px 12px;
-      font-size: 0.85em;
+    .win-display {
+      font-size: 1.6em;
     }
   }
 </style>
