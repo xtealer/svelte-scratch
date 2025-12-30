@@ -8,14 +8,14 @@
   let { show = $bindable(false) }: { show: boolean } = $props();
 
   const prizes: Prize[] = [
-    { symbol: '💎', amount: 500, odds: '1 in 8,945' },
-    { symbol: '⭐', amount: 100, odds: '1 in 3,334' },
-    { symbol: '🎰', amount: 50, odds: '1 in 1,243' },
-    { symbol: '💰', amount: 20, odds: '1 in 463' },
-    { symbol: '🪙', amount: 10, odds: '1 in 173' },
-    { symbol: '🪙', amount: 5, odds: '1 in 64' },
-    { symbol: '🪶', amount: 2, odds: '1 in 24' },
-    { symbol: '🪶', amount: 1, odds: '1 in 9' }
+    { symbol: '💎', amount: 500, odds: '1 en 8,945' },
+    { symbol: '⭐', amount: 100, odds: '1 en 3,334' },
+    { symbol: '🎰', amount: 50, odds: '1 en 1,243' },
+    { symbol: '💰', amount: 20, odds: '1 en 463' },
+    { symbol: '🪙', amount: 10, odds: '1 en 173' },
+    { symbol: '🪙', amount: 5, odds: '1 en 64' },
+    { symbol: '🪶', amount: 2, odds: '1 en 24' },
+    { symbol: '🪶', amount: 1, odds: '1 en 9' }
   ];
 
   function close(): void {
@@ -34,7 +34,7 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">PRIZE LIST</div>
+      <div class="modal-header">LISTA DE PREMIOS</div>
       {#each prizes as prize}
         <div class="prize-row">
           <span class="prize-symbol">{prize.symbol}</span>
@@ -42,7 +42,7 @@
           <span>{prize.odds}</span>
         </div>
       {/each}
-      <button class="close-btn" onclick={close}>Close</button>
+      <button class="close-btn" onclick={close}>Cerrar</button>
     </div>
   </div>
 {/if}

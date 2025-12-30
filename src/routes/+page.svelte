@@ -2,22 +2,22 @@
 </script>
 
 <div class="menu">
-  <h1>GOLD GAMES</h1>
-  <p class="subtitle">Choose Your Game</p>
+  <h1>JUEGOS DE ORO</h1>
+  <p class="subtitle">Elige Tu Juego</p>
 
   <div class="games">
     <a href="/scratch" class="game-card">
       <div class="game-icon">🎫</div>
-      <div class="game-title">GOLD RUSH</div>
-      <div class="game-desc">Scratch to Win!</div>
-      <div class="game-prize">Win up to $500</div>
+      <div class="game-title">RASCA Y GANA</div>
+      <div class="game-desc">¡Rasca y Gana!</div>
+      <div class="game-prize">Gana hasta $500</div>
     </a>
 
     <a href="/slots" class="game-card">
       <div class="game-icon">🎰</div>
-      <div class="game-title">GOLD SLOTS</div>
-      <div class="game-desc">Spin to Win!</div>
-      <div class="game-prize">Win up to $500</div>
+      <div class="game-title">TRAGAMONEDAS</div>
+      <div class="game-desc">¡Gira y Gana!</div>
+      <div class="game-prize">Gana hasta $500</div>
     </a>
   </div>
 </div>

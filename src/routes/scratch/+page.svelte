@@ -178,7 +178,7 @@
 
   function showWelcomeMessage(): void {
     symbols = ["❓", "❓", "❓"];
-    prizeText = "Enter Code to Play";
+    prizeText = "Ingresa Código";
     nearMissText = "";
   }
 
@@ -317,7 +317,7 @@
     nearMissText = "";
     if (currentPrize === 0) {
       const nearPrize = getNearMissPrize();
-      nearMissText = `Prize $${nearPrize}`;
+      nearMissText = `Premio $${nearPrize}`;
     }
 
     playsLeft--;
@@ -462,7 +462,7 @@
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Failed to validate code");
+      throw new Error(data.error || "Código inválido");
     }
 
     // Load the session
@@ -479,15 +479,15 @@
 {#if hasActiveSession}
   <div class="session-info">
     <div class="info-item">
-      <span class="label">Code:</span>
+      <span class="label">Código:</span>
       <span class="value">{currentCode}</span>
     </div>
     <div class="info-item">
-      <span class="label">Plays Left:</span>
+      <span class="label">Jugadas:</span>
       <span class="value plays">{playsLeft}</span>
     </div>
     <div class="info-item">
-      <span class="label">Winnings:</span>
+      <span class="label">Ganancias:</span>
       <span class="value winnings">${sessionWinnings.toFixed(2)}</span>
     </div>
   </div>
@@ -497,34 +497,34 @@
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
-        <a href="/" class="control-btn back-btn" title="Back to Menu">
+        <a href="/" class="control-btn back-btn" title="Volver al Menú">
           <span class="control-icon">←</span>
         </a>
-        <button class="control-btn" onclick={openPrizeList} title="View Prize List">
+        <button class="control-btn" onclick={openPrizeList} title="Ver Premios">
           <span class="control-icon">🏆</span>
         </button>
       </div>
       <div class="control-right">
         {#if hasActiveSession}
-          <button class="control-btn end-btn" onclick={resetSession} title="End Session">
+          <button class="control-btn end-btn" onclick={resetSession} title="Terminar Sesión">
             <span class="control-icon">✕</span>
           </button>
         {/if}
-        <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Unmute" : "Mute"}>
+        <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Activar Sonido" : "Silenciar"}>
           <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
         </button>
       </div>
     </div>
-    <div class="ticket-title">GOLD RUSH</div>
+    <div class="ticket-title">RASCA Y GANA</div>
     <div class="ticket-subtitle">Gana Hasta $500</div>
-    <div class="ticket-header">MATCH 3 TO WIN!</div>
+    <div class="ticket-header">¡3 IGUALES GANAN!</div>
     <div
       class="scratch-area"
       bind:this={scratchArea}
       onmousedown={startScratch}
       ontouchstart={startScratch}
       role="application"
-      aria-label="Scratch area - drag to reveal prize"
+      aria-label="Área de rasca - arrastra para revelar el premio"
     >
       <div class="prize">
         <div class="near-miss">{nearMissText}</div>
@@ -541,33 +541,33 @@
       {#if hasActiveSession}
         <div class="footer-left">
           <div class="plays-counter">
-            <span class="plays-label">Plays Left:</span>
+            <span class="plays-label">Jugadas:</span>
             <span class="plays-value">{playsLeft}</span>
           </div>
           {#if sessionWinnings > 0}
             <button class="claim-btn" onclick={openClaimModal}>
-              Claim ${sessionWinnings.toFixed(2)}
+              Cobrar ${sessionWinnings.toFixed(2)}
             </button>
           {/if}
         </div>
         <div class="footer-right">
           {#if !revealed}
             <button class="reveal-btn" onclick={revealAll}>
-              Reveal
+              Revelar
             </button>
           {:else if playsLeft > 0}
             <button class="next-play-btn" onclick={startNewPlay}>
-              Next Play
+              Siguiente
             </button>
           {:else}
             <button class="next-play-btn" onclick={openCodeModal}>
-              New Code
+              Nuevo Código
             </button>
           {/if}
         </div>
       {:else}
         <button class="enter-code-btn" onclick={openCodeModal}>
-          Enter Scratch Code
+          Ingresar Código
         </button>
       {/if}
     </div>

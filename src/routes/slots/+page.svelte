@@ -17,7 +17,7 @@
   // Game state
   let currentPrize = $state(0);
   let reels = $state<string[]>(["❓", "❓", "❓"]);
-  let prizeText = $state("ENTER CODE TO PLAY");
+  let prizeText = $state("INGRESA CÓDIGO");
   let muted = $state(false);
   let spinning = $state(false);
   let betSize = $state(1);
@@ -64,7 +64,7 @@
             credits = session.credits || 0;
             sessionWinnings = session.sessionWinnings || 0;
             hasActiveSession = true;
-            prizeText = "SPIN TO WIN!";
+            prizeText = "¡GIRA Y GANA!";
           } else {
             localStorage.removeItem(STORAGE_KEY);
           }
@@ -151,7 +151,7 @@
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || "Failed to validate code");
+      throw new Error(data.error || "Código inválido");
     }
 
     currentCode = data.code;
@@ -160,7 +160,7 @@
     hasActiveSession = true;
     betSize = Math.min(betSize, credits);
     if (betSize < 1) betSize = 1;
-    prizeText = "SPIN TO WIN!";
+    prizeText = "¡GIRA Y GANA!";
     reels = ["❓", "❓", "❓"];
     saveSession();
   }
@@ -174,7 +174,7 @@
     sessionWinnings = 0;
     currentPrize = 0;
     reels = ["❓", "❓", "❓"];
-    prizeText = "ENTER CODE TO PLAY";
+    prizeText = "INGRESA CÓDIGO";
     betSize = 1;
   }
 
@@ -225,7 +225,7 @@
       currentPrize = Math.min(basePrize * betSize, MAX_PRIZE);
 
       reels = getWinSymbols(basePrize);
-      prizeText = `YOU WIN $${currentPrize}!`;
+      prizeText = `¡GANASTE $${currentPrize}!`;
       // Winnings tracked separately, not added to credits
       sessionWinnings += currentPrize;
 
@@ -239,10 +239,10 @@
       if (Math.random() < 0.3) {
         const nearMiss = getNearMissSymbols();
         reels = nearMiss.symbols;
-        prizeText = "SO CLOSE!";
+        prizeText = "¡CASI!";
       } else {
         reels = getLoseSymbols();
-        prizeText = "TRY AGAIN!";
+        prizeText = "¡OTRA VEZ!";
       }
       playSound(sounds?.lose);
     }
@@ -279,27 +279,27 @@
   <div class="slot-machine">
     <div class="machine-controls">
       <div class="control-left">
-        <a href="/" class="control-btn back-btn" title="Back to Menu">
+        <a href="/" class="control-btn back-btn" title="Volver al Menú">
           <span class="control-icon">←</span>
         </a>
-        <button class="control-btn" onclick={openPrizeList} title="View Prize List">
+        <button class="control-btn" onclick={openPrizeList} title="Ver Premios">
           <span class="control-icon">🏆</span>
         </button>
       </div>
       <div class="control-right">
         {#if hasActiveSession}
-          <button class="control-btn end-btn" onclick={resetSession} title="End Session">
+          <button class="control-btn end-btn" onclick={resetSession} title="Terminar Sesión">
             <span class="control-icon">✕</span>
           </button>
         {/if}
-        <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Unmute" : "Mute"}>
+        <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Activar Sonido" : "Silenciar"}>
           <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
         </button>
       </div>
     </div>
 
-    <div class="machine-title">GOLD SLOTS</div>
-    <div class="machine-subtitle">Match 3 to Win!</div>
+    <div class="machine-title">TRAGAMONEDAS</div>
+    <div class="machine-subtitle">¡3 Iguales Ganan!</div>
 
     <div class="reels-container">
       <div class="reels">
@@ -319,22 +319,22 @@
       <div class="bet-control">
         <button class="bet-btn" onclick={decreaseBet} disabled={spinning || betSize <= MIN_BET}>−</button>
         <div class="bet-display">
-          <span class="bet-label">BET</span>
+          <span class="bet-label">APUESTA</span>
           <span class="bet-value">${betSize}</span>
         </div>
         <button class="bet-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > credits}>+</button>
-        <button class="max-bet-btn" onclick={maxBet} disabled={spinning || betSize >= credits}>MAX</button>
+        <button class="max-bet-btn" onclick={maxBet} disabled={spinning || betSize >= credits}>MÁX</button>
       </div>
 
       <div class="machine-footer">
         <div class="footer-left">
           <div class="credits-display">
-            <span class="credits-label">Credits:</span>
+            <span class="credits-label">Créditos:</span>
             <span class="credits-value">${credits}</span>
           </div>
           {#if sessionWinnings > 0}
             <button class="claim-btn" onclick={openClaimModal}>
-              Claim ${sessionWinnings}
+              Cobrar ${sessionWinnings}
             </button>
           {/if}
         </div>
@@ -343,7 +343,7 @@
           {#if credits >= betSize}
             {#if autoplayActive}
               <button class="spin-btn stop-btn" onclick={stopAutoplay}>
-                STOP ({autoplaySpinsLeft})
+                PARAR ({autoplaySpinsLeft})
               </button>
             {:else}
               <button
@@ -353,15 +353,15 @@
                 class:spinning
               >
                 {#if spinning}
-                  SPINNING...
+                  GIRANDO...
                 {:else}
-                  SPIN
+                  GIRAR
                 {/if}
               </button>
             {/if}
           {:else}
             <button class="spin-btn new-code" onclick={openCodeModal}>
-              NEW CODE
+              NUEVO CÓDIGO
             </button>
           {/if}
         </div>
@@ -384,7 +384,7 @@
     {:else}
       <div class="enter-code-container">
         <button class="enter-code-btn" onclick={openCodeModal}>
-          Enter Credits Code
+          Ingresar Código
         </button>
       </div>
     {/if}

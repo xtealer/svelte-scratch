@@ -25,7 +25,7 @@
 
   async function handleSubmit(): Promise<void> {
     if (!code.trim()) {
-      error = "Please enter a scratch code";
+      error = "Por favor ingresa un código";
       return;
     }
 
@@ -54,13 +54,13 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">ENTER SCRATCH CODE</div>
+      <div class="modal-header">INGRESAR CÓDIGO</div>
 
       <div class="input-group">
         <input
           type="text"
           bind:value={code}
-          placeholder="Enter code (e.g., ABC123)"
+          placeholder="Ingresa código (ej: ABC123)"
           onkeydown={handleKeydown}
           disabled={loading}
           maxlength="20"
@@ -72,16 +72,16 @@
       {/if}
 
       <div class="info">
-        <p>Enter your scratch ticket code to load your plays.</p>
-        <p>Each code may contain multiple scratch plays.</p>
+        <p>Ingresa el código de tu boleto para cargar tus jugadas.</p>
+        <p>Cada código puede tener varias jugadas.</p>
       </div>
 
       <div class="buttons">
         <button class="submit-btn" onclick={handleSubmit} disabled={loading}>
-          {loading ? "Loading..." : "Load Plays"}
+          {loading ? "Cargando..." : "Cargar Jugadas"}
         </button>
         <button class="cancel-btn" onclick={close} disabled={loading}>
-          Cancel
+          Cancelar
         </button>
       </div>
     </div>

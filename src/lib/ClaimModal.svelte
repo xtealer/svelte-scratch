@@ -30,28 +30,28 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">CLAIM YOUR PRIZE</div>
+      <div class="modal-header">COBRA TU PREMIO</div>
 
       <div class="winnings">
-        <span class="label">Total Winnings</span>
+        <span class="label">Ganancias Totales</span>
         <span class="amount">${totalWinnings.toFixed(2)}</span>
       </div>
 
       <div class="qr-container">
-        <img src={qrCodeUrl} alt="QR Code for {scratchCode}" class="qr-code" />
+        <img src={qrCodeUrl} alt="Código QR para {scratchCode}" class="qr-code" />
       </div>
 
       <div class="code-display">
-        <span class="label">Scratch Code</span>
+        <span class="label">Código</span>
         <span class="code">{scratchCode}</span>
       </div>
 
       <div class="info">
-        <p>Show this QR code to claim your winnings.</p>
-        <p>Keep this code safe until you claim your prize.</p>
+        <p>Muestra este código QR para cobrar tus ganancias.</p>
+        <p>Guarda este código hasta cobrar tu premio.</p>
       </div>
 
-      <button class="close-btn" onclick={close}>Close</button>
+      <button class="close-btn" onclick={close}>Cerrar</button>
     </div>
   </div>
 {/if}
