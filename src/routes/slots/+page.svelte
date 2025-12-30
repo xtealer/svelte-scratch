@@ -2,7 +2,14 @@
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
   import PrizeModal from "$lib/PrizeModal.svelte";
+  import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
+  import ClaimModal from "$lib/ClaimModal.svelte";
   import { prizes, symbolMap, loseSymbols, getPrize, getWinSymbols, getLoseSymbols, getNearMissSymbols } from "$lib/prizeConfig";
+
+  const MAX_PRIZE = 500; // Cap max win at $500
+  const MIN_BET = 1;
+  const MAX_BET = 10;
+  const BET_STEPS = [1, 2, 5, 10];
 
   // All possible symbols for spinning
   const allSymbols = ["💎", "⭐", "🎰", "💰", "🪙", "🪶"];
@@ -10,12 +17,21 @@
   // Game state
   let currentPrize = $state(0);
   let reels = $state<string[]>(["❓", "❓", "❓"]);
-  let prizeText = $state("SPIN TO WIN!");
+  let prizeText = $state("ENTER CODE TO PLAY");
   let muted = $state(false);
   let spinning = $state(false);
-  let credits = $state(100);
-  let totalWinnings = $state(0);
+  let betSize = $state(1);
+
+  // Session state
+  let hasActiveSession = $state(false);
+  let currentCode = $state("");
+  let credits = $state(0);
+  let sessionWinnings = $state(0);
+
+  // Modals
   let showPrizeModal = $state(false);
+  let showCodeModal = $state(false);
+  let showClaimModal = $state(false);
 
   // Sounds
   let sounds: { spin: HTMLAudioElement; win: HTMLAudioElement; bigWin: HTMLAudioElement; lose: HTMLAudioElement } | null = null;
@@ -46,18 +62,87 @@
     showPrizeModal = true;
   }
 
+  function openCodeModal() {
+    showCodeModal = true;
+  }
+
+  function openClaimModal() {
+    showClaimModal = true;
+  }
+
+  function increaseBet() {
+    const currentIndex = BET_STEPS.indexOf(betSize);
+    if (currentIndex < BET_STEPS.length - 1) {
+      const nextBet = BET_STEPS[currentIndex + 1];
+      if (nextBet <= credits) {
+        betSize = nextBet;
+      }
+    }
+  }
+
+  function decreaseBet() {
+    const currentIndex = BET_STEPS.indexOf(betSize);
+    if (currentIndex > 0) {
+      betSize = BET_STEPS[currentIndex - 1];
+    }
+  }
+
+  function maxBet() {
+    // Set to highest bet we can afford
+    for (let i = BET_STEPS.length - 1; i >= 0; i--) {
+      if (BET_STEPS[i] <= credits) {
+        betSize = BET_STEPS[i];
+        return;
+      }
+    }
+  }
+
+  async function handleCodeSubmit(code: string): Promise<void> {
+    const response = await fetch("/api/scratch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to validate code");
+    }
+
+    currentCode = data.code;
+    credits = data.plays; // Each "play" is $1 credit
+    sessionWinnings = 0;
+    hasActiveSession = true;
+    betSize = Math.min(betSize, credits);
+    if (betSize < 1) betSize = 1;
+    prizeText = "SPIN TO WIN!";
+    reels = ["❓", "❓", "❓"];
+  }
+
+  function resetSession() {
+    hasActiveSession = false;
+    currentCode = "";
+    credits = 0;
+    sessionWinnings = 0;
+    currentPrize = 0;
+    reels = ["❓", "❓", "❓"];
+    prizeText = "ENTER CODE TO PLAY";
+    betSize = 1;
+  }
+
   async function spin() {
-    if (spinning || credits < 1) return;
+    if (spinning || credits < betSize || !hasActiveSession) return;
 
     spinning = true;
-    credits -= 1;
+    credits -= betSize;
+    currentPrize = 0;
     prizeText = "";
     playSound(sounds?.spin);
 
     // Animate spinning
     const spinDuration = 2000;
     const spinInterval = 80;
-    const startTime = Date.now();
 
     const spinAnimation = setInterval(() => {
       reels = [
@@ -71,14 +156,17 @@
     await new Promise((resolve) => setTimeout(resolve, spinDuration));
     clearInterval(spinAnimation);
 
-    // Determine result
-    currentPrize = getPrize();
+    // Determine base result
+    let basePrize = getPrize();
 
-    if (currentPrize > 0) {
-      reels = getWinSymbols(currentPrize);
+    if (basePrize > 0) {
+      // Calculate win with bet multiplier, capped at MAX_PRIZE
+      currentPrize = Math.min(basePrize * betSize, MAX_PRIZE);
+
+      reels = getWinSymbols(basePrize);
       prizeText = `YOU WIN $${currentPrize}!`;
       credits += currentPrize;
-      totalWinnings += currentPrize;
+      sessionWinnings += currentPrize;
 
       if (currentPrize >= 50) {
         playSound(sounds?.bigWin);
@@ -99,23 +187,36 @@
     }
 
     spinning = false;
-  }
 
-  function addCredits() {
-    credits += 50;
+    // Adjust bet if we can't afford current bet
+    if (credits < betSize && credits > 0) {
+      for (let i = BET_STEPS.length - 1; i >= 0; i--) {
+        if (BET_STEPS[i] <= credits) {
+          betSize = BET_STEPS[i];
+          break;
+        }
+      }
+    }
   }
 </script>
 
 <div class="container">
   <div class="slot-machine">
     <div class="machine-controls">
-      <a href="/" class="control-btn home-btn" title="Back to Menu">
-        <span class="control-icon">🏠</span>
-      </a>
-      <div class="control-right">
+      <div class="control-left">
+        <a href="/" class="control-btn home-btn" title="Back to Menu">
+          <span class="control-icon">🏠</span>
+        </a>
         <button class="control-btn" onclick={openPrizeList} title="View Prize List">
           <span class="control-icon">🏆</span>
         </button>
+      </div>
+      <div class="control-right">
+        {#if hasActiveSession}
+          <button class="control-btn end-btn" onclick={resetSession} title="End Session">
+            <span class="control-icon">✕</span>
+          </button>
+        {/if}
         <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Unmute" : "Mute"}>
           <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
         </button>
@@ -139,42 +240,68 @@
       {prizeText}
     </div>
 
-    <div class="machine-footer">
-      <div class="credits-display">
-        <span class="credits-label">Credits:</span>
-        <span class="credits-value">${credits}</span>
+    {#if hasActiveSession}
+      <div class="bet-control">
+        <button class="bet-btn" onclick={decreaseBet} disabled={spinning || betSize <= MIN_BET}>−</button>
+        <div class="bet-display">
+          <span class="bet-label">BET</span>
+          <span class="bet-value">${betSize}</span>
+        </div>
+        <button class="bet-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > credits}>+</button>
+        <button class="max-bet-btn" onclick={maxBet} disabled={spinning || betSize >= credits}>MAX</button>
       </div>
 
-      <button
-        class="spin-btn"
-        onclick={spin}
-        disabled={spinning || credits < 1}
-        class:spinning
-      >
-        {#if spinning}
-          SPINNING...
-        {:else if credits < 1}
-          NO CREDITS
-        {:else}
-          SPIN ($1)
-        {/if}
-      </button>
-    </div>
-
-    <div class="bottom-controls">
-      <button class="add-credits-btn" onclick={addCredits}>
-        + Add $50 Credits
-      </button>
-      {#if totalWinnings > 0}
-        <div class="total-winnings">
-          Total Won: ${totalWinnings}
+      <div class="machine-footer">
+        <div class="footer-left">
+          <div class="credits-display">
+            <span class="credits-label">Credits:</span>
+            <span class="credits-value">${credits}</span>
+          </div>
+          {#if sessionWinnings > 0}
+            <button class="claim-btn" onclick={openClaimModal}>
+              Claim ${sessionWinnings}
+            </button>
+          {/if}
         </div>
-      {/if}
-    </div>
+
+        <div class="footer-right">
+          {#if credits >= betSize}
+            <button
+              class="spin-btn"
+              onclick={spin}
+              disabled={spinning}
+              class:spinning
+            >
+              {#if spinning}
+                SPINNING...
+              {:else}
+                SPIN
+              {/if}
+            </button>
+          {:else}
+            <button class="spin-btn new-code" onclick={openCodeModal}>
+              NEW CODE
+            </button>
+          {/if}
+        </div>
+      </div>
+    {:else}
+      <div class="enter-code-container">
+        <button class="enter-code-btn" onclick={openCodeModal}>
+          Enter Credits Code
+        </button>
+      </div>
+    {/if}
   </div>
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
+<ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
+<ClaimModal
+  bind:show={showClaimModal}
+  scratchCode={currentCode}
+  totalWinnings={sessionWinnings}
+/>
 
 <style>
   .container {
@@ -206,6 +333,7 @@
     margin-bottom: 15px;
   }
 
+  .control-left,
   .control-right {
     display: flex;
     gap: 8px;
@@ -232,6 +360,14 @@
 
   .control-btn.muted {
     opacity: 0.6;
+  }
+
+  .control-btn.end-btn {
+    border-color: #ff6666;
+  }
+
+  .control-btn.end-btn:hover {
+    background: rgba(255, 100, 100, 0.3);
   }
 
   .control-icon {
@@ -318,17 +454,101 @@
     to { transform: scale(1.05); }
   }
 
+  .bet-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .bet-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ffd700;
+    background: rgba(0, 0, 0, 0.5);
+    color: #ffd700;
+    font-size: 1.5em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+  }
+
+  .bet-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+    background: rgba(255, 215, 0, 0.3);
+  }
+
+  .bet-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .max-bet-btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid #ffd700;
+    background: rgba(0, 0, 0, 0.5);
+    color: #ffd700;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+  }
+
+  .max-bet-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    background: rgba(255, 215, 0, 0.3);
+  }
+
+  .max-bet-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .bet-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+  }
+
+  .bet-label {
+    font-size: 0.8em;
+    color: #aaa;
+  }
+
+  .bet-value {
+    font-size: 1.6em;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 8px #ffd700;
+  }
+
   .machine-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 15px;
-    margin-bottom: 15px;
+  }
+
+  .footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .footer-right {
+    display: flex;
+    align-items: center;
   }
 
   .credits-display {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
   }
 
   .credits-label {
@@ -337,10 +557,28 @@
   }
 
   .credits-value {
-    font-size: 1.8em;
+    font-size: 1.5em;
     font-weight: bold;
     color: #00bfff;
     text-shadow: 0 0 10px #00bfff;
+  }
+
+  .claim-btn {
+    padding: 8px 16px;
+    font-size: 0.95em;
+    background: linear-gradient(#ff6600, #cc4400);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    transition: transform 0.1s;
+    text-shadow: 1px 1px 2px #000;
+  }
+
+  .claim-btn:hover {
+    transform: scale(1.05);
   }
 
   .spin-btn {
@@ -374,33 +612,32 @@
     background: linear-gradient(#ff9900, #cc6600);
   }
 
-  .bottom-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
+  .spin-btn.new-code {
+    background: linear-gradient(#ffd700, #b8860b);
+    color: #000;
   }
 
-  .add-credits-btn {
-    padding: 10px 20px;
-    font-size: 1em;
+  .enter-code-container {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+  }
+
+  .enter-code-btn {
+    padding: 14px 28px;
+    font-size: 1.3em;
     background: linear-gradient(#ffd700, #b8860b);
     color: #000;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     font-weight: bold;
     transition: transform 0.1s;
   }
 
-  .add-credits-btn:hover {
+  .enter-code-btn:hover {
     transform: scale(1.05);
-  }
-
-  .total-winnings {
-    font-size: 1.1em;
-    color: #00ff00;
-    text-shadow: 0 0 5px #0f0;
   }
 
   @media (max-width: 400px) {
@@ -433,6 +670,21 @@
 
     .control-icon {
       font-size: 1em;
+    }
+
+    .bet-btn {
+      width: 35px;
+      height: 35px;
+      font-size: 1.3em;
+    }
+
+    .bet-value {
+      font-size: 1.4em;
+    }
+
+    .claim-btn {
+      padding: 6px 12px;
+      font-size: 0.85em;
     }
   }
 </style>
