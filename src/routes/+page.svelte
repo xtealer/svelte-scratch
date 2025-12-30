@@ -429,10 +429,6 @@
   }
 </script>
 
-<h1>GOLD RUSH</h1>
-<p>Gana Hasta $1,000</p>
-<p class="expected">Ver Tabla de Premios</p>
-
 {#if hasActiveSession}
   <div class="session-info">
     <div class="info-item">
@@ -452,6 +448,8 @@
 
 <div class="container">
   <div class="ticket">
+    <div class="ticket-title">GOLD RUSH</div>
+    <div class="ticket-subtitle">Gana Hasta $500</div>
     <div class="ticket-header">MATCH 3 TO WIN!</div>
     <div
       class="scratch-area"
@@ -472,16 +470,25 @@
       </div>
       <canvas bind:this={canvas}></canvas>
     </div>
+    <div class="ticket-footer">
+      {#if hasActiveSession}
+        <div class="plays-counter">
+          <span class="plays-label">Plays Left:</span>
+          <span class="plays-value">{playsLeft}</span>
+        </div>
+        {#if revealed && playsLeft > 0}
+          <button class="next-play-btn" onclick={startNewPlay}>
+            Next Play
+          </button>
+        {/if}
+      {/if}
+    </div>
   </div>
 </div>
 
 <div class="buttons">
   {#if !hasActiveSession}
     <button class="primary" onclick={openCodeModal}>Enter Scratch Code</button>
-  {:else if revealed && playsLeft > 0}
-    <button class="primary" onclick={startNewPlay}>
-      Next Play ({playsLeft} left)
-    </button>
   {:else if revealed && playsLeft === 0}
     <button class="primary" onclick={openCodeModal}>Enter New Code</button>
   {/if}
@@ -516,25 +523,6 @@
 />
 
 <style>
-  h1 {
-    font-size: 2.4em;
-    text-shadow:
-      0 0 15px #ff0,
-      3px 3px 10px #000;
-    margin: 10px 0;
-  }
-
-  p {
-    margin: 5px 0;
-  }
-
-  .expected {
-    font-size: 1.1em;
-    margin: 8px 0;
-    color: #ffaa00;
-    font-weight: bold;
-  }
-
   .session-info {
     display: flex;
     justify-content: center;
@@ -581,21 +569,47 @@
   .ticket {
     position: relative;
     width: 100%;
-    padding-bottom: 140%;
-    background: linear-gradient(135deg, #222, #444);
+    padding-bottom: 150%;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
     border-radius: 20px;
     box-shadow:
       0 15px 40px rgba(0, 0, 0, 0.9),
       inset 0 0 30px #ff0;
     overflow: hidden;
+    border: 3px solid #ffd700;
+  }
+
+  .ticket-title {
+    position: absolute;
+    top: 2%;
+    left: 0;
+    right: 0;
+    font-size: 2.2em;
+    color: #ffd700;
+    text-shadow:
+      0 0 15px #ff0,
+      3px 3px 10px #000;
+    z-index: 10;
+    font-weight: bold;
+  }
+
+  .ticket-subtitle {
+    position: absolute;
+    top: 8%;
+    left: 0;
+    right: 0;
+    font-size: 1.2em;
+    color: #fff;
+    text-shadow: 2px 2px 8px #000;
+    z-index: 10;
   }
 
   .ticket-header {
     position: absolute;
-    top: 6%;
+    top: 14%;
     left: 0;
     right: 0;
-    font-size: 1.8em;
+    font-size: 1.4em;
     color: #ffd700;
     text-shadow: 3px 3px 10px #000;
     z-index: 10;
@@ -603,15 +617,66 @@
 
   .scratch-area {
     position: absolute;
-    top: 26%;
+    top: 22%;
     left: 6%;
     width: 88%;
-    height: 54%;
+    height: 48%;
     background: #bbb;
     border-radius: 20px;
     box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.7);
     overflow: hidden;
     cursor: crosshair;
+  }
+
+  .ticket-footer {
+    position: absolute;
+    bottom: 3%;
+    left: 6%;
+    right: 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    min-height: 50px;
+  }
+
+  .plays-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .plays-label {
+    font-size: 0.9em;
+    color: #aaa;
+  }
+
+  .plays-value {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #00bfff;
+    text-shadow: 0 0 10px #00bfff;
+  }
+
+  .next-play-btn {
+    padding: 12px 24px;
+    font-size: 1.2em;
+    background: linear-gradient(#ffd700, #b8860b);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    font-weight: bold;
+    transition: transform 0.1s;
+  }
+
+  .next-play-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .next-play-btn:active {
+    transform: scale(0.98);
   }
 
   .prize {
@@ -711,10 +776,20 @@
   }
 
   @media (max-width: 480px) {
-    h1 {
-      font-size: 2em;
+    .ticket-title {
+      font-size: 1.8em;
+    }
+    .ticket-subtitle {
+      font-size: 1em;
     }
     .ticket-header {
+      font-size: 1.2em;
+    }
+    .next-play-btn {
+      padding: 10px 18px;
+      font-size: 1em;
+    }
+    .plays-value {
       font-size: 1.5em;
     }
     .near-miss {
