@@ -4,8 +4,8 @@ const SUPPORTED_LANGUAGES: Language[] = ['en', 'es', 'ar'];
 const DEFAULT_LANGUAGE: Language = 'en';
 const STORAGE_KEY = 'casino-language';
 
-// Reactive state for current language
-let currentLanguage = $state<Language>(DEFAULT_LANGUAGE);
+// Current language (non-reactive, managed by components)
+let currentLanguage: Language = DEFAULT_LANGUAGE;
 
 /**
  * Detect browser language and return supported language or default
