@@ -248,6 +248,7 @@
   }
 </script>
 
+{#if i18n}
 <div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
@@ -497,6 +498,7 @@
       {/if}
     </div>
   </div>
+{/if}
 {/if}
 
 <style>

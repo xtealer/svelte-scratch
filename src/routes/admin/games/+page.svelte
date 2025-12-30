@@ -79,6 +79,7 @@
   }
 </script>
 
+{#if i18n}
 <div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
@@ -157,6 +158,7 @@
     <Footer />
   </main>
 </div>
+{/if}
 
 <style>
   .admin-container {
