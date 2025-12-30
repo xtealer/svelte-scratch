@@ -42,6 +42,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    flex: 1;
     min-height: 100vh;
     min-height: 100dvh;
     padding: 16px;
@@ -70,7 +71,8 @@
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
+    padding: 0 16px;
   }
 
   .game-card {

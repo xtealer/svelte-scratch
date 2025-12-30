@@ -653,7 +653,8 @@
     padding: 12px 20px;
     border-radius: 10px;
     margin: 10px auto;
-    max-width: 420px;
+    max-width: 500px;
+    width: calc(100% - 30px);
   }
 
   .info-item {
@@ -683,8 +684,9 @@
 
   .container {
     width: 100%;
-    max-width: 420px;
+    max-width: 500px;
     margin: 10px auto;
+    padding: 0 15px;
   }
 
   .ticket {

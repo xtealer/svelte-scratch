@@ -553,14 +553,16 @@
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 15px;
+    width: 100%;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
   }
 
   .top-controls {
     display: flex;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     justify-content: flex-start;
     align-items: center;
     gap: 10px;
@@ -687,7 +689,7 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     margin-top: 20px;
     gap: 10px;
   }
