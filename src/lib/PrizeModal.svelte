@@ -8,16 +8,14 @@
   let { show = $bindable(false) }: { show: boolean } = $props();
 
   const prizes: Prize[] = [
-    { symbol: '💎', amount: 500, odds: '1 in 10,000' },
-    { symbol: '💎', amount: 250, odds: '1 in 5,000' },
-    { symbol: '⭐', amount: 100, odds: '1 in 2,000' },
-    { symbol: '🎰', amount: 50, odds: '1 in 1,000' },
-    { symbol: '💰', amount: 20, odds: '1 in 500' },
-    { symbol: '🪙', amount: 10, odds: '1 in 200' },
-    { symbol: '🪙', amount: 5, odds: '1 in 100' },
-    { symbol: '🪶', amount: 3, odds: '1 in 50' },
-    { symbol: '🪶', amount: 2, odds: '1 in 25' },
-    { symbol: '🪶', amount: 1, odds: '1 in 5' }
+    { symbol: '💎', amount: 500, odds: '1 in 8,945' },
+    { symbol: '⭐', amount: 100, odds: '1 in 3,334' },
+    { symbol: '🎰', amount: 50, odds: '1 in 1,243' },
+    { symbol: '💰', amount: 20, odds: '1 in 463' },
+    { symbol: '🪙', amount: 10, odds: '1 in 173' },
+    { symbol: '🪙', amount: 5, odds: '1 in 64' },
+    { symbol: '🪶', amount: 2, odds: '1 in 24' },
+    { symbol: '🪶', amount: 1, odds: '1 in 9' }
   ];
 
   function close(): void {
