@@ -8,8 +8,8 @@
   <div class="games">
     <a href="/scratch" class="game-card">
       <div class="game-icon">🎫</div>
-      <div class="game-title">RASCA Y GANA</div>
-      <div class="game-desc">¡Rasca y Gana!</div>
+      <div class="game-title">RASPA Y GANA</div>
+      <div class="game-desc">Raspa y Gana!</div>
       <div class="game-prize">Gana hasta $500</div>
     </a>
 
@@ -67,7 +67,9 @@
     border-radius: 20px;
     text-decoration: none;
     color: inherit;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
     box-shadow:
       0 10px 30px rgba(0, 0, 0, 0.8),
       inset 0 0 20px rgba(255, 215, 0, 0.1);

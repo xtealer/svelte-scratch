@@ -27,15 +27,15 @@
   // Prize odds (~50% RTP, ~18% win rate)
   // Based on 10,000 tickets = $5,000 total prizes
   const prizes: PrizeConfig[] = [
-    { amount: 500, odds: 8945 },    // 1.1 in 10,000 ($560)
-    { amount: 100, odds: 3334 },    // 3 in 10,000 ($300)
-    { amount: 50, odds: 1243 },     // 8 in 10,000 ($402)
-    { amount: 20, odds: 463 },      // 21.6 in 10,000 ($432)
-    { amount: 10, odds: 173 },      // 57.8 in 10,000 ($578)
-    { amount: 5, odds: 64 },        // 156 in 10,000 ($781)
-    { amount: 2, odds: 24 },        // 417 in 10,000 ($833)
-    { amount: 1, odds: 9 },         // 1,111 in 10,000 ($1,111)
-    { amount: 0, odds: 0 },         // Loss
+    { amount: 500, odds: 8945 }, // 1.1 in 10,000 ($560)
+    { amount: 100, odds: 3334 }, // 3 in 10,000 ($300)
+    { amount: 50, odds: 1243 }, // 8 in 10,000 ($402)
+    { amount: 20, odds: 463 }, // 21.6 in 10,000 ($432)
+    { amount: 10, odds: 173 }, // 57.8 in 10,000 ($578)
+    { amount: 5, odds: 64 }, // 156 in 10,000 ($781)
+    { amount: 2, odds: 24 }, // 417 in 10,000 ($833)
+    { amount: 1, odds: 9 }, // 1,111 in 10,000 ($1,111)
+    { amount: 0, odds: 0 }, // Loss
   ];
 
   // Calculate probabilities
@@ -100,11 +100,14 @@
 
   function saveSession() {
     if (browser && currentCode) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        code: currentCode,
-        playsLeft,
-        sessionWinnings
-      }));
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          code: currentCode,
+          playsLeft,
+          sessionWinnings,
+        })
+      );
     }
   }
 
@@ -506,16 +509,25 @@
       </div>
       <div class="control-right">
         {#if hasActiveSession}
-          <button class="control-btn end-btn" onclick={resetSession} title="Terminar Sesión">
+          <button
+            class="control-btn end-btn"
+            onclick={resetSession}
+            title="Terminar Sesión"
+          >
             <span class="control-icon">✕</span>
           </button>
         {/if}
-        <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Activar Sonido" : "Silenciar"}>
+        <button
+          class="control-btn"
+          class:muted
+          onclick={toggleMute}
+          title={muted ? "Activar Sonido" : "Silenciar"}
+        >
           <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
         </button>
       </div>
     </div>
-    <div class="ticket-title">RASCA Y GANA</div>
+    <div class="ticket-title">RASPA Y GANA</div>
     <div class="ticket-subtitle">Gana Hasta $500</div>
     <div class="ticket-header">¡3 IGUALES GANAN!</div>
     <div
@@ -552,9 +564,7 @@
         </div>
         <div class="footer-right">
           {#if !revealed}
-            <button class="reveal-btn" onclick={revealAll}>
-              Revelar
-            </button>
+            <button class="reveal-btn" onclick={revealAll}> Revelar </button>
           {:else if playsLeft > 0}
             <button class="next-play-btn" onclick={startNewPlay}>
               Siguiente
@@ -659,7 +669,9 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.1s, background 0.2s;
+    transition:
+      transform 0.1s,
+      background 0.2s;
     text-decoration: none;
   }
 
