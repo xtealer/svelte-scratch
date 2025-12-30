@@ -190,6 +190,40 @@ export interface NavTranslations {
   logout: string;
 }
 
+export interface FooterTranslations {
+  copyright: string;
+}
+
+export interface GameUITranslations {
+  backToMenu: string;
+  endSession: string;
+  mute: string;
+  unmute: string;
+  credit: string;
+  bet: string;
+  won: string;
+  spin: string;
+  code: string;
+  enterCode: string;
+  payTable: string;
+  auto: string;
+  on: string;
+  off: string;
+  claim: string;
+  scratchAndWin: string;
+  winUpTo: string;
+  threeMatchWin: string;
+  plays: string;
+  winnings: string;
+  reveal: string;
+  next: string;
+  newCode: string;
+  youWon: string;
+  youLost: string;
+  prize: string;
+  viewPrizes: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
@@ -200,6 +234,8 @@ export interface Translations {
   games: GamesTranslations;
   users: UsersTranslations;
   nav: NavTranslations;
+  footer: FooterTranslations;
+  gameUI: GameUITranslations;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -386,6 +422,38 @@ export const translations: Record<Language, Translations> = {
       payouts: 'Payouts',
       logout: 'Logout',
     },
+    footer: {
+      copyright: '© Gold Games',
+    },
+    gameUI: {
+      backToMenu: 'Back to Menu',
+      endSession: 'End Session',
+      mute: 'Mute',
+      unmute: 'Unmute',
+      credit: 'Credit',
+      bet: 'Bet',
+      won: 'Won',
+      spin: 'SPIN',
+      code: 'CODE',
+      enterCode: 'Enter Code',
+      payTable: 'Pay Table',
+      auto: 'AUTO',
+      on: 'ON',
+      off: 'OFF',
+      claim: 'Claim',
+      scratchAndWin: 'SCRATCH & WIN',
+      winUpTo: 'Win Up To $500',
+      threeMatchWin: '3 MATCHING WINS!',
+      plays: 'Plays',
+      winnings: 'Winnings',
+      reveal: 'Reveal',
+      next: 'Next',
+      newCode: 'New Code',
+      youWon: 'You Won',
+      youLost: 'You Lost!',
+      prize: 'Prize',
+      viewPrizes: 'View Prizes',
+    },
   },
   es: {
     rechargeCard: {
@@ -570,6 +638,38 @@ export const translations: Record<Language, Translations> = {
       payouts: 'Pagos',
       logout: 'Cerrar Sesión',
     },
+    footer: {
+      copyright: '© Gold Games',
+    },
+    gameUI: {
+      backToMenu: 'Volver al Menú',
+      endSession: 'Terminar Sesión',
+      mute: 'Silenciar',
+      unmute: 'Activar Sonido',
+      credit: 'Crédito',
+      bet: 'Apuesta',
+      won: 'Ganado',
+      spin: 'GIRAR',
+      code: 'CÓDIGO',
+      enterCode: 'Ingresar Código',
+      payTable: 'Tabla de Premios',
+      auto: 'AUTO',
+      on: 'SÍ',
+      off: 'NO',
+      claim: 'Cobrar',
+      scratchAndWin: 'RASPA Y GANA',
+      winUpTo: 'Gana Hasta $500',
+      threeMatchWin: '¡3 IGUALES GANAN!',
+      plays: 'Jugadas',
+      winnings: 'Ganancias',
+      reveal: 'Revelar',
+      next: 'Siguiente',
+      newCode: 'Nuevo Código',
+      youWon: '¡Ganaste',
+      youLost: '¡Has Perdido!',
+      prize: 'Premio',
+      viewPrizes: 'Ver Premios',
+    },
   },
   ar: {
     rechargeCard: {
@@ -753,6 +853,38 @@ export const translations: Record<Language, Translations> = {
       sales: 'المبيعات',
       payouts: 'المدفوعات',
       logout: 'تسجيل الخروج',
+    },
+    footer: {
+      copyright: '© Gold Games',
+    },
+    gameUI: {
+      backToMenu: 'العودة للقائمة',
+      endSession: 'إنهاء الجلسة',
+      mute: 'كتم الصوت',
+      unmute: 'تفعيل الصوت',
+      credit: 'الرصيد',
+      bet: 'الرهان',
+      won: 'ربحت',
+      spin: 'دوران',
+      code: 'الرمز',
+      enterCode: 'أدخل الرمز',
+      payTable: 'جدول الجوائز',
+      auto: 'تلقائي',
+      on: 'تشغيل',
+      off: 'إيقاف',
+      claim: 'صرف',
+      scratchAndWin: 'اخدش واربح',
+      winUpTo: 'اربح حتى $500',
+      threeMatchWin: '3 متطابقات تفوز!',
+      plays: 'اللعبات',
+      winnings: 'الأرباح',
+      reveal: 'كشف',
+      next: 'التالي',
+      newCode: 'رمز جديد',
+      youWon: 'ربحت',
+      youLost: 'خسرت!',
+      prize: 'الجائزة',
+      viewPrizes: 'عرض الجوائز',
     },
   },
 };
