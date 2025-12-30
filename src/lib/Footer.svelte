@@ -1,13 +1,22 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { Globe } from 'lucide-svelte';
   import { getLanguage, setLanguage, getSupportedLanguages, type Language } from './i18n';
 
-  let currentLang = $state(getLanguage());
+  let currentLang = $state<Language>('en');
   let isOpen = $state(false);
+  let mounted = $state(false);
 
   const languages = getSupportedLanguages();
 
+  onMount(() => {
+    currentLang = getLanguage();
+    mounted = true;
+  });
+
   function selectLanguage(code: Language) {
+    if (!browser) return;
     setLanguage(code);
     currentLang = code;
     isOpen = false;
