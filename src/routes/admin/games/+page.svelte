@@ -3,19 +3,27 @@
   import { goto } from '$app/navigation';
   import { Gamepad2, ArrowLeft, ToggleLeft, ToggleRight, Save } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage, t, direction } from '$lib/i18n';
+  import { initLanguage, t, direction, currentLanguage, type Language } from '$lib/i18n';
+
+  type TranslatedText = Record<Language, string>;
 
   interface Game {
     gameId: string;
-    name: string;
+    name: TranslatedText;
     enabled: boolean;
-    description?: string;
+    description?: TranslatedText;
     updatedAt: string;
   }
 
   let games = $state<Game[]>([]);
   let loading = $state(true);
   let saving = $state<string | null>(null);
+
+  // Helper to get translated text for current language
+  function getTranslated(text: TranslatedText | undefined, fallback: string = ''): string {
+    if (!text) return fallback;
+    return text[$currentLanguage] || text.en || fallback;
+  }
 
   onMount(async () => {
     initLanguage();
@@ -103,7 +111,7 @@
         {#each games as game}
           <div class="game-card" class:disabled={!game.enabled}>
             <div class="game-header">
-              <h3>{game.name}</h3>
+              <h3>{getTranslated(game.name, game.gameId)}</h3>
               <button
                 class="toggle-btn"
                 class:enabled={game.enabled}
@@ -123,7 +131,7 @@
             <p class="game-id">ID: {game.gameId}</p>
 
             {#if game.description}
-              <p class="game-desc">{game.description}</p>
+              <p class="game-desc">{getTranslated(game.description)}</p>
             {/if}
 
             <div class="game-footer">
