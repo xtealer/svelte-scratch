@@ -13,11 +13,13 @@
     Check
   } from 'lucide-svelte';
 
+  type UserRole = 'superadmin' | 'admin' | 'seller';
+
   interface User {
     _id: string;
     username: string;
     name: string;
-    role: 'admin' | 'seller';
+    role: UserRole;
     active: boolean;
     createdAt: string;
     lastLogin?: string;
@@ -25,7 +27,7 @@
 
   interface CurrentUser {
     userId: string;
-    role: 'admin' | 'seller';
+    role: UserRole;
   }
 
   let currentUser = $state<CurrentUser | null>(null);
@@ -45,8 +47,11 @@
   // Edit user
   let editingUser = $state<User | null>(null);
   let editName = $state('');
-  let editRole = $state<'admin' | 'seller'>('seller');
+  let editRole = $state<UserRole>('seller');
   let editPassword = $state('');
+
+  // Check if current user can create admin users
+  let canCreateAdmin = $derived(currentUser?.role === 'superadmin');
 
   onMount(async () => {
     await checkAuth();
@@ -57,7 +62,8 @@
     try {
       const res = await fetch('/api/admin/auth');
       const data = await res.json();
-      if (!data.authenticated || data.user.role !== 'admin') {
+      // Allow superadmin and admin
+      if (!data.authenticated || (data.user.role !== 'admin' && data.user.role !== 'superadmin')) {
         goto('/admin');
         return;
       }
@@ -232,7 +238,9 @@
               <span>Role</span>
               <select bind:value={newRole}>
                 <option value="seller">Seller</option>
-                <option value="admin">Admin</option>
+                {#if canCreateAdmin}
+                  <option value="admin">Admin</option>
+                {/if}
               </select>
             </label>
           </div>
@@ -278,13 +286,15 @@
                   {/if}
                 </td>
                 <td>
-                  {#if editingUser?._id === user._id}
+                  {#if editingUser?._id === user._id && user.role !== 'superadmin'}
                     <select bind:value={editRole} class="inline-select">
                       <option value="seller">Seller</option>
-                      <option value="admin">Admin</option>
+                      {#if canCreateAdmin}
+                        <option value="admin">Admin</option>
+                      {/if}
                     </select>
                   {:else}
-                    <span class="role-badge" class:admin={user.role === 'admin'}>
+                    <span class="role-badge" class:admin={user.role === 'admin'} class:superadmin={user.role === 'superadmin'}>
                       {user.role}
                     </span>
                   {/if}
@@ -566,6 +576,12 @@
     background: rgba(255, 215, 0, 0.2);
     border-color: #ffd700;
     color: #ffd700;
+  }
+
+  .role-badge.superadmin {
+    background: rgba(255, 0, 150, 0.2);
+    border-color: #ff0096;
+    color: #ff0096;
   }
 
   .toggle-btn {

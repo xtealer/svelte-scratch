@@ -1,10 +1,10 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { requireAdmin } from '$lib/server/auth';
-import { createUser, getAllUsers, updateUser, changePassword } from '$lib/server/db/users';
+import { createUser, getAllUsers, updateUser, changePassword, getUserById } from '$lib/server/db/users';
 import { ObjectId } from 'mongodb';
 
-// GET - List all users (admin only)
+// GET - List all users (admin/superadmin only)
 export const GET: RequestHandler = async ({ cookies }) => {
   try {
     requireAdmin(cookies);
@@ -32,10 +32,13 @@ export const GET: RequestHandler = async ({ cookies }) => {
   }
 };
 
-// POST - Create new user (admin only)
+// POST - Create new user
+// superadmin: can create admin and seller
+// admin: can only create seller
+// seller: cannot create users
 export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
-    const admin = requireAdmin(cookies);
+    const currentUser = requireAdmin(cookies);
 
     const { username, password, name, role } = await request.json();
 
@@ -43,7 +46,22 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       return json({ error: 'All fields required' }, { status: 400 });
     }
 
-    if (!['admin', 'seller'].includes(role)) {
+    // Validate role based on current user's role
+    const allowedRoles: string[] = [];
+
+    if (currentUser.role === 'superadmin') {
+      // Super admin can create admin and seller
+      allowedRoles.push('admin', 'seller');
+    } else if (currentUser.role === 'admin') {
+      // Admin can only create seller
+      allowedRoles.push('seller');
+    }
+    // Sellers cannot create users (already blocked by requireAdmin)
+
+    if (!allowedRoles.includes(role)) {
+      if (currentUser.role === 'admin' && role === 'admin') {
+        return json({ error: 'Only super admins can create admin users' }, { status: 403 });
+      }
       return json({ error: 'Invalid role' }, { status: 400 });
     }
 
@@ -52,7 +70,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       password,
       role,
       name,
-      new ObjectId(admin.userId)
+      new ObjectId(currentUser.userId)
     );
 
     return json({
@@ -76,10 +94,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 };
 
-// PATCH - Update user (admin only)
+// PATCH - Update user (admin/superadmin only)
 export const PATCH: RequestHandler = async ({ request, cookies }) => {
   try {
-    requireAdmin(cookies);
+    const currentUser = requireAdmin(cookies);
 
     const { userId, name, active, role, newPassword } = await request.json();
 
@@ -87,10 +105,41 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
       return json({ error: 'User ID required' }, { status: 400 });
     }
 
+    // Get target user to check permissions
+    const targetUser = await getUserById(userId);
+    if (!targetUser) {
+      return json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Permission checks
+    // Cannot modify superadmin unless you are superadmin
+    if (targetUser.role === 'superadmin' && currentUser.role !== 'superadmin') {
+      return json({ error: 'Cannot modify super admin' }, { status: 403 });
+    }
+
+    // Admin cannot modify other admins
+    if (targetUser.role === 'admin' && currentUser.role === 'admin' && targetUser._id?.toString() !== currentUser.userId) {
+      return json({ error: 'Cannot modify other admin users' }, { status: 403 });
+    }
+
     const updates: Record<string, unknown> = {};
     if (name !== undefined) updates.name = name;
     if (active !== undefined) updates.active = active;
-    if (role !== undefined && ['admin', 'seller'].includes(role)) updates.role = role;
+
+    // Role change restrictions
+    if (role !== undefined) {
+      if (currentUser.role === 'superadmin') {
+        // Superadmin can change to any role except superadmin
+        if (['admin', 'seller'].includes(role)) {
+          updates.role = role;
+        }
+      } else if (currentUser.role === 'admin') {
+        // Admin can only set seller role
+        if (role === 'seller') {
+          updates.role = role;
+        }
+      }
+    }
 
     if (Object.keys(updates).length > 0) {
       await updateUser(userId, updates as { name?: string; active?: boolean; role?: 'admin' | 'seller' });

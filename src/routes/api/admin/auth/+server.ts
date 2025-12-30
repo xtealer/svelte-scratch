@@ -1,13 +1,12 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { validateLogin, generateToken, verifyToken, ensureAdminExists } from '$lib/server/db/users';
+import { validateLogin, generateToken, verifyToken } from '$lib/server/db/users';
 import { ensureGamesExist } from '$lib/server/db/games';
 
 // POST - Login
 export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
-    // Ensure defaults exist
-    await ensureAdminExists();
+    // Ensure default games exist
     await ensureGamesExist();
 
     const { username, password } = await request.json();

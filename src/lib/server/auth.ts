@@ -29,8 +29,16 @@ export function requireAuth(cookies: Cookies): AuthUser {
 
 export function requireAdmin(cookies: Cookies): AuthUser {
   const user = requireAuth(cookies);
-  if (user.role !== 'admin') {
+  if (user.role !== 'admin' && user.role !== 'superadmin') {
     throw new Error('Admin access required');
+  }
+  return user;
+}
+
+export function requireSuperAdmin(cookies: Cookies): AuthUser {
+  const user = requireAuth(cookies);
+  if (user.role !== 'superadmin') {
+    throw new Error('Super admin access required');
   }
   return user;
 }

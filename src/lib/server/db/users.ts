@@ -124,12 +124,21 @@ export async function changePassword(id: string | ObjectId, newPassword: string)
   return result.modifiedCount > 0;
 }
 
-export async function ensureAdminExists(): Promise<void> {
+export async function getSuperAdminCount(): Promise<number> {
   const db = await getDB();
-  const adminExists = await db.collection<User>(COLLECTION).findOne({ role: 'admin' });
+  return db.collection<User>(COLLECTION).countDocuments({ role: 'superadmin' });
+}
 
-  if (!adminExists) {
-    await createUser('admin', 'admin123', 'admin', 'Administrator');
-    console.log('Default admin created: admin / admin123');
+export async function createSuperAdmin(
+  username: string,
+  password: string,
+  name: string
+): Promise<User> {
+  // Check if superadmin already exists
+  const count = await getSuperAdminCount();
+  if (count > 0) {
+    throw new Error('Super admin already exists. Use the admin panel to create more users.');
   }
+
+  return createUser(username, password, 'superadmin', name);
 }
