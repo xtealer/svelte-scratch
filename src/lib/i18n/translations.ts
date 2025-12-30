@@ -41,17 +41,169 @@ export interface CardsAdminTranslations {
 export interface CommonTranslations {
   backToDashboard: string;
   casinoAdmin: string;
+  welcome: string;
+  loading: string;
+  error: string;
+  save: string;
+  edit: string;
+  delete: string;
+  confirm: string;
+  today: string;
+  thisMonth: string;
+  date: string;
+  notes: string;
+}
+
+export interface DashboardTranslations {
+  title: string;
+  totalRevenue: string;
+  totalSales: string;
+  totalPayouts: string;
+  netProfit: string;
+  positive: string;
+  negative: string;
+  rechargeCards: string;
+  payoutRequests: string;
+  pending: string;
+  paid: string;
+  viewRequests: string;
+  gameStatistics: string;
+  totalPlays: string;
+  wins: string;
+  losses: string;
+  winRate: string;
+  prizesPaid: string;
+  prizeDistribution: string;
+  prize: string;
+  count: string;
+  expectedOdds: string;
+  actualOdds: string;
+  under: string;
+  over: string;
+  normal: string;
+  recentSales: string;
+  recentPayouts: string;
+  noSalesYet: string;
+  noPayoutsYet: string;
+  seller: string;
+  paidBy: string;
+}
+
+export interface SalesTranslations {
+  title: string;
+  allSellers: string;
+  totalRevenue: string;
+  totalSales: string;
+  topSellers: string;
+  sales: string;
+  recentSales: string;
+  noSalesYet: string;
+  code: string;
+  plays: string;
+  price: string;
+  seller: string;
+  date: string;
+}
+
+export interface PayoutsTranslations {
+  title: string;
+  registerPayout: string;
+  pendingRequests: string;
+  totalPaidOut: string;
+  requests: string;
+  completedPayouts: string;
+  registerPrizePayment: string;
+  code: string;
+  amount: string;
+  notesOptional: string;
+  processing: string;
+  payoutRequests: string;
+  pending: string;
+  approved: string;
+  paid: string;
+  rejected: string;
+  all: string;
+  noRequests: string;
+  approve: string;
+  reject: string;
+  markAsPaid: string;
+  recentPayouts: string;
+  player: string;
+  paidBy: string;
+  noPayoutsYet: string;
+  processed: string;
+  by: string;
+  alreadyPaid: string;
+  payoutRegistered: string;
+}
+
+export interface GamesTranslations {
+  title: string;
+  active: string;
+  disabled: string;
+  updated: string;
+  gameStatusInfo: string;
+  whenDisabled: string;
+  cannotAccess: string;
+  existingSessions: string;
+  showMaintenance: string;
+  loading: string;
+}
+
+export interface UsersTranslations {
+  title: string;
+  addUser: string;
+  newUser: string;
+  username: string;
+  password: string;
+  name: string;
+  role: string;
+  creating: string;
+  createUser: string;
+  super: string;
+  admin: string;
+  seller: string;
+  active: string;
+  inactive: string;
+  lastLogin: string;
+  never: string;
+  viewStats: string;
+  editUser: string;
+  saveChanges: string;
+  saving: string;
+  newPassword: string;
+  leaveBlank: string;
+  stats: string;
+  statsFor: string;
+  totalRevenue: string;
+  totalSales: string;
+  loading: string;
+}
+
+export interface NavTranslations {
+  dashboard: string;
+  users: string;
+  games: string;
+  rechargeCards: string;
+  sales: string;
+  payouts: string;
+  logout: string;
 }
 
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
   common: CommonTranslations;
+  dashboard: DashboardTranslations;
+  sales: SalesTranslations;
+  payouts: PayoutsTranslations;
+  games: GamesTranslations;
+  users: UsersTranslations;
+  nav: NavTranslations;
 }
 
 export const translations: Record<Language, Translations> = {
   en: {
-    // Recharge Cards
     rechargeCard: {
       title: 'RECHARGE CARD',
       code: 'Code',
@@ -63,7 +215,6 @@ export const translations: Record<Language, Translations> = {
       copyMessage: (code: string, amount: number) =>
         `🎰 RECHARGE CARD 🎰\n\nCode: ${code}\nAmount: $${amount}\n\nEnter this code in the game to recharge your balance.\nGood luck!`,
     },
-    // Cards Admin Page
     cardsAdmin: {
       title: 'Recharge Cards',
       generateCard: 'Generate Card',
@@ -76,14 +227,12 @@ export const translations: Record<Language, Translations> = {
       downloadImage: 'Download as Image',
       close: 'Close',
       copyWithMessage: 'Copy with message',
-      // Stats
       total: 'Total',
       unused: 'Unused',
       used: 'Used',
       sold: 'Sold',
       totalValue: 'Total Value',
       soldValue: 'Sold Value',
-      // Table
       status: 'Status',
       created: 'Created',
       usedAt: 'Used At',
@@ -92,14 +241,153 @@ export const translations: Record<Language, Translations> = {
       markAsSold: 'Mark as Sold',
       actions: 'Actions',
     },
-    // Common
     common: {
       backToDashboard: 'Back to Dashboard',
       casinoAdmin: 'Casino Admin',
+      welcome: 'Welcome',
+      loading: 'Loading...',
+      error: 'Error',
+      save: 'Save',
+      edit: 'Edit',
+      delete: 'Delete',
+      confirm: 'Confirm',
+      today: 'Today',
+      thisMonth: 'This Month',
+      date: 'Date',
+      notes: 'Notes',
+    },
+    dashboard: {
+      title: 'Dashboard',
+      totalRevenue: 'Total Revenue',
+      totalSales: 'Total Sales',
+      totalPayouts: 'Total Payouts',
+      netProfit: 'Net Profit',
+      positive: 'Positive',
+      negative: 'Negative',
+      rechargeCards: 'Recharge Cards',
+      payoutRequests: 'Payout Requests',
+      pending: 'Pending',
+      paid: 'Paid',
+      viewRequests: 'View Requests',
+      gameStatistics: 'Game Statistics',
+      totalPlays: 'Total Plays',
+      wins: 'Wins',
+      losses: 'Losses',
+      winRate: 'Win Rate',
+      prizesPaid: 'Prizes Paid',
+      prizeDistribution: 'Prize Distribution (Actual vs Expected)',
+      prize: 'Prize',
+      count: 'Count',
+      expectedOdds: 'Expected Odds',
+      actualOdds: 'Actual Odds',
+      under: 'Under',
+      over: 'Over',
+      normal: 'Normal',
+      recentSales: 'Recent Sales',
+      recentPayouts: 'Recent Payouts',
+      noSalesYet: 'No sales yet',
+      noPayoutsYet: 'No payouts yet',
+      seller: 'Seller',
+      paidBy: 'Paid By',
+    },
+    sales: {
+      title: 'Sales',
+      allSellers: 'All Sellers',
+      totalRevenue: 'Total Revenue',
+      totalSales: 'Total Sales',
+      topSellers: 'Top Sellers',
+      sales: 'sales',
+      recentSales: 'Recent Sales',
+      noSalesYet: 'No sales yet',
+      code: 'Code',
+      plays: 'Plays',
+      price: 'Price',
+      seller: 'Seller',
+      date: 'Date',
+    },
+    payouts: {
+      title: 'Payouts',
+      registerPayout: 'Register Payout',
+      pendingRequests: 'Pending Requests',
+      totalPaidOut: 'Total Paid Out',
+      requests: 'Requests',
+      completedPayouts: 'Completed Payouts',
+      registerPrizePayment: 'Register Prize Payment',
+      code: 'Code',
+      amount: 'Amount ($)',
+      notesOptional: 'Notes (optional)',
+      processing: 'Processing...',
+      payoutRequests: 'Payout Requests',
+      pending: 'Pending',
+      approved: 'Approved',
+      paid: 'Paid',
+      rejected: 'Rejected',
+      all: 'All',
+      noRequests: 'No requests',
+      approve: 'Approve',
+      reject: 'Reject',
+      markAsPaid: 'Mark as Paid',
+      recentPayouts: 'Recent Payouts',
+      player: 'Player',
+      paidBy: 'Paid By',
+      noPayoutsYet: 'No payouts registered yet',
+      processed: 'Processed',
+      by: 'by',
+      alreadyPaid: 'This code was already paid on',
+      payoutRegistered: 'Payout registered',
+    },
+    games: {
+      title: 'Game Management',
+      active: 'Active',
+      disabled: 'Disabled',
+      updated: 'Updated',
+      gameStatusInfo: 'Game Status Info',
+      whenDisabled: 'When a game is disabled:',
+      cannotAccess: 'Players cannot access the game',
+      existingSessions: 'Existing sessions are not affected',
+      showMaintenance: 'Game will show as "Under Maintenance"',
+      loading: 'Loading games...',
+    },
+    users: {
+      title: 'User Management',
+      addUser: 'Add User',
+      newUser: 'New User',
+      username: 'Username',
+      password: 'Password',
+      name: 'Name',
+      role: 'Role',
+      creating: 'Creating...',
+      createUser: 'Create User',
+      super: 'Super Admin',
+      admin: 'Admin',
+      seller: 'Seller',
+      active: 'Active',
+      inactive: 'Inactive',
+      lastLogin: 'Last Login',
+      never: 'Never',
+      viewStats: 'View Stats',
+      editUser: 'Edit User',
+      saveChanges: 'Save Changes',
+      saving: 'Saving...',
+      newPassword: 'New Password',
+      leaveBlank: 'Leave blank to keep current',
+      stats: 'Stats',
+      statsFor: 'Stats for',
+      totalRevenue: 'Total Revenue',
+      totalSales: 'Total Sales',
+      loading: 'Loading...',
+    },
+    nav: {
+      dashboard: 'Dashboard',
+      users: 'Users',
+      games: 'Games',
+      rechargeCards: 'Recharge Cards',
+      sales: 'Sales',
+      payouts: 'Payouts',
+      logout: 'Logout',
     },
   },
   es: {
-    // Recharge Cards
     rechargeCard: {
       title: 'TARJETA DE RECARGA',
       code: 'Código',
@@ -111,7 +399,6 @@ export const translations: Record<Language, Translations> = {
       copyMessage: (code: string, amount: number) =>
         `🎰 TARJETA DE RECARGA 🎰\n\nCódigo: ${code}\nMonto: $${amount}\n\nIngresa este código en el juego para recargar tu saldo.\n¡Buena suerte!`,
     },
-    // Cards Admin Page
     cardsAdmin: {
       title: 'Tarjetas de Recarga',
       generateCard: 'Generar Tarjeta',
@@ -124,14 +411,12 @@ export const translations: Record<Language, Translations> = {
       downloadImage: 'Descargar como Imagen',
       close: 'Cerrar',
       copyWithMessage: 'Copiar con mensaje',
-      // Stats
       total: 'Total',
       unused: 'Sin Usar',
       used: 'Usadas',
       sold: 'Vendidas',
       totalValue: 'Valor Total',
       soldValue: 'Valor Vendido',
-      // Table
       status: 'Estado',
       created: 'Creada',
       usedAt: 'Usada',
@@ -140,14 +425,153 @@ export const translations: Record<Language, Translations> = {
       markAsSold: 'Marcar como Vendida',
       actions: 'Acciones',
     },
-    // Common
     common: {
       backToDashboard: 'Volver al Panel',
       casinoAdmin: 'Admin Casino',
+      welcome: 'Bienvenido',
+      loading: 'Cargando...',
+      error: 'Error',
+      save: 'Guardar',
+      edit: 'Editar',
+      delete: 'Eliminar',
+      confirm: 'Confirmar',
+      today: 'Hoy',
+      thisMonth: 'Este Mes',
+      date: 'Fecha',
+      notes: 'Notas',
+    },
+    dashboard: {
+      title: 'Panel',
+      totalRevenue: 'Ingresos Totales',
+      totalSales: 'Ventas Totales',
+      totalPayouts: 'Pagos Totales',
+      netProfit: 'Ganancia Neta',
+      positive: 'Positiva',
+      negative: 'Negativa',
+      rechargeCards: 'Tarjetas de Recarga',
+      payoutRequests: 'Solicitudes de Pago',
+      pending: 'Pendientes',
+      paid: 'Pagadas',
+      viewRequests: 'Ver Solicitudes',
+      gameStatistics: 'Estadísticas de Juegos',
+      totalPlays: 'Jugadas Totales',
+      wins: 'Ganadas',
+      losses: 'Perdidas',
+      winRate: 'Tasa de Victoria',
+      prizesPaid: 'Premios Pagados',
+      prizeDistribution: 'Distribución de Premios (Real vs Esperado)',
+      prize: 'Premio',
+      count: 'Cantidad',
+      expectedOdds: 'Probabilidad Esperada',
+      actualOdds: 'Probabilidad Real',
+      under: 'Bajo',
+      over: 'Alto',
+      normal: 'Normal',
+      recentSales: 'Ventas Recientes',
+      recentPayouts: 'Pagos Recientes',
+      noSalesYet: 'Sin ventas aún',
+      noPayoutsYet: 'Sin pagos aún',
+      seller: 'Vendedor',
+      paidBy: 'Pagado Por',
+    },
+    sales: {
+      title: 'Ventas',
+      allSellers: 'Todos los Vendedores',
+      totalRevenue: 'Ingresos Totales',
+      totalSales: 'Ventas Totales',
+      topSellers: 'Mejores Vendedores',
+      sales: 'ventas',
+      recentSales: 'Ventas Recientes',
+      noSalesYet: 'Sin ventas aún',
+      code: 'Código',
+      plays: 'Jugadas',
+      price: 'Precio',
+      seller: 'Vendedor',
+      date: 'Fecha',
+    },
+    payouts: {
+      title: 'Pagos',
+      registerPayout: 'Registrar Pago',
+      pendingRequests: 'Solicitudes Pendientes',
+      totalPaidOut: 'Total Pagado',
+      requests: 'Solicitudes',
+      completedPayouts: 'Pagos Completados',
+      registerPrizePayment: 'Registrar Pago de Premio',
+      code: 'Código',
+      amount: 'Monto ($)',
+      notesOptional: 'Notas (opcional)',
+      processing: 'Procesando...',
+      payoutRequests: 'Solicitudes de Pago',
+      pending: 'Pendiente',
+      approved: 'Aprobado',
+      paid: 'Pagado',
+      rejected: 'Rechazado',
+      all: 'Todos',
+      noRequests: 'Sin solicitudes',
+      approve: 'Aprobar',
+      reject: 'Rechazar',
+      markAsPaid: 'Marcar como Pagado',
+      recentPayouts: 'Pagos Recientes',
+      player: 'Jugador',
+      paidBy: 'Pagado Por',
+      noPayoutsYet: 'Sin pagos registrados aún',
+      processed: 'Procesado',
+      by: 'por',
+      alreadyPaid: 'Este código ya fue pagado el',
+      payoutRegistered: 'Pago registrado',
+    },
+    games: {
+      title: 'Gestión de Juegos',
+      active: 'Activo',
+      disabled: 'Desactivado',
+      updated: 'Actualizado',
+      gameStatusInfo: 'Info de Estado del Juego',
+      whenDisabled: 'Cuando un juego está desactivado:',
+      cannotAccess: 'Los jugadores no pueden acceder al juego',
+      existingSessions: 'Las sesiones existentes no se afectan',
+      showMaintenance: 'El juego mostrará "En Mantenimiento"',
+      loading: 'Cargando juegos...',
+    },
+    users: {
+      title: 'Gestión de Usuarios',
+      addUser: 'Agregar Usuario',
+      newUser: 'Nuevo Usuario',
+      username: 'Usuario',
+      password: 'Contraseña',
+      name: 'Nombre',
+      role: 'Rol',
+      creating: 'Creando...',
+      createUser: 'Crear Usuario',
+      super: 'Super Admin',
+      admin: 'Admin',
+      seller: 'Vendedor',
+      active: 'Activo',
+      inactive: 'Inactivo',
+      lastLogin: 'Último Acceso',
+      never: 'Nunca',
+      viewStats: 'Ver Estadísticas',
+      editUser: 'Editar Usuario',
+      saveChanges: 'Guardar Cambios',
+      saving: 'Guardando...',
+      newPassword: 'Nueva Contraseña',
+      leaveBlank: 'Dejar vacío para mantener actual',
+      stats: 'Estadísticas',
+      statsFor: 'Estadísticas de',
+      totalRevenue: 'Ingresos Totales',
+      totalSales: 'Ventas Totales',
+      loading: 'Cargando...',
+    },
+    nav: {
+      dashboard: 'Panel',
+      users: 'Usuarios',
+      games: 'Juegos',
+      rechargeCards: 'Tarjetas de Recarga',
+      sales: 'Ventas',
+      payouts: 'Pagos',
+      logout: 'Cerrar Sesión',
     },
   },
   ar: {
-    // Recharge Cards
     rechargeCard: {
       title: 'بطاقة إعادة الشحن',
       code: 'الرمز',
@@ -159,7 +583,6 @@ export const translations: Record<Language, Translations> = {
       copyMessage: (code: string, amount: number) =>
         `🎰 بطاقة إعادة الشحن 🎰\n\nالرمز: ${code}\nالمبلغ: $${amount}\n\nأدخل هذا الرمز في اللعبة لإعادة شحن رصيدك.\nحظاً موفقاً!`,
     },
-    // Cards Admin Page
     cardsAdmin: {
       title: 'بطاقات إعادة الشحن',
       generateCard: 'إنشاء بطاقة',
@@ -172,14 +595,12 @@ export const translations: Record<Language, Translations> = {
       downloadImage: 'تحميل كصورة',
       close: 'إغلاق',
       copyWithMessage: 'نسخ مع الرسالة',
-      // Stats
       total: 'الإجمالي',
       unused: 'غير مستخدمة',
       used: 'مستخدمة',
       sold: 'مباعة',
       totalValue: 'القيمة الإجمالية',
       soldValue: 'قيمة المبيعات',
-      // Table
       status: 'الحالة',
       created: 'تاريخ الإنشاء',
       usedAt: 'تاريخ الاستخدام',
@@ -188,10 +609,150 @@ export const translations: Record<Language, Translations> = {
       markAsSold: 'تسجيل كمباعة',
       actions: 'الإجراءات',
     },
-    // Common
     common: {
       backToDashboard: 'العودة للوحة التحكم',
       casinoAdmin: 'إدارة الكازينو',
+      welcome: 'مرحباً',
+      loading: 'جاري التحميل...',
+      error: 'خطأ',
+      save: 'حفظ',
+      edit: 'تعديل',
+      delete: 'حذف',
+      confirm: 'تأكيد',
+      today: 'اليوم',
+      thisMonth: 'هذا الشهر',
+      date: 'التاريخ',
+      notes: 'ملاحظات',
+    },
+    dashboard: {
+      title: 'لوحة التحكم',
+      totalRevenue: 'إجمالي الإيرادات',
+      totalSales: 'إجمالي المبيعات',
+      totalPayouts: 'إجمالي المدفوعات',
+      netProfit: 'صافي الربح',
+      positive: 'إيجابي',
+      negative: 'سلبي',
+      rechargeCards: 'بطاقات إعادة الشحن',
+      payoutRequests: 'طلبات الدفع',
+      pending: 'قيد الانتظار',
+      paid: 'مدفوعة',
+      viewRequests: 'عرض الطلبات',
+      gameStatistics: 'إحصائيات الألعاب',
+      totalPlays: 'إجمالي اللعبات',
+      wins: 'الفوز',
+      losses: 'الخسارة',
+      winRate: 'معدل الفوز',
+      prizesPaid: 'الجوائز المدفوعة',
+      prizeDistribution: 'توزيع الجوائز (الفعلي مقابل المتوقع)',
+      prize: 'الجائزة',
+      count: 'العدد',
+      expectedOdds: 'الاحتمال المتوقع',
+      actualOdds: 'الاحتمال الفعلي',
+      under: 'أقل',
+      over: 'أكثر',
+      normal: 'طبيعي',
+      recentSales: 'المبيعات الأخيرة',
+      recentPayouts: 'المدفوعات الأخيرة',
+      noSalesYet: 'لا توجد مبيعات بعد',
+      noPayoutsYet: 'لا توجد مدفوعات بعد',
+      seller: 'البائع',
+      paidBy: 'دفع بواسطة',
+    },
+    sales: {
+      title: 'المبيعات',
+      allSellers: 'جميع البائعين',
+      totalRevenue: 'إجمالي الإيرادات',
+      totalSales: 'إجمالي المبيعات',
+      topSellers: 'أفضل البائعين',
+      sales: 'مبيعات',
+      recentSales: 'المبيعات الأخيرة',
+      noSalesYet: 'لا توجد مبيعات بعد',
+      code: 'الرمز',
+      plays: 'اللعبات',
+      price: 'السعر',
+      seller: 'البائع',
+      date: 'التاريخ',
+    },
+    payouts: {
+      title: 'المدفوعات',
+      registerPayout: 'تسجيل دفعة',
+      pendingRequests: 'الطلبات المعلقة',
+      totalPaidOut: 'إجمالي المدفوع',
+      requests: 'الطلبات',
+      completedPayouts: 'المدفوعات المكتملة',
+      registerPrizePayment: 'تسجيل دفع جائزة',
+      code: 'الرمز',
+      amount: 'المبلغ ($)',
+      notesOptional: 'ملاحظات (اختياري)',
+      processing: 'جاري المعالجة...',
+      payoutRequests: 'طلبات الدفع',
+      pending: 'معلق',
+      approved: 'موافق عليه',
+      paid: 'مدفوع',
+      rejected: 'مرفوض',
+      all: 'الكل',
+      noRequests: 'لا توجد طلبات',
+      approve: 'موافقة',
+      reject: 'رفض',
+      markAsPaid: 'تحديد كمدفوع',
+      recentPayouts: 'المدفوعات الأخيرة',
+      player: 'اللاعب',
+      paidBy: 'دفع بواسطة',
+      noPayoutsYet: 'لا توجد مدفوعات مسجلة بعد',
+      processed: 'تمت المعالجة',
+      by: 'بواسطة',
+      alreadyPaid: 'تم دفع هذا الرمز بالفعل في',
+      payoutRegistered: 'تم تسجيل الدفعة',
+    },
+    games: {
+      title: 'إدارة الألعاب',
+      active: 'نشط',
+      disabled: 'معطل',
+      updated: 'تم التحديث',
+      gameStatusInfo: 'معلومات حالة اللعبة',
+      whenDisabled: 'عندما تكون اللعبة معطلة:',
+      cannotAccess: 'لا يمكن للاعبين الوصول إلى اللعبة',
+      existingSessions: 'الجلسات الحالية لا تتأثر',
+      showMaintenance: 'ستظهر اللعبة "قيد الصيانة"',
+      loading: 'جاري تحميل الألعاب...',
+    },
+    users: {
+      title: 'إدارة المستخدمين',
+      addUser: 'إضافة مستخدم',
+      newUser: 'مستخدم جديد',
+      username: 'اسم المستخدم',
+      password: 'كلمة المرور',
+      name: 'الاسم',
+      role: 'الدور',
+      creating: 'جاري الإنشاء...',
+      createUser: 'إنشاء مستخدم',
+      super: 'مدير أعلى',
+      admin: 'مدير',
+      seller: 'بائع',
+      active: 'نشط',
+      inactive: 'غير نشط',
+      lastLogin: 'آخر دخول',
+      never: 'أبداً',
+      viewStats: 'عرض الإحصائيات',
+      editUser: 'تعديل المستخدم',
+      saveChanges: 'حفظ التغييرات',
+      saving: 'جاري الحفظ...',
+      newPassword: 'كلمة مرور جديدة',
+      leaveBlank: 'اتركه فارغاً للإبقاء على الحالي',
+      stats: 'الإحصائيات',
+      statsFor: 'إحصائيات',
+      totalRevenue: 'إجمالي الإيرادات',
+      totalSales: 'إجمالي المبيعات',
+      loading: 'جاري التحميل...',
+    },
+    nav: {
+      dashboard: 'لوحة التحكم',
+      users: 'المستخدمين',
+      games: 'الألعاب',
+      rechargeCards: 'بطاقات الشحن',
+      sales: 'المبيعات',
+      payouts: 'المدفوعات',
+      logout: 'تسجيل الخروج',
     },
   },
 };

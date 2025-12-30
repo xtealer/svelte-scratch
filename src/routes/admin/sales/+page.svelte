@@ -4,7 +4,7 @@
   import { page } from '$app/stores';
   import { TrendingUp, ArrowLeft, DollarSign, ShoppingCart, Calendar, Filter, X } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage } from '$lib/i18n';
+  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
 
   interface Sale {
     _id: string;
@@ -46,8 +46,14 @@
   let isAdmin = $state(false);
   let selectedSeller = $state<string>('');
 
+  // i18n
+  let i18n = $state<Translations>(t());
+  let dir = $state<'ltr' | 'rtl'>('ltr');
+
   onMount(async () => {
     initLanguage();
+    i18n = t();
+    dir = getDirection();
     // Check for sellerId in URL params
     const urlSellerId = $page.url.searchParams.get('sellerId');
     if (urlSellerId) {
@@ -118,17 +124,17 @@
   }
 </script>
 
-<div class="admin-container">
+<div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>Casino Admin</h2>
+      <h2>{i18n.common.casinoAdmin}</h2>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>Back to Dashboard</span>
+          <span>{i18n.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -138,13 +144,13 @@
     <header class="top-bar">
       <h1>
         <TrendingUp size={28} />
-        <span>Sales</span>
+        <span>{i18n.sales.title}</span>
       </h1>
       {#if isAdmin && users.length > 0}
         <div class="filter-section">
           <Filter size={18} />
           <select bind:value={selectedSeller} onchange={handleFilterChange}>
-            <option value="">All Sellers</option>
+            <option value="">{i18n.sales.allSellers}</option>
             {#each users as user}
               <option value={user._id}>{user.name} ({user.role})</option>
             {/each}
@@ -163,29 +169,29 @@
         <div class="stat-card">
           <DollarSign size={24} />
           <div class="stat-info">
-            <span class="label">Total Revenue</span>
+            <span class="label">{i18n.sales.totalRevenue}</span>
             <span class="value">${stats.totalRevenue.toFixed(2)}</span>
           </div>
         </div>
         <div class="stat-card">
           <ShoppingCart size={24} />
           <div class="stat-info">
-            <span class="label">Total Sales</span>
+            <span class="label">{i18n.sales.totalSales}</span>
             <span class="value">{stats.totalSales}</span>
           </div>
         </div>
         <div class="stat-card today">
           <Calendar size={24} />
           <div class="stat-info">
-            <span class="label">Today</span>
-            <span class="value">{stats.todaySales} sales - ${stats.todayRevenue.toFixed(2)}</span>
+            <span class="label">{i18n.common.today}</span>
+            <span class="value">{stats.todaySales} {i18n.sales.sales} - ${stats.todayRevenue.toFixed(2)}</span>
           </div>
         </div>
         <div class="stat-card month">
           <Calendar size={24} />
           <div class="stat-info">
-            <span class="label">This Month</span>
-            <span class="value">{stats.monthSales} sales - ${stats.monthRevenue.toFixed(2)}</span>
+            <span class="label">{i18n.common.thisMonth}</span>
+            <span class="value">{stats.monthSales} {i18n.sales.sales} - ${stats.monthRevenue.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -193,13 +199,13 @@
 
     {#if isAdmin && topSellers.length > 0}
       <div class="top-sellers">
-        <h3>Top Sellers</h3>
+        <h3>{i18n.sales.topSellers}</h3>
         <div class="sellers-list">
           {#each topSellers as seller, i}
             <div class="seller-item">
               <span class="rank">#{i + 1}</span>
               <span class="name">{seller.sellerName}</span>
-              <span class="sales">{seller.totalSales} sales</span>
+              <span class="sales">{seller.totalSales} {i18n.sales.sales}</span>
               <span class="revenue">${seller.totalRevenue.toFixed(2)}</span>
             </div>
           {/each}
@@ -208,20 +214,20 @@
     {/if}
 
     {#if loading}
-      <div class="loading">Loading sales...</div>
+      <div class="loading">{i18n.common.loading}</div>
     {:else}
       <div class="sales-table">
-        <h3>Recent Sales</h3>
+        <h3>{i18n.sales.recentSales}</h3>
         <table>
           <thead>
             <tr>
-              <th>Code</th>
-              <th>Plays</th>
-              <th>Price</th>
+              <th>{i18n.sales.code}</th>
+              <th>{i18n.sales.plays}</th>
+              <th>{i18n.sales.price}</th>
               {#if isAdmin}
-                <th>Seller</th>
+                <th>{i18n.sales.seller}</th>
               {/if}
-              <th>Date</th>
+              <th>{i18n.sales.date}</th>
             </tr>
           </thead>
           <tbody>
@@ -240,7 +246,7 @@
         </table>
 
         {#if sales.length === 0}
-          <p class="empty">No sales yet</p>
+          <p class="empty">{i18n.sales.noSalesYet}</p>
         {/if}
       </div>
     {/if}
@@ -254,6 +260,10 @@
     display: flex;
     min-height: 100vh;
     background: #0f0f1a;
+  }
+
+  .admin-container[dir="rtl"] {
+    direction: rtl;
   }
 
   .sidebar {
