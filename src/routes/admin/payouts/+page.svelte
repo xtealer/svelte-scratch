@@ -241,10 +241,10 @@
 
   function getStatusLabel(status: string): string {
     switch (status) {
-      case 'pending': return 'Pending';
-      case 'approved': return 'Approved';
-      case 'paid': return 'Paid';
-      case 'rejected': return 'Rejected';
+      case 'pending': return i18n.payouts.pending;
+      case 'approved': return i18n.payouts.approved;
+      case 'paid': return i18n.payouts.paid;
+      case 'rejected': return i18n.payouts.rejected;
       default: return status;
     }
   }
@@ -256,17 +256,17 @@
   );
 </script>
 
-<div class="admin-container">
+<div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>Casino Admin</h2>
+      <h2>{i18n.common.casinoAdmin}</h2>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>Back to Dashboard</span>
+          <span>{i18n.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -276,11 +276,11 @@
     <header class="top-bar">
       <h1>
         <Receipt size={28} />
-        <span>Payouts</span>
+        <span>{i18n.payouts.title}</span>
       </h1>
       <button class="add-btn" onclick={() => showForm = true}>
         <Plus size={20} />
-        <span>Register Payout</span>
+        <span>{i18n.payouts.registerPayout}</span>
       </button>
     </header>
 
@@ -290,28 +290,28 @@
         <div class="stat-card pending">
           <Clock size={24} />
           <div class="stat-info">
-            <span class="label">Pending Requests</span>
+            <span class="label">{i18n.payouts.pendingRequests}</span>
             <span class="value">{requestStats.pending} - ${requestStats.pendingAmount.toFixed(2)}</span>
           </div>
         </div>
         <div class="stat-card">
           <Wallet size={24} />
           <div class="stat-info">
-            <span class="label">Total Paid Out</span>
+            <span class="label">{i18n.payouts.totalPaidOut}</span>
             <span class="value">${stats?.totalAmount.toFixed(2) || '0.00'}</span>
           </div>
         </div>
         <div class="stat-card today">
           <Calendar size={24} />
           <div class="stat-info">
-            <span class="label">Today</span>
+            <span class="label">{i18n.common.today}</span>
             <span class="value">{stats?.todayPayouts || 0} - ${stats?.todayAmount.toFixed(2) || '0.00'}</span>
           </div>
         </div>
         <div class="stat-card month">
           <Calendar size={24} />
           <div class="stat-info">
-            <span class="label">This Month</span>
+            <span class="label">{i18n.common.thisMonth}</span>
             <span class="value">{stats?.monthPayouts || 0} - ${stats?.monthAmount.toFixed(2) || '0.00'}</span>
           </div>
         </div>
@@ -326,7 +326,7 @@
         onclick={() => activeTab = 'requests'}
       >
         <Clock size={18} />
-        Requests
+        {i18n.payouts.requests}
         {#if requestStats && requestStats.pending > 0}
           <span class="badge">{requestStats.pending}</span>
         {/if}
@@ -337,13 +337,13 @@
         onclick={() => activeTab = 'payouts'}
       >
         <Check size={18} />
-        Completed Payouts
+        {i18n.payouts.completedPayouts}
       </button>
     </div>
 
     {#if showForm}
       <div class="form-panel">
-        <h3>Register Prize Payment</h3>
+        <h3>{i18n.payouts.registerPrizePayment}</h3>
 
         {#if formError}
           <div class="form-error">
@@ -362,7 +362,7 @@
         <form onsubmit={submitPayout}>
           <div class="form-grid">
             <label>
-              <span>Code</span>
+              <span>{i18n.payouts.code}</span>
               <input
                 type="text"
                 bind:value={payoutCode}
@@ -372,7 +372,7 @@
               />
             </label>
             <label>
-              <span>Amount ($)</span>
+              <span>{i18n.payouts.amount}</span>
               <input
                 type="number"
                 bind:value={payoutAmount}
@@ -385,20 +385,20 @@
           </div>
 
           <label class="notes-label">
-            <span>Notes (optional)</span>
+            <span>{i18n.payouts.notesOptional}</span>
             <textarea
               bind:value={payoutNotes}
-              placeholder="Any additional notes about this payout..."
+              placeholder=""
               rows="2"
             ></textarea>
           </label>
 
           <div class="form-actions">
             <button type="button" class="cancel-btn" onclick={() => showForm = false}>
-              Cancel
+              {i18n.cardsAdmin.cancel}
             </button>
             <button type="submit" class="submit-btn" disabled={submitting}>
-              {submitting ? 'Processing...' : 'Register Payout'}
+              {submitting ? i18n.payouts.processing : i18n.payouts.registerPayout}
             </button>
           </div>
         </form>
@@ -406,53 +406,53 @@
     {/if}
 
     {#if loading}
-      <div class="loading">Loading payouts...</div>
+      <div class="loading">{i18n.common.loading}</div>
     {:else if activeTab === 'requests'}
       <!-- Payout Requests -->
       <div class="requests-section">
         <div class="section-header">
-          <h3>Payout Requests</h3>
+          <h3>{i18n.payouts.payoutRequests}</h3>
           <div class="status-filters">
             <button
               class="filter-btn"
               class:active={statusFilter === 'pending'}
               onclick={() => statusFilter = 'pending'}
             >
-              Pending
+              {i18n.payouts.pending}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'approved'}
               onclick={() => statusFilter = 'approved'}
             >
-              Approved
+              {i18n.payouts.approved}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'paid'}
               onclick={() => statusFilter = 'paid'}
             >
-              Paid
+              {i18n.payouts.paid}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'rejected'}
               onclick={() => statusFilter = 'rejected'}
             >
-              Rejected
+              {i18n.payouts.rejected}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'all'}
               onclick={() => statusFilter = 'all'}
             >
-              All
+              {i18n.payouts.all}
             </button>
           </div>
         </div>
 
         {#if filteredRequests.length === 0}
-          <p class="empty">No {statusFilter === 'all' ? '' : statusFilter} requests</p>
+          <p class="empty">{i18n.payouts.noRequests}</p>
         {:else}
           <div class="requests-list">
             {#each filteredRequests as request}
@@ -485,15 +485,15 @@
                   <span class="game-badge">{request.gameId}</span>
                   <span class="request-date">{formatDate(request.createdAt)}</span>
                   {#if request.sellerName}
-                    <span class="seller-info">Seller: {request.sellerName}</span>
+                    <span class="seller-info">{i18n.dashboard.seller}: {request.sellerName}</span>
                   {/if}
                 </div>
 
                 {#if request.processedAt}
                   <div class="processed-info">
-                    Processed {formatDate(request.processedAt)}
+                    {i18n.payouts.processed} {formatDate(request.processedAt)}
                     {#if request.processedByName}
-                      by {request.processedByName}
+                      {i18n.payouts.by} {request.processedByName}
                     {/if}
                   </div>
                 {/if}
@@ -511,7 +511,7 @@
                       disabled={processingId === request._id}
                     >
                       <CheckCircle size={16} />
-                      Approve
+                      {i18n.payouts.approve}
                     </button>
                     <button
                       class="action-btn reject"
@@ -519,7 +519,7 @@
                       disabled={processingId === request._id}
                     >
                       <XCircle size={16} />
-                      Reject
+                      {i18n.payouts.reject}
                     </button>
                   </div>
                 {:else if request.status === 'approved'}
@@ -530,7 +530,7 @@
                       disabled={processingId === request._id}
                     >
                       <DollarSign size={16} />
-                      Mark as Paid
+                      {i18n.payouts.markAsPaid}
                     </button>
                   </div>
                 {/if}
@@ -542,18 +542,18 @@
     {:else}
       <!-- Completed Payouts -->
       <div class="payouts-table">
-        <h3>Recent Payouts</h3>
+        <h3>{i18n.payouts.recentPayouts}</h3>
         <table>
           <thead>
             <tr>
-              <th>Code</th>
-              <th>Amount</th>
-              <th>Player</th>
+              <th>{i18n.payouts.code}</th>
+              <th>{i18n.payouts.amount}</th>
+              <th>{i18n.payouts.player}</th>
               {#if isAdmin}
-                <th>Paid By</th>
+                <th>{i18n.payouts.paidBy}</th>
               {/if}
-              <th>Date</th>
-              <th>Notes</th>
+              <th>{i18n.common.date}</th>
+              <th>{i18n.common.notes}</th>
             </tr>
           </thead>
           <tbody>
@@ -582,7 +582,7 @@
         </table>
 
         {#if payouts.length === 0}
-          <p class="empty">No payouts registered yet</p>
+          <p class="empty">{i18n.payouts.noPayoutsYet}</p>
         {/if}
       </div>
     {/if}
@@ -596,6 +596,10 @@
     display: flex;
     min-height: 100vh;
     background: #0f0f1a;
+  }
+
+  .admin-container[dir="rtl"] {
+    direction: rtl;
   }
 
   .sidebar {
