@@ -448,6 +448,14 @@
 
 <div class="container">
   <div class="ticket">
+    <div class="ticket-controls">
+      <button class="control-btn" onclick={openPrizeList} title="View Prize List">
+        <span class="control-icon">🏆</span>
+      </button>
+      <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Unmute" : "Mute"}>
+        <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
+      </button>
+    </div>
     <div class="ticket-title">GOLD RUSH</div>
     <div class="ticket-subtitle">Gana Hasta $500</div>
     <div class="ticket-header">MATCH 3 TO WIN!</div>
@@ -480,19 +488,21 @@
           <button class="next-play-btn" onclick={startNewPlay}>
             Next Play
           </button>
+        {:else if revealed && playsLeft === 0}
+          <button class="next-play-btn" onclick={openCodeModal}>
+            New Code
+          </button>
         {/if}
+      {:else}
+        <button class="enter-code-btn" onclick={openCodeModal}>
+          Enter Scratch Code
+        </button>
       {/if}
     </div>
   </div>
 </div>
 
 <div class="buttons">
-  {#if !hasActiveSession}
-    <button class="primary" onclick={openCodeModal}>Enter Scratch Code</button>
-  {:else if revealed && playsLeft === 0}
-    <button class="primary" onclick={openCodeModal}>Enter New Code</button>
-  {/if}
-
   {#if hasActiveSession && !revealed}
     <button onclick={revealAll}>Reveal All Instantly</button>
   {/if}
@@ -502,12 +512,6 @@
       Claim ${sessionWinnings.toFixed(2)}
     </button>
   {/if}
-
-  <button onclick={openPrizeList}>View Prize List</button>
-
-  <button class:mute={muted} onclick={toggleMute}>
-    {muted ? "Unmute Sounds" : "Mute Sounds"}
-  </button>
 
   {#if hasActiveSession}
     <button class="secondary" onclick={resetSession}>End Session</button>
@@ -579,9 +583,49 @@
     border: 3px solid #ffd700;
   }
 
-  .ticket-title {
+  .ticket-controls {
     position: absolute;
     top: 2%;
+    left: 4%;
+    right: 4%;
+    display: flex;
+    justify-content: space-between;
+    z-index: 20;
+  }
+
+  .control-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #ffd700;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+  }
+
+  .control-btn:hover {
+    transform: scale(1.1);
+    background: rgba(255, 215, 0, 0.3);
+  }
+
+  .control-btn:active {
+    transform: scale(0.95);
+  }
+
+  .control-btn.muted {
+    opacity: 0.6;
+  }
+
+  .control-icon {
+    font-size: 1.2em;
+  }
+
+  .ticket-title {
+    position: absolute;
+    top: 8%;
     left: 0;
     right: 0;
     font-size: 2.2em;
@@ -595,7 +639,7 @@
 
   .ticket-subtitle {
     position: absolute;
-    top: 8%;
+    top: 14%;
     left: 0;
     right: 0;
     font-size: 1.2em;
@@ -606,7 +650,7 @@
 
   .ticket-header {
     position: absolute;
-    top: 14%;
+    top: 19%;
     left: 0;
     right: 0;
     font-size: 1.4em;
@@ -617,10 +661,10 @@
 
   .scratch-area {
     position: absolute;
-    top: 22%;
+    top: 26%;
     left: 6%;
     width: 88%;
-    height: 48%;
+    height: 46%;
     background: #bbb;
     border-radius: 20px;
     box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.7);
@@ -634,10 +678,14 @@
     left: 6%;
     right: 6%;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     z-index: 10;
     min-height: 50px;
+  }
+
+  .ticket-footer:has(.plays-counter) {
+    justify-content: space-between;
   }
 
   .plays-counter {
@@ -676,6 +724,28 @@
   }
 
   .next-play-btn:active {
+    transform: scale(0.98);
+  }
+
+  .enter-code-btn {
+    padding: 14px 28px;
+    font-size: 1.3em;
+    background: linear-gradient(#ffd700, #b8860b);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    font-weight: bold;
+    transition: transform 0.1s;
+    margin: 0 auto;
+  }
+
+  .enter-code-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .enter-code-btn:active {
     transform: scale(0.98);
   }
 
@@ -754,12 +824,6 @@
     transform: scale(1.03);
   }
 
-  button.primary {
-    background: linear-gradient(#00dd00, #008800);
-    color: #fff;
-    text-shadow: 1px 1px 3px #000;
-  }
-
   button.claim {
     background: linear-gradient(#ff6600, #cc4400);
     color: #fff;
@@ -771,11 +835,14 @@
     color: #fff;
   }
 
-  button.mute {
-    background: linear-gradient(#888, #555);
-  }
-
   @media (max-width: 480px) {
+    .control-btn {
+      width: 34px;
+      height: 34px;
+    }
+    .control-icon {
+      font-size: 1em;
+    }
     .ticket-title {
       font-size: 1.8em;
     }
@@ -788,6 +855,10 @@
     .next-play-btn {
       padding: 10px 18px;
       font-size: 1em;
+    }
+    .enter-code-btn {
+      padding: 12px 20px;
+      font-size: 1.1em;
     }
     .plays-value {
       font-size: 1.5em;
