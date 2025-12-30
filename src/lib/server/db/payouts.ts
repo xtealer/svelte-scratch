@@ -10,16 +10,24 @@ export async function recordPayout(
   amount: number,
   paidBy: ObjectId,
   paidByName: string,
-  notes?: string
+  notes?: string,
+  playerName?: string,
+  playerPhone?: string,
+  playerCountry?: string,
+  requestId?: ObjectId
 ): Promise<Payout> {
   const db = await getDB();
 
   const payout: Payout = {
     code: code.toUpperCase().trim(),
     amount,
+    playerName: playerName || '',
+    playerPhone: playerPhone || '',
+    playerCountry: playerCountry || '',
     paidBy,
     paidByName,
     paidAt: new Date(),
+    requestId,
     notes
   };
 

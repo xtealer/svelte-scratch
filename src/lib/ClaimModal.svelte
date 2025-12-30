@@ -1,23 +1,67 @@
 <script lang="ts">
+  import { ChevronDown } from 'lucide-svelte';
+
   let {
     show = $bindable(false),
     scratchCode,
     totalWinnings,
+    gameId = 'scratch',
     onPlayMore,
+    onRequestSubmitted,
   }: {
     show: boolean;
     scratchCode: string;
     totalWinnings: number;
+    gameId?: string;
     onPlayMore?: () => void;
+    onRequestSubmitted?: () => void;
   } = $props();
 
-  // Generate QR code URL using goqr.me API
-  let qrCodeUrl = $derived(
-    `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(scratchCode)}`
-  );
+  // Country codes for dropdown
+  const countries = [
+    { code: 'US', name: 'United States', dial: '+1' },
+    { code: 'MX', name: 'México', dial: '+52' },
+    { code: 'GT', name: 'Guatemala', dial: '+502' },
+    { code: 'SV', name: 'El Salvador', dial: '+503' },
+    { code: 'HN', name: 'Honduras', dial: '+504' },
+    { code: 'NI', name: 'Nicaragua', dial: '+505' },
+    { code: 'CR', name: 'Costa Rica', dial: '+506' },
+    { code: 'PA', name: 'Panamá', dial: '+507' },
+    { code: 'CO', name: 'Colombia', dial: '+57' },
+    { code: 'VE', name: 'Venezuela', dial: '+58' },
+    { code: 'EC', name: 'Ecuador', dial: '+593' },
+    { code: 'PE', name: 'Perú', dial: '+51' },
+    { code: 'BO', name: 'Bolivia', dial: '+591' },
+    { code: 'CL', name: 'Chile', dial: '+56' },
+    { code: 'AR', name: 'Argentina', dial: '+54' },
+    { code: 'UY', name: 'Uruguay', dial: '+598' },
+    { code: 'PY', name: 'Paraguay', dial: '+595' },
+    { code: 'BR', name: 'Brasil', dial: '+55' },
+    { code: 'ES', name: 'España', dial: '+34' },
+    { code: 'DO', name: 'República Dominicana', dial: '+1' },
+    { code: 'PR', name: 'Puerto Rico', dial: '+1' },
+    { code: 'CU', name: 'Cuba', dial: '+53' },
+  ];
+
+  // Form state
+  let playerName = $state('');
+  let selectedCountry = $state('US');
+  let phoneNumber = $state('');
+  let submitting = $state(false);
+  let submitted = $state(false);
+  let error = $state('');
+
+  // Get selected country info
+  let selectedCountryInfo = $derived(countries.find(c => c.code === selectedCountry) || countries[0]);
 
   function close(): void {
     show = false;
+    // Reset form when closing
+    if (!submitted) {
+      playerName = '';
+      phoneNumber = '';
+      error = '';
+    }
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -32,6 +76,58 @@
     }
     close();
   }
+
+  async function submitRequest(): Promise<void> {
+    error = '';
+
+    // Validate
+    if (!playerName.trim() || playerName.trim().length < 2) {
+      error = 'Por favor ingresa tu nombre completo';
+      return;
+    }
+
+    if (!phoneNumber.trim() || phoneNumber.trim().length < 6) {
+      error = 'Por favor ingresa un número de teléfono válido';
+      return;
+    }
+
+    submitting = true;
+
+    try {
+      const fullPhone = `${selectedCountryInfo.dial} ${phoneNumber.trim()}`;
+
+      const response = await fetch('/api/payout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: scratchCode,
+          gameId,
+          amount: totalWinnings,
+          playerName: playerName.trim(),
+          playerPhone: fullPhone,
+          playerCountry: selectedCountry
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        error = data.error || 'Error al enviar solicitud';
+        submitting = false;
+        return;
+      }
+
+      submitted = true;
+      submitting = false;
+
+      if (onRequestSubmitted) {
+        onRequestSubmitted();
+      }
+    } catch {
+      error = 'Error de conexión';
+      submitting = false;
+    }
+  }
 </script>
 
 {#if show}
@@ -39,35 +135,87 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">COBRA TU PREMIO</div>
+      {#if submitted}
+        <div class="success-view">
+          <div class="success-icon">✓</div>
+          <div class="modal-header">¡SOLICITUD ENVIADA!</div>
+          <div class="winnings">
+            <span class="label">Monto Solicitado</span>
+            <span class="amount">${totalWinnings.toFixed(2)}</span>
+          </div>
+          <div class="info">
+            <p>Tu solicitud de pago ha sido enviada.</p>
+            <p>Te contactaremos al número proporcionado.</p>
+            <p class="code-ref">Código: <strong>{scratchCode}</strong></p>
+          </div>
+          <button class="close-btn" onclick={close}>Cerrar</button>
+        </div>
+      {:else}
+        <div class="modal-header">SOLICITAR PAGO</div>
 
-      <div class="winnings">
-        <span class="label">Ganancias Totales</span>
-        <span class="amount">${totalWinnings.toFixed(2)}</span>
-      </div>
+        <div class="winnings">
+          <span class="label">Ganancias Totales</span>
+          <span class="amount">${totalWinnings.toFixed(2)}</span>
+        </div>
 
-      <div class="qr-container">
-        <img src={qrCodeUrl} alt="Código QR para {scratchCode}" class="qr-code" />
-      </div>
+        <div class="form-section">
+          <div class="form-group">
+            <label for="playerName">Nombre Completo</label>
+            <input
+              type="text"
+              id="playerName"
+              bind:value={playerName}
+              placeholder="Tu nombre completo"
+              disabled={submitting}
+            />
+          </div>
 
-      <div class="code-display">
-        <span class="label">Código</span>
-        <span class="code">{scratchCode}</span>
-      </div>
+          <div class="form-group">
+            <label for="phone">Número de Teléfono</label>
+            <div class="phone-input">
+              <div class="country-select">
+                <select bind:value={selectedCountry} disabled={submitting}>
+                  {#each countries as country}
+                    <option value={country.code}>{country.dial} {country.name}</option>
+                  {/each}
+                </select>
+                <ChevronDown size={16} />
+              </div>
+              <input
+                type="tel"
+                id="phone"
+                bind:value={phoneNumber}
+                placeholder="Número de teléfono"
+                disabled={submitting}
+              />
+            </div>
+          </div>
+        </div>
 
-      <div class="info">
-        <p>Muestra este código QR para cobrar tus ganancias.</p>
-        <p>Guarda este código hasta cobrar tu premio.</p>
-      </div>
-
-      <div class="button-group">
-        {#if onPlayMore}
-          <button class="play-more-btn" onclick={handlePlayMore}>
-            Seguir Jugando
-          </button>
+        {#if error}
+          <div class="error-message">{error}</div>
         {/if}
-        <button class="close-btn" onclick={close}>Cerrar</button>
-      </div>
+
+        <div class="info">
+          <p>Te contactaremos para coordinar tu pago.</p>
+        </div>
+
+        <div class="button-group">
+          <button
+            class="submit-btn"
+            onclick={submitRequest}
+            disabled={submitting}
+          >
+            {submitting ? 'Enviando...' : 'Solicitar Pago'}
+          </button>
+          {#if onPlayMore}
+            <button class="play-more-btn" onclick={handlePlayMore} disabled={submitting}>
+              Seguir Jugando
+            </button>
+          {/if}
+          <button class="cancel-btn" onclick={close} disabled={submitting}>Cancelar</button>
+        </div>
+      {/if}
     </div>
   </div>
 {/if}
@@ -95,7 +243,7 @@
     border-radius: 16px;
     padding: 20px 16px;
     width: 100%;
-    max-width: 360px;
+    max-width: 380px;
     max-height: calc(100vh - 24px);
     max-height: calc(100dvh - 24px);
     overflow-y: auto;
@@ -115,7 +263,7 @@
     border: 2px solid #ffd700;
     border-radius: 12px;
     padding: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   .winnings .label {
@@ -133,39 +281,91 @@
     text-shadow: 0 0 15px #0f0;
   }
 
-  .qr-container {
-    background: #fff;
-    padding: 10px;
-    border-radius: 12px;
-    display: inline-block;
+  .form-section {
+    text-align: left;
     margin-bottom: 12px;
   }
 
-  .qr-code {
-    display: block;
-    width: 140px;
-    height: 140px;
-  }
-
-  .code-display {
+  .form-group {
     margin-bottom: 12px;
   }
 
-  .code-display .label {
+  .form-group label {
     display: block;
     color: #aaa;
-    font-size: 0.8em;
-    margin-bottom: 4px;
+    font-size: 0.85em;
+    margin-bottom: 6px;
   }
 
-  .code-display .code {
-    display: block;
-    color: #ffd700;
-    font-size: 1.1em;
-    font-weight: bold;
-    letter-spacing: 1px;
-    word-break: break-all;
-    padding: 0 8px;
+  .form-group input {
+    width: 100%;
+    padding: 12px;
+    background: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1em;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #ffd700;
+  }
+
+  .form-group input::placeholder {
+    color: #666;
+  }
+
+  .phone-input {
+    display: flex;
+    gap: 8px;
+  }
+
+  .country-select {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .country-select select {
+    appearance: none;
+    padding: 12px 32px 12px 12px;
+    background: #1a1a1a;
+    border: 2px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9em;
+    cursor: pointer;
+    min-width: 100px;
+  }
+
+  .country-select select:focus {
+    outline: none;
+    border-color: #ffd700;
+  }
+
+  .country-select :global(svg) {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+  }
+
+  .phone-input input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .error-message {
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 10px;
+    color: #ff6666;
+    font-size: 0.9em;
+    margin-bottom: 12px;
   }
 
   .info {
@@ -179,15 +379,47 @@
     margin: 4px 0;
   }
 
+  .code-ref {
+    margin-top: 8px;
+    color: #ffd700;
+  }
+
   .button-group {
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
 
+  .submit-btn {
+    padding: 14px;
+    font-size: 1.2em;
+    width: 100%;
+    background: linear-gradient(#ffd700, #b8860b);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    font-weight: bold;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+
+  .submit-btn:hover:not(:disabled) {
+    transform: scale(1.02);
+  }
+
+  .submit-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .play-more-btn {
     padding: 12px;
-    font-size: 1.2em;
+    font-size: 1em;
     width: 100%;
     background: linear-gradient(#00cc00, #008800);
     color: #fff;
@@ -199,12 +431,38 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   }
 
-  .play-more-btn:active {
+  .play-more-btn:active:not(:disabled) {
     transform: scale(0.98);
   }
 
-  .close-btn {
+  .play-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .cancel-btn {
     padding: 12px;
+    font-size: 1em;
+    width: 100%;
+    background: transparent;
+    color: #888;
+    border: 1px solid #444;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .cancel-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: #aaa;
+  }
+
+  .cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .close-btn {
+    padding: 14px;
     font-size: 1.2em;
     width: 100%;
     background: linear-gradient(#ffd700, #b8860b);
@@ -220,6 +478,23 @@
     transform: scale(0.98);
   }
 
+  .success-view {
+    text-align: center;
+  }
+
+  .success-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    background: linear-gradient(#00cc00, #008800);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    color: #fff;
+  }
+
   @media (min-width: 400px) {
     .modal-content {
       padding: 24px 20px;
@@ -230,25 +505,9 @@
     }
     .winnings {
       padding: 16px;
-      margin-bottom: 16px;
     }
     .winnings .amount {
       font-size: 2.2em;
-    }
-    .qr-code {
-      width: 160px;
-      height: 160px;
-    }
-    .code-display .code {
-      font-size: 1.3em;
-      letter-spacing: 2px;
-    }
-    .info {
-      font-size: 0.85em;
-    }
-    .close-btn {
-      padding: 14px;
-      font-size: 1.3em;
     }
   }
 </style>

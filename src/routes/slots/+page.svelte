@@ -537,6 +537,7 @@
   bind:show={showClaimModal}
   scratchCode={currentCode}
   totalWinnings={sessionWinnings}
+  gameId="slots"
   onPlayMore={convertWinningsToCredits}
 />
 

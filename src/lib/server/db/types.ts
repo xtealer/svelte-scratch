@@ -32,6 +32,7 @@ export interface RechargeCard {
   createdBy: ObjectId; // seller or admin who created it
   soldAt?: Date;
   soldBy?: ObjectId;
+  soldByName?: string;
 }
 
 // Game configuration
@@ -57,6 +58,18 @@ export interface Sale {
   soldAt: Date;
 }
 
+// Individual game play record
+export interface GamePlay {
+  _id?: ObjectId;
+  sessionId: ObjectId;
+  code: string;
+  gameId: string;
+  betAmount: number;
+  prizeAmount: number;
+  symbol: string;
+  playedAt: Date;
+}
+
 // Game session / play record
 export interface GameSession {
   _id?: ObjectId;
@@ -71,15 +84,50 @@ export interface GameSession {
   claimedAt?: Date;
 }
 
-// Payout record
+// Payout request status
+export type PayoutRequestStatus = 'pending' | 'approved' | 'rejected' | 'paid';
+
+// Payout request from player
+export interface PayoutRequest {
+  _id?: ObjectId;
+  code: string;
+  gameId: string;
+  amount: number;
+  playerName: string;
+  playerPhone: string;
+  playerCountry: string;
+  status: PayoutRequestStatus;
+  createdAt: Date;
+  processedAt?: Date;
+  processedBy?: ObjectId;
+  processedByName?: string;
+  sellerId?: ObjectId; // The seller who sold this code
+  sellerName?: string;
+  notes?: string;
+}
+
+// Payout record (completed payout)
 export interface Payout {
   _id?: ObjectId;
   code: string;
   amount: number;
+  playerName: string;
+  playerPhone: string;
+  playerCountry: string;
   paidBy: ObjectId; // admin/seller who paid
   paidByName: string;
   paidAt: Date;
+  requestId?: ObjectId;
   notes?: string;
+}
+
+// Prize stats for dashboard
+export interface PrizeStats {
+  prizeAmount: number;
+  count: number;
+  totalPaid: number;
+  expectedOdds: number;
+  actualOdds: number;
 }
 
 // Stats summary

@@ -22,6 +22,33 @@
     role: 'super' | 'admin' | 'seller';
   }
 
+  interface PrizeStats {
+    prizeAmount: number;
+    count: number;
+    totalPaid: number;
+    expectedOdds: number;
+    actualOdds: number;
+  }
+
+  interface PlaysBreakdown {
+    totalPlays: number;
+    totalWins: number;
+    totalLosses: number;
+    winRate: number;
+    totalPrizesPaid: number;
+  }
+
+  interface PayoutRequestStats {
+    total: number;
+    pending: number;
+    approved: number;
+    paid: number;
+    rejected: number;
+    totalAmount: number;
+    pendingAmount: number;
+    paidAmount: number;
+  }
+
   interface Stats {
     sales: {
       totalSales: number;
@@ -45,6 +72,9 @@
       totalValue: number;
       soldValue: number;
     } | null;
+    prizeStats: PrizeStats[] | null;
+    playsBreakdown: PlaysBreakdown | null;
+    payoutRequests: PayoutRequestStats;
     recentSales: Array<{
       code: string;
       price: number;
@@ -247,6 +277,99 @@
               <span class="value">{stats.cards.sold}</span>
             </div>
           </div>
+        </div>
+      {/if}
+
+      {#if stats.payoutRequests}
+        <div class="payout-requests-summary">
+          <h3>Payout Requests</h3>
+          <div class="cards-stats">
+            <div class="card-stat pending">
+              <span class="label">Pending</span>
+              <span class="value">{stats.payoutRequests.pending}</span>
+              <span class="sub">${stats.payoutRequests.pendingAmount.toFixed(2)}</span>
+            </div>
+            <div class="card-stat">
+              <span class="label">Paid</span>
+              <span class="value">{stats.payoutRequests.paid}</span>
+              <span class="sub">${stats.payoutRequests.paidAmount.toFixed(2)}</span>
+            </div>
+            <div class="card-stat">
+              <span class="label">Total</span>
+              <span class="value">{stats.payoutRequests.total}</span>
+            </div>
+            {#if stats.payoutRequests.pending > 0}
+              <a href="/admin/payouts" class="view-requests-btn">View Requests →</a>
+            {/if}
+          </div>
+        </div>
+      {/if}
+
+      {#if stats.playsBreakdown && (user?.role === 'admin' || user?.role === 'super')}
+        <div class="plays-summary">
+          <h3>Game Statistics</h3>
+          <div class="cards-stats">
+            <div class="card-stat">
+              <span class="label">Total Plays</span>
+              <span class="value">{stats.playsBreakdown.totalPlays.toLocaleString()}</span>
+            </div>
+            <div class="card-stat win">
+              <span class="label">Wins</span>
+              <span class="value">{stats.playsBreakdown.totalWins.toLocaleString()}</span>
+            </div>
+            <div class="card-stat loss">
+              <span class="label">Losses</span>
+              <span class="value">{stats.playsBreakdown.totalLosses.toLocaleString()}</span>
+            </div>
+            <div class="card-stat">
+              <span class="label">Win Rate</span>
+              <span class="value">{stats.playsBreakdown.winRate.toFixed(2)}%</span>
+            </div>
+            <div class="card-stat prize">
+              <span class="label">Prizes Paid</span>
+              <span class="value">${stats.playsBreakdown.totalPrizesPaid.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      {#if stats.prizeStats && stats.prizeStats.length > 0 && (user?.role === 'admin' || user?.role === 'super')}
+        <div class="prize-stats-panel">
+          <h3>Prize Distribution (Actual vs Expected)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Prize</th>
+                <th>Count</th>
+                <th>Total Paid</th>
+                <th>Expected Odds</th>
+                <th>Actual Odds</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each stats.prizeStats as prize}
+                <tr>
+                  <td class="prize-amount">${prize.prizeAmount}</td>
+                  <td>{prize.count.toLocaleString()}</td>
+                  <td>${prize.totalPaid.toFixed(2)}</td>
+                  <td>1 in {prize.expectedOdds.toLocaleString()}</td>
+                  <td>{prize.actualOdds > 0 ? `1 in ${prize.actualOdds.toLocaleString()}` : '-'}</td>
+                  <td>
+                    {#if prize.actualOdds === 0}
+                      <span class="odds-status neutral">-</span>
+                    {:else if prize.actualOdds > prize.expectedOdds * 1.2}
+                      <span class="odds-status good">Under</span>
+                    {:else if prize.actualOdds < prize.expectedOdds * 0.8}
+                      <span class="odds-status bad">Over</span>
+                    {:else}
+                      <span class="odds-status ok">Normal</span>
+                    {/if}
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
         </div>
       {/if}
 
@@ -620,6 +743,96 @@
     color: #666;
     text-align: center;
     padding: 20px;
+  }
+
+  .payout-requests-summary,
+  .plays-summary,
+  .prize-stats-panel {
+    background: rgba(30, 30, 50, 0.8);
+    border-radius: 12px;
+    border: 1px solid #333;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .payout-requests-summary h3,
+  .plays-summary h3,
+  .prize-stats-panel h3 {
+    margin: 0 0 16px 0;
+    color: #ffd700;
+  }
+
+  .card-stat .sub {
+    color: #666;
+    font-size: 0.8em;
+  }
+
+  .card-stat.pending .value {
+    color: #ff9900;
+  }
+
+  .card-stat.win .value {
+    color: #00cc00;
+  }
+
+  .card-stat.loss .value {
+    color: #ff6666;
+  }
+
+  .card-stat.prize .value {
+    color: #ffd700;
+  }
+
+  .view-requests-btn {
+    padding: 8px 16px;
+    background: rgba(255, 153, 0, 0.2);
+    border: 1px solid #ff9900;
+    border-radius: 8px;
+    color: #ff9900;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: all 0.2s;
+    align-self: center;
+  }
+
+  .view-requests-btn:hover {
+    background: rgba(255, 153, 0, 0.3);
+  }
+
+  .prize-stats-panel {
+    overflow-x: auto;
+  }
+
+  .prize-amount {
+    color: #ffd700;
+    font-weight: bold;
+  }
+
+  .odds-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+
+  .odds-status.good {
+    background: rgba(0, 200, 0, 0.2);
+    color: #00cc00;
+  }
+
+  .odds-status.bad {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff6666;
+  }
+
+  .odds-status.ok {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+  }
+
+  .odds-status.neutral {
+    background: rgba(100, 100, 100, 0.2);
+    color: #888;
   }
 
   @media (max-width: 768px) {

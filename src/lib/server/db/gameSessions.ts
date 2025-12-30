@@ -1,10 +1,13 @@
 import { getDB } from './index';
-import type { GameSession } from './types';
+import type { GameSession, GamePlay, PayoutRequest, PrizeStats, RechargeCard } from './types';
+import { ObjectId } from 'mongodb';
 
 const SESSIONS_COLLECTION = 'gameSessions';
+const PLAYS_COLLECTION = 'gamePlays';
+const PAYOUT_REQUESTS_COLLECTION = 'payoutRequests';
 
 // Prize configuration (~50% RTP, ~18% win rate)
-const PRIZE_CONFIG = [
+export const PRIZE_CONFIG = [
   { amount: 500, odds: 8945 },  // ~0.011% chance
   { amount: 100, odds: 3334 },  // ~0.030% chance
   { amount: 50, odds: 1243 },   // ~0.080% chance
@@ -131,6 +134,18 @@ export async function recordPlay(
   const prize = calculatePrize(betAmount);
   const symbol = prize > 0 ? getPrizeSymbol(prize) : '';
 
+  // Record individual play
+  const play: GamePlay = {
+    sessionId: session._id!,
+    code: upperCode,
+    gameId,
+    betAmount,
+    prizeAmount: prize,
+    symbol,
+    playedAt: new Date()
+  };
+  await db.collection<GamePlay>(PLAYS_COLLECTION).insertOne(play);
+
   // Update session
   const updatedSession = await db.collection<GameSession>(SESSIONS_COLLECTION).findOneAndUpdate(
     { _id: session._id },
@@ -214,5 +229,226 @@ export async function getGameSessionStats() {
     totalPlaysUsed: sessions.reduce((sum, s) => sum + s.playsUsed, 0),
     totalWinnings: sessions.reduce((sum, s) => sum + s.totalWinnings, 0),
     claimedSessions: sessions.filter(s => s.claimed).length,
+  };
+}
+
+// Get prize statistics based on actual plays
+export async function getPrizeStats(): Promise<PrizeStats[]> {
+  const db = await getDB();
+  const plays = await db.collection<GamePlay>(PLAYS_COLLECTION).find({}).toArray();
+
+  const totalPlays = plays.length;
+  if (totalPlays === 0) {
+    return PRIZE_CONFIG.filter(p => p.amount > 0).map(p => ({
+      prizeAmount: p.amount,
+      count: 0,
+      totalPaid: 0,
+      expectedOdds: p.odds,
+      actualOdds: 0
+    }));
+  }
+
+  // Group plays by prize amount
+  const prizeGroups = new Map<number, { count: number; totalPaid: number }>();
+
+  for (const play of plays) {
+    const amount = play.prizeAmount;
+    const existing = prizeGroups.get(amount) || { count: 0, totalPaid: 0 };
+    existing.count++;
+    existing.totalPaid += amount;
+    prizeGroups.set(amount, existing);
+  }
+
+  // Build stats for each prize tier
+  const stats: PrizeStats[] = [];
+
+  for (const config of PRIZE_CONFIG) {
+    if (config.amount > 0) {
+      const group = prizeGroups.get(config.amount) || { count: 0, totalPaid: 0 };
+      stats.push({
+        prizeAmount: config.amount,
+        count: group.count,
+        totalPaid: group.totalPaid,
+        expectedOdds: config.odds,
+        actualOdds: group.count > 0 ? Math.round(totalPlays / group.count) : 0
+      });
+    }
+  }
+
+  // Add losses (prize = 0)
+  const losses = prizeGroups.get(0) || { count: 0, totalPaid: 0 };
+  const wins = totalPlays - losses.count;
+
+  return stats;
+}
+
+// Get total plays count
+export async function getTotalPlays(): Promise<number> {
+  const db = await getDB();
+  return db.collection<GamePlay>(PLAYS_COLLECTION).countDocuments();
+}
+
+// Get plays breakdown
+export async function getPlaysBreakdown(): Promise<{ totalPlays: number; totalWins: number; totalLosses: number; winRate: number; totalPrizesPaid: number }> {
+  const db = await getDB();
+  const plays = await db.collection<GamePlay>(PLAYS_COLLECTION).find({}).toArray();
+
+  const totalPlays = plays.length;
+  const wins = plays.filter(p => p.prizeAmount > 0);
+  const totalWins = wins.length;
+  const totalLosses = totalPlays - totalWins;
+  const winRate = totalPlays > 0 ? (totalWins / totalPlays) * 100 : 0;
+  const totalPrizesPaid = plays.reduce((sum, p) => sum + p.prizeAmount, 0);
+
+  return { totalPlays, totalWins, totalLosses, winRate, totalPrizesPaid };
+}
+
+// ==================== PAYOUT REQUESTS ====================
+
+// Create a payout request
+export async function createPayoutRequest(
+  code: string,
+  gameId: string,
+  amount: number,
+  playerName: string,
+  playerPhone: string,
+  playerCountry: string
+): Promise<PayoutRequest> {
+  const db = await getDB();
+  const upperCode = code.toUpperCase().trim();
+
+  // Get the seller who sold this code
+  const card = await db.collection<RechargeCard>('rechargeCards').findOne({ code: upperCode });
+
+  const request: PayoutRequest = {
+    code: upperCode,
+    gameId,
+    amount,
+    playerName,
+    playerPhone,
+    playerCountry,
+    status: 'pending',
+    createdAt: new Date(),
+    sellerId: card?.soldBy,
+    sellerName: card?.soldByName
+  };
+
+  const result = await db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION).insertOne(request);
+  request._id = result.insertedId;
+
+  // Mark the session as claimed
+  await claimSession(code, gameId);
+
+  return request;
+}
+
+// Get payout requests (filtered by seller for sellers)
+export async function getPayoutRequests(
+  userId?: ObjectId,
+  role?: string,
+  limit = 100
+): Promise<PayoutRequest[]> {
+  const db = await getDB();
+
+  const query: Record<string, unknown> = {};
+
+  // Sellers can only see their own requests
+  if (role === 'seller' && userId) {
+    query.sellerId = userId;
+  }
+
+  return db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION)
+    .find(query)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+}
+
+// Get pending payout requests count
+export async function getPendingPayoutCount(userId?: ObjectId, role?: string): Promise<number> {
+  const db = await getDB();
+
+  const query: Record<string, unknown> = { status: 'pending' };
+
+  if (role === 'seller' && userId) {
+    query.sellerId = userId;
+  }
+
+  return db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION).countDocuments(query);
+}
+
+// Process a payout request
+export async function processPayoutRequest(
+  requestId: ObjectId,
+  processedBy: ObjectId,
+  processedByName: string,
+  status: string,
+  notes?: string
+): Promise<PayoutRequest | null> {
+  const db = await getDB();
+
+  // Build the query based on allowed transitions
+  // pending -> approved/rejected
+  // approved -> paid
+  let allowedCurrentStatus: string[];
+  if (status === 'approved' || status === 'rejected') {
+    allowedCurrentStatus = ['pending'];
+  } else if (status === 'paid') {
+    allowedCurrentStatus = ['pending', 'approved'];
+  } else {
+    return null;
+  }
+
+  const request = await db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION).findOneAndUpdate(
+    { _id: requestId, status: { $in: allowedCurrentStatus } },
+    {
+      $set: {
+        status,
+        processedAt: new Date(),
+        processedBy,
+        processedByName,
+        ...(notes && { notes })
+      }
+    },
+    { returnDocument: 'after' }
+  );
+
+  return request;
+}
+
+// Get payout request by ID
+export async function getPayoutRequestById(requestId: ObjectId): Promise<PayoutRequest | null> {
+  const db = await getDB();
+  return db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION).findOne({ _id: requestId });
+}
+
+// Check if a payout request exists for a code
+export async function getPayoutRequestByCode(code: string): Promise<PayoutRequest | null> {
+  const db = await getDB();
+  return db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION).findOne({
+    code: code.toUpperCase().trim()
+  });
+}
+
+// Get payout request stats
+export async function getPayoutRequestStats(userId?: ObjectId, role?: string) {
+  const db = await getDB();
+
+  const query: Record<string, unknown> = {};
+  if (role === 'seller' && userId) {
+    query.sellerId = userId;
+  }
+
+  const requests = await db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION).find(query).toArray();
+
+  return {
+    total: requests.length,
+    pending: requests.filter(r => r.status === 'pending').length,
+    approved: requests.filter(r => r.status === 'approved').length,
+    paid: requests.filter(r => r.status === 'paid').length,
+    rejected: requests.filter(r => r.status === 'rejected').length,
+    totalAmount: requests.reduce((sum, r) => sum + r.amount, 0),
+    pendingAmount: requests.filter(r => r.status === 'pending').reduce((sum, r) => sum + r.amount, 0),
+    paidAmount: requests.filter(r => r.status === 'paid').reduce((sum, r) => sum + r.amount, 0),
   };
 }
