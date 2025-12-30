@@ -28,6 +28,11 @@
   let credits = $state(0);
   let sessionWinnings = $state(0);
 
+  // Autoplay state
+  let autoplayActive = $state(false);
+  let autoplaySpinsLeft = $state(0);
+  const AUTOPLAY_OPTIONS = [10, 25, 50, 100];
+
   // Modals
   let showPrizeModal = $state(false);
   let showCodeModal = $state(false);
@@ -121,6 +126,7 @@
   }
 
   function resetSession() {
+    stopAutoplay();
     hasActiveSession = false;
     currentCode = "";
     credits = 0;
@@ -131,8 +137,22 @@
     betSize = 1;
   }
 
+  function startAutoplay(spins: number) {
+    autoplaySpinsLeft = spins;
+    autoplayActive = true;
+    spin();
+  }
+
+  function stopAutoplay() {
+    autoplayActive = false;
+    autoplaySpinsLeft = 0;
+  }
+
   async function spin() {
-    if (spinning || credits < betSize || !hasActiveSession) return;
+    if (spinning || credits < betSize || !hasActiveSession) {
+      if (autoplayActive) stopAutoplay();
+      return;
+    }
 
     spinning = true;
     credits -= betSize;
@@ -195,6 +215,17 @@
           betSize = BET_STEPS[i];
           break;
         }
+      }
+    }
+
+    // Continue autoplay if active
+    if (autoplayActive) {
+      autoplaySpinsLeft--;
+      if (autoplaySpinsLeft <= 0 || credits < betSize) {
+        stopAutoplay();
+      } else {
+        // Small delay before next spin
+        setTimeout(() => spin(), 500);
       }
     }
   }
@@ -266,18 +297,24 @@
 
         <div class="footer-right">
           {#if credits >= betSize}
-            <button
-              class="spin-btn"
-              onclick={spin}
-              disabled={spinning}
-              class:spinning
-            >
-              {#if spinning}
-                SPINNING...
-              {:else}
-                SPIN
-              {/if}
-            </button>
+            {#if autoplayActive}
+              <button class="spin-btn stop-btn" onclick={stopAutoplay}>
+                STOP ({autoplaySpinsLeft})
+              </button>
+            {:else}
+              <button
+                class="spin-btn"
+                onclick={spin}
+                disabled={spinning}
+                class:spinning
+              >
+                {#if spinning}
+                  SPINNING...
+                {:else}
+                  SPIN
+                {/if}
+              </button>
+            {/if}
           {:else}
             <button class="spin-btn new-code" onclick={openCodeModal}>
               NEW CODE
@@ -285,6 +322,21 @@
           {/if}
         </div>
       </div>
+
+      {#if credits >= betSize && !autoplayActive && !spinning}
+        <div class="autoplay-control">
+          <span class="autoplay-label">Auto:</span>
+          {#each AUTOPLAY_OPTIONS as option}
+            <button
+              class="autoplay-btn"
+              onclick={() => startAutoplay(option)}
+              disabled={credits < betSize}
+            >
+              {option}
+            </button>
+          {/each}
+        </div>
+      {/if}
     {:else}
       <div class="enter-code-container">
         <button class="enter-code-btn" onclick={openCodeModal}>
@@ -615,6 +667,48 @@
   .spin-btn.new-code {
     background: linear-gradient(#ffd700, #b8860b);
     color: #000;
+  }
+
+  .spin-btn.stop-btn {
+    background: linear-gradient(#ff4444, #cc2222);
+  }
+
+  .autoplay-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+  }
+
+  .autoplay-label {
+    font-size: 0.9em;
+    color: #aaa;
+  }
+
+  .autoplay-btn {
+    padding: 6px 12px;
+    font-size: 0.9em;
+    background: rgba(0, 0, 0, 0.5);
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s, background 0.2s;
+  }
+
+  .autoplay-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    background: rgba(255, 215, 0, 0.3);
+  }
+
+  .autoplay-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
   .enter-code-container {
