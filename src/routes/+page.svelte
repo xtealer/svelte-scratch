@@ -452,9 +452,16 @@
       <button class="control-btn" onclick={openPrizeList} title="View Prize List">
         <span class="control-icon">🏆</span>
       </button>
-      <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Unmute" : "Mute"}>
-        <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
-      </button>
+      <div class="control-right">
+        {#if hasActiveSession}
+          <button class="control-btn end-btn" onclick={resetSession} title="End Session">
+            <span class="control-icon">✕</span>
+          </button>
+        {/if}
+        <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Unmute" : "Mute"}>
+          <span class="control-icon">{muted ? "🔇" : "🔊"}</span>
+        </button>
+      </div>
     </div>
     <div class="ticket-title">GOLD RUSH</div>
     <div class="ticket-subtitle">Gana Hasta $500</div>
@@ -480,19 +487,32 @@
     </div>
     <div class="ticket-footer">
       {#if hasActiveSession}
-        <div class="plays-counter">
-          <span class="plays-label">Plays Left:</span>
-          <span class="plays-value">{playsLeft}</span>
+        <div class="footer-left">
+          <div class="plays-counter">
+            <span class="plays-label">Plays Left:</span>
+            <span class="plays-value">{playsLeft}</span>
+          </div>
+          {#if sessionWinnings > 0}
+            <button class="claim-btn" onclick={openClaimModal}>
+              Claim ${sessionWinnings.toFixed(2)}
+            </button>
+          {/if}
         </div>
-        {#if revealed && playsLeft > 0}
-          <button class="next-play-btn" onclick={startNewPlay}>
-            Next Play
-          </button>
-        {:else if revealed && playsLeft === 0}
-          <button class="next-play-btn" onclick={openCodeModal}>
-            New Code
-          </button>
-        {/if}
+        <div class="footer-right">
+          {#if !revealed}
+            <button class="reveal-btn" onclick={revealAll}>
+              Reveal
+            </button>
+          {:else if playsLeft > 0}
+            <button class="next-play-btn" onclick={startNewPlay}>
+              Next Play
+            </button>
+          {:else}
+            <button class="next-play-btn" onclick={openCodeModal}>
+              New Code
+            </button>
+          {/if}
+        </div>
       {:else}
         <button class="enter-code-btn" onclick={openCodeModal}>
           Enter Scratch Code
@@ -500,22 +520,6 @@
       {/if}
     </div>
   </div>
-</div>
-
-<div class="buttons">
-  {#if hasActiveSession && !revealed}
-    <button onclick={revealAll}>Reveal All Instantly</button>
-  {/if}
-
-  {#if sessionWinnings > 0}
-    <button class="claim" onclick={openClaimModal}>
-      Claim ${sessionWinnings.toFixed(2)}
-    </button>
-  {/if}
-
-  {#if hasActiveSession}
-    <button class="secondary" onclick={resetSession}>End Session</button>
-  {/if}
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
@@ -623,6 +627,19 @@
     font-size: 1.2em;
   }
 
+  .control-right {
+    display: flex;
+    gap: 8px;
+  }
+
+  .control-btn.end-btn {
+    border-color: #ff6666;
+  }
+
+  .control-btn.end-btn:hover {
+    background: rgba(255, 100, 100, 0.3);
+  }
+
   .ticket-title {
     position: absolute;
     top: 8%;
@@ -674,24 +691,39 @@
 
   .ticket-footer {
     position: absolute;
-    bottom: 3%;
-    left: 6%;
-    right: 6%;
+    bottom: 2%;
+    left: 4%;
+    right: 4%;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10;
-    min-height: 50px;
+    min-height: 60px;
   }
 
-  .ticket-footer:has(.plays-counter) {
+  .ticket-footer:has(.footer-left) {
     justify-content: space-between;
+  }
+
+  .footer-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .footer-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
   }
 
   .plays-counter {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
   }
 
   .plays-label {
@@ -749,6 +781,49 @@
     transform: scale(0.98);
   }
 
+  .claim-btn {
+    padding: 8px 16px;
+    font-size: 0.95em;
+    background: linear-gradient(#ff6600, #cc4400);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    transition: transform 0.1s;
+    text-shadow: 1px 1px 2px #000;
+  }
+
+  .claim-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .claim-btn:active {
+    transform: scale(0.98);
+  }
+
+  .reveal-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    background: linear-gradient(#888, #555);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+    transition: transform 0.1s;
+  }
+
+  .reveal-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .reveal-btn:active {
+    transform: scale(0.98);
+  }
+
   .prize {
     position: absolute;
     top: 0;
@@ -798,43 +873,6 @@
     pointer-events: none;
   }
 
-  .buttons {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 420px;
-    gap: 12px;
-    margin: 20px 0;
-  }
-
-  button {
-    padding: 18px;
-    font-size: 1.4em;
-    background: linear-gradient(#ffd700, #b8860b);
-    color: #000;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-    font-weight: bold;
-  }
-
-  button:hover,
-  button:active {
-    transform: scale(1.03);
-  }
-
-  button.claim {
-    background: linear-gradient(#ff6600, #cc4400);
-    color: #fff;
-    text-shadow: 1px 1px 3px #000;
-  }
-
-  button.secondary {
-    background: linear-gradient(#555, #333);
-    color: #fff;
-  }
-
   @media (max-width: 480px) {
     .control-btn {
       width: 34px;
@@ -860,8 +898,19 @@
       padding: 12px 20px;
       font-size: 1.1em;
     }
+    .claim-btn {
+      padding: 6px 12px;
+      font-size: 0.85em;
+    }
+    .reveal-btn {
+      padding: 8px 16px;
+      font-size: 0.9em;
+    }
+    .plays-label {
+      font-size: 0.8em;
+    }
     .plays-value {
-      font-size: 1.5em;
+      font-size: 1.3em;
     }
     .near-miss {
       font-size: 1.5em;
@@ -874,10 +923,6 @@
     }
     .prize-text {
       font-size: 1.8em;
-    }
-    button {
-      padding: 16px;
-      font-size: 1.3em;
     }
     .session-info {
       gap: 15px;
