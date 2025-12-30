@@ -9,20 +9,29 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
   try {
     const user = requireAuth(cookies);
     const limit = parseInt(url.searchParams.get('limit') || '100');
+    const filterSellerId = url.searchParams.get('sellerId');
 
     let sales;
     let stats;
 
-    if (user.role === 'admin') {
-      sales = await getAllSales(limit);
-      stats = await getSalesStats();
+    if (user.role === 'admin' || user.role === 'super') {
+      // Admin/super can filter by seller or see all
+      if (filterSellerId) {
+        const sellerId = new ObjectId(filterSellerId);
+        sales = await getSalesByUser(sellerId, limit);
+        stats = await getSalesStats(sellerId);
+      } else {
+        sales = await getAllSales(limit);
+        stats = await getSalesStats();
+      }
     } else {
+      // Seller can only see own sales
       const userId = new ObjectId(user.userId);
       sales = await getSalesByUser(userId, limit);
       stats = await getSalesStats(userId);
     }
 
-    const topSellers = user.role === 'admin' ? await getTopSellers(5) : [];
+    const topSellers = (user.role === 'admin' || user.role === 'super') ? await getTopSellers(5) : [];
 
     return json({
       sales: sales.map(s => ({
@@ -30,6 +39,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
         code: s.code,
         plays: s.plays,
         price: s.price,
+        sellerId: s.soldBy?.toString(),
         sellerName: s.sellerName,
         soldAt: s.soldAt
       })),

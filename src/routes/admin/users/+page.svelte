@@ -5,12 +5,15 @@
     Users,
     UserPlus,
     Edit,
-    Key,
     ToggleLeft,
     ToggleRight,
     ArrowLeft,
     X,
-    Check
+    Check,
+    BarChart3,
+    TrendingUp,
+    DollarSign,
+    ShoppingCart
   } from 'lucide-svelte';
 
   type UserRole = 'super' | 'admin' | 'seller';
@@ -28,6 +31,15 @@
   interface CurrentUser {
     userId: string;
     role: UserRole;
+  }
+
+  interface UserStats {
+    totalSales: number;
+    totalRevenue: number;
+    todaySales: number;
+    todayRevenue: number;
+    monthSales: number;
+    monthRevenue: number;
   }
 
   let currentUser = $state<CurrentUser | null>(null);
@@ -49,6 +61,11 @@
   let editName = $state('');
   let editRole = $state<UserRole>('seller');
   let editPassword = $state('');
+
+  // User stats modal
+  let showStatsUser = $state<User | null>(null);
+  let userStats = $state<UserStats | null>(null);
+  let statsLoading = $state(false);
 
   // Check if current user can create admin users
   let canCreateAdmin = $derived(currentUser?.role === 'super');
@@ -179,6 +196,28 @@
   function formatDate(dateStr?: string) {
     if (!dateStr) return 'Never';
     return new Date(dateStr).toLocaleString();
+  }
+
+  async function viewUserStats(user: User) {
+    showStatsUser = user;
+    userStats = null;
+    statsLoading = true;
+
+    try {
+      const res = await fetch(`/api/admin/sales?sellerId=${user._id}`);
+      if (res.ok) {
+        const data = await res.json();
+        userStats = data.stats;
+      }
+    } catch {
+      // Handle error
+    }
+    statsLoading = false;
+  }
+
+  function closeStats() {
+    showStatsUser = null;
+    userStats = null;
   }
 </script>
 
@@ -330,7 +369,10 @@
                       <X size={18} />
                     </button>
                   {:else}
-                    <button class="icon-btn" onclick={() => startEdit(user)}>
+                    <button class="icon-btn stats" onclick={() => viewUserStats(user)} title="View Stats">
+                      <BarChart3 size={18} />
+                    </button>
+                    <button class="icon-btn" onclick={() => startEdit(user)} title="Edit">
                       <Edit size={18} />
                     </button>
                   {/if}
@@ -343,6 +385,64 @@
     {/if}
   </main>
 </div>
+
+{#if showStatsUser}
+  <div class="modal-overlay" onclick={closeStats}>
+    <div class="stats-modal" onclick={(e) => e.stopPropagation()}>
+      <div class="modal-header">
+        <h3>
+          <BarChart3 size={24} />
+          <span>Stats for {showStatsUser.name}</span>
+        </h3>
+        <button class="close-btn" onclick={closeStats}>
+          <X size={20} />
+        </button>
+      </div>
+
+      {#if statsLoading}
+        <div class="modal-loading">Loading stats...</div>
+      {:else if userStats}
+        <div class="stats-grid">
+          <div class="stat-item">
+            <DollarSign size={20} />
+            <div class="stat-content">
+              <span class="stat-label">Total Revenue</span>
+              <span class="stat-value">${userStats.totalRevenue.toFixed(2)}</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <ShoppingCart size={20} />
+            <div class="stat-content">
+              <span class="stat-label">Total Sales</span>
+              <span class="stat-value">{userStats.totalSales}</span>
+            </div>
+          </div>
+          <div class="stat-item today">
+            <TrendingUp size={20} />
+            <div class="stat-content">
+              <span class="stat-label">Today</span>
+              <span class="stat-value">{userStats.todaySales} sales (${userStats.todayRevenue.toFixed(2)})</span>
+            </div>
+          </div>
+          <div class="stat-item month">
+            <TrendingUp size={20} />
+            <div class="stat-content">
+              <span class="stat-label">This Month</span>
+              <span class="stat-value">{userStats.monthSales} sales (${userStats.monthRevenue.toFixed(2)})</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <a href="/admin/sales?sellerId={showStatsUser._id}" class="view-sales-btn">
+            View All Sales
+          </a>
+        </div>
+      {:else}
+        <div class="modal-empty">No stats available</div>
+      {/if}
+    </div>
+  </div>
+{/if}
 
 <style>
   .admin-container {
@@ -654,6 +754,141 @@
     background: rgba(255, 0, 0, 0.2);
     border-color: #ff4444;
     color: #ff6666;
+  }
+
+  .icon-btn.stats {
+    background: rgba(0, 150, 255, 0.2);
+    border-color: #0096ff;
+    color: #0096ff;
+  }
+
+  .icon-btn.stats:hover {
+    background: rgba(0, 150, 255, 0.3);
+  }
+
+  /* Modal styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+
+  .stats-modal {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid #ffd700;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  .close-btn:hover {
+    color: #fff;
+  }
+
+  .modal-loading, .modal-empty {
+    text-align: center;
+    color: #888;
+    padding: 40px;
+  }
+
+  .stats-modal .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    border: 1px solid #333;
+  }
+
+  .stat-item :global(svg) {
+    color: #00cc00;
+    flex-shrink: 0;
+  }
+
+  .stat-item.today :global(svg) {
+    color: #0096ff;
+  }
+
+  .stat-item.month :global(svg) {
+    color: #ffd700;
+  }
+
+  .stat-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-label {
+    color: #888;
+    font-size: 0.8em;
+  }
+
+  .stat-value {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+
+  .modal-actions {
+    text-align: center;
+  }
+
+  .view-sales-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
+    color: #000;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: transform 0.1s;
+  }
+
+  .view-sales-btn:hover {
+    transform: scale(1.02);
   }
 
   .inline-input,

@@ -1,13 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { TrendingUp, ArrowLeft, DollarSign, ShoppingCart, Calendar } from 'lucide-svelte';
+  import { page } from '$app/stores';
+  import { TrendingUp, ArrowLeft, DollarSign, ShoppingCart, Calendar, Filter, X } from 'lucide-svelte';
 
   interface Sale {
     _id: string;
     code: string;
     plays: number;
     price: number;
+    sellerId?: string;
     sellerName: string;
     soldAt: string;
   }
@@ -27,15 +29,30 @@
     totalRevenue: number;
   }
 
+  interface User {
+    _id: string;
+    username: string;
+    name: string;
+    role: string;
+  }
+
   let sales = $state<Sale[]>([]);
   let stats = $state<Stats | null>(null);
   let topSellers = $state<TopSeller[]>([]);
+  let users = $state<User[]>([]);
   let loading = $state(true);
   let isAdmin = $state(false);
+  let selectedSeller = $state<string>('');
 
   onMount(async () => {
+    // Check for sellerId in URL params
+    const urlSellerId = $page.url.searchParams.get('sellerId');
+    if (urlSellerId) {
+      selectedSeller = urlSellerId;
+    }
+
     await checkAuth();
-    await loadSales();
+    await Promise.all([loadSales(), loadUsers()]);
   });
 
   async function checkAuth() {
@@ -46,16 +63,32 @@
         goto('/admin');
         return;
       }
-      isAdmin = data.user.role === 'admin';
+      isAdmin = data.user.role === 'admin' || data.user.role === 'super';
     } catch {
       goto('/admin');
+    }
+  }
+
+  async function loadUsers() {
+    if (!isAdmin) return;
+    try {
+      const res = await fetch('/api/admin/users');
+      if (res.ok) {
+        const data = await res.json();
+        users = data.users;
+      }
+    } catch {
+      // Handle error
     }
   }
 
   async function loadSales() {
     loading = true;
     try {
-      const res = await fetch('/api/admin/sales');
+      const url = selectedSeller
+        ? `/api/admin/sales?sellerId=${selectedSeller}`
+        : '/api/admin/sales';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         sales = data.sales;
@@ -66,6 +99,15 @@
       // Handle error
     }
     loading = false;
+  }
+
+  function handleFilterChange() {
+    loadSales();
+  }
+
+  function clearFilter() {
+    selectedSeller = '';
+    loadSales();
   }
 
   function formatDate(dateStr: string) {
@@ -95,6 +137,22 @@
         <TrendingUp size={28} />
         <span>Sales</span>
       </h1>
+      {#if isAdmin && users.length > 0}
+        <div class="filter-section">
+          <Filter size={18} />
+          <select bind:value={selectedSeller} onchange={handleFilterChange}>
+            <option value="">All Sellers</option>
+            {#each users as user}
+              <option value={user._id}>{user.name} ({user.role})</option>
+            {/each}
+          </select>
+          {#if selectedSeller}
+            <button class="clear-filter" onclick={clearFilter}>
+              <X size={16} />
+            </button>
+          {/if}
+        </div>
+      {/if}
     </header>
 
     {#if stats}
@@ -250,6 +308,11 @@
   }
 
   .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
     margin-bottom: 20px;
   }
 
@@ -259,6 +322,46 @@
     display: flex;
     align-items: center;
     gap: 12px;
+  }
+
+  .filter-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #888;
+  }
+
+  .filter-section select {
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.95em;
+    cursor: pointer;
+    min-width: 180px;
+  }
+
+  .filter-section select:focus {
+    border-color: #ffd700;
+    outline: none;
+  }
+
+  .clear-filter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid #ff4444;
+    border-radius: 6px;
+    color: #ff6666;
+    cursor: pointer;
+  }
+
+  .clear-filter:hover {
+    background: rgba(255, 0, 0, 0.3);
   }
 
   .stats-grid {
@@ -438,6 +541,19 @@
 
     .nav-menu li a span {
       display: none;
+    }
+
+    .top-bar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .filter-section {
+      width: 100%;
+    }
+
+    .filter-section select {
+      flex: 1;
     }
 
     .stats-grid {
