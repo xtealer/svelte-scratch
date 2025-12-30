@@ -360,7 +360,7 @@
                   {/if}
                 </td>
                 <td>
-                  {#if editingUser?._id === user._id && user.role !== 'super'}
+                  {#if editingUser?._id === user._id && user.role !== 'super' && !(currentUser?.role === 'admin' && user._id === currentUser.userId)}
                     <select bind:value={editRole} class="inline-select">
                       <option value="seller">Seller</option>
                       {#if canCreateAdmin}

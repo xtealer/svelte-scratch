@@ -129,13 +129,16 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
 
     // Role change restrictions
     if (role !== undefined) {
-      if (currentUser.role === 'super') {
+      // Admin cannot change their own role
+      if (currentUser.role === 'admin' && targetUser._id?.toString() === currentUser.userId) {
+        // Silently ignore role change for admin editing themselves
+      } else if (currentUser.role === 'super') {
         // Superadmin can change to any role except super
         if (['admin', 'seller'].includes(role)) {
           updates.role = role;
         }
       } else if (currentUser.role === 'admin') {
-        // Admin can only set seller role
+        // Admin can only set seller role (for other users)
         if (role === 'seller') {
           updates.role = role;
         }
