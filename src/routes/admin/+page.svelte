@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { LogIn, User, Lock, AlertCircle, Eye, EyeOff } from 'lucide-svelte';
+  import Footer from '$lib/Footer.svelte';
+  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
 
   let username = $state('');
   let showPassword = $state(false);
@@ -10,7 +12,14 @@
   let loading = $state(false);
   let checkingAuth = $state(true);
 
+  // i18n
+  let i18n = $state<Translations>(t());
+  let dir = $state<'ltr' | 'rtl'>('ltr');
+
   onMount(async () => {
+    initLanguage();
+    i18n = t();
+    dir = getDirection();
     // Check if already logged in
     try {
       const res = await fetch('/api/admin/auth');
@@ -52,14 +61,14 @@
   }
 </script>
 
-<div class="login-container">
+<div class="login-container" dir={dir}>
   {#if checkingAuth}
-    <div class="loading">Loading...</div>
+    <div class="loading">{i18n.common.loading}</div>
   {:else}
     <div class="login-box">
       <div class="login-header">
         <LogIn size={40} />
-        <h1>Admin Panel</h1>
+        <h1>{i18n.common.casinoAdmin}</h1>
       </div>
 
       <form onsubmit={handleLogin}>
@@ -112,16 +121,22 @@
       <a href="/" class="back-link">Back to Games</a>
     </div>
   {/if}
+  <Footer />
 </div>
 
 <style>
   .login-container {
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
     padding: 20px;
+  }
+
+  .login-container[dir="rtl"] {
+    direction: rtl;
   }
 
   .loading {

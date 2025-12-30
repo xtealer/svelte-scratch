@@ -5,7 +5,13 @@
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
   import SlotSymbol from "$lib/SlotSymbols.svelte";
+  import Footer from "$lib/Footer.svelte";
+  import { initLanguage, t, getDirection, type Translations } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play } from "lucide-svelte";
+
+  // i18n
+  let i18n = $state<Translations>(t());
+  let dir = $state<'ltr' | 'rtl'>('ltr');
 
   const MAX_PRIZE = 500;
   const MIN_BET = 1;
@@ -121,6 +127,10 @@
   let sounds: { spin: HTMLAudioElement; win: HTMLAudioElement; bigWin: HTMLAudioElement; lose: HTMLAudioElement } | null = null;
 
   onMount(() => {
+    initLanguage();
+    i18n = t();
+    dir = getDirection();
+
     if (browser) {
       sounds = {
         spin: new Audio("https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"),
@@ -415,7 +425,7 @@
   }
 </script>
 
-<div class="container">
+<div class="container" dir={dir}>
   <!-- Top controls -->
   <div class="top-controls">
     <a href="/" class="control-btn back-btn" title="Volver al Menú">
@@ -529,6 +539,8 @@
       </button>
     </div>
   {/if}
+
+  <Footer />
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />

@@ -367,7 +367,7 @@
                 type="text"
                 bind:value={payoutCode}
                 onblur={checkCode}
-                placeholder="GOLD-001-000000001"
+                placeholder="001-000000000"
                 required
               />
             </label>
