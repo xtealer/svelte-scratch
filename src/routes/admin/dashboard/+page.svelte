@@ -19,7 +19,7 @@
     userId: string;
     username: string;
     name: string;
-    role: 'admin' | 'seller';
+    role: 'super' | 'admin' | 'seller';
   }
 
   interface Stats {
@@ -122,7 +122,7 @@
           <span>Dashboard</span>
         </a>
       </li>
-      {#if user?.role === 'admin'}
+      {#if user?.role === 'admin' || user?.role === 'super'}
         <li>
           <a href="/admin/users">
             <Users size={20} />
@@ -226,7 +226,7 @@
         </div>
       </div>
 
-      {#if stats.cards && user?.role === 'admin'}
+      {#if stats.cards && (user?.role === 'admin' || user?.role === 'super')}
         <div class="cards-summary">
           <h3>Recharge Cards</h3>
           <div class="cards-stats">
