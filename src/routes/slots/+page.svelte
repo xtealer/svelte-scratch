@@ -272,7 +272,7 @@
     const response = await fetch("/api/scratch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, gameId: 'slots' }),
     });
 
     const data = await response.json();
@@ -283,7 +283,7 @@
 
     currentCode = data.code;
     credits = data.plays;
-    sessionWinnings = 0;
+    sessionWinnings = data.totalWinnings || 0;
     hasActiveSession = true;
     betSize = Math.min(betSize, credits);
     if (betSize < 1) betSize = 1;
@@ -331,7 +331,6 @@
     }
 
     spinning = true;
-    credits -= betSize;
     currentPrize = 0;
     lastWin = 0;
     displayedWin = 0;
@@ -344,31 +343,51 @@
       reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
     }, spinInterval);
 
+    // Call server API for the play result
+    let result: { success: boolean; prize: number; symbol: string; playsLeft: number; totalWinnings: number; error?: string };
+    try {
+      const response = await fetch("/api/game/play", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: currentCode, gameId: 'slots', bet: betSize }),
+      });
+      result = await response.json();
+    } catch {
+      result = { success: false, prize: 0, symbol: '', playsLeft: credits, totalWinnings: sessionWinnings, error: 'Network error' };
+    }
+
+    // Wait for spin animation to complete
     await new Promise((resolve) => setTimeout(resolve, spinDuration));
     clearInterval(spinAnimation);
 
-    const result = getPrize();
+    if (result.success) {
+      credits = result.playsLeft;
+      sessionWinnings = result.totalWinnings;
 
-    if (result.amount > 0) {
-      currentPrize = Math.min(result.amount * betSize, MAX_PRIZE);
-      lastWin = currentPrize;
-      reels = getWinReels(result.symbol);
-      sessionWinnings += currentPrize;
+      if (result.prize > 0) {
+        currentPrize = result.prize;
+        lastWin = currentPrize;
+        reels = getWinReels(result.symbol);
 
-      // Animate the win counter
-      animateWinCounter(currentPrize);
+        // Animate the win counter
+        animateWinCounter(currentPrize);
 
-      if (currentPrize >= 50) {
-        playSound(sounds?.bigWin);
+        if (currentPrize >= 50) {
+          playSound(sounds?.bigWin);
+        } else {
+          playSound(sounds?.win);
+        }
       } else {
-        playSound(sounds?.win);
+        if (Math.random() < 0.3) {
+          reels = getNearMissReels();
+        } else {
+          reels = getLoseReels();
+        }
+        playSound(sounds?.lose);
       }
     } else {
-      if (Math.random() < 0.3) {
-        reels = getNearMissReels();
-      } else {
-        reels = getLoseReels();
-      }
+      // On error, show loss animation
+      reels = getLoseReels();
       playSound(sounds?.lose);
     }
 

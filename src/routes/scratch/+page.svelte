@@ -307,24 +307,54 @@
     return nearMissPrizes[Math.floor(Math.random() * nearMissPrizes.length)];
   }
 
-  function startNewPlay(): void {
+  // Store pending play result from server
+  let pendingPlayResult: { prize: number; symbol: string } | null = null;
+
+  async function startNewPlay(): Promise<void> {
     if (playsLeft <= 0) return;
 
-    currentPrize = getPrize();
-    symbols = generateSymbols(currentPrize);
-
-    // Hide result
+    // Hide result first
     prizeText = "-";
     revealed = false;
-
-    // Near-miss on losers
     nearMissText = "";
-    if (currentPrize === 0) {
-      const nearPrize = getNearMissPrize();
-      nearMissText = `Premio $${nearPrize}`;
-    }
+    symbols = ["❓", "❓", "❓"];
+    pendingPlayResult = null;
 
-    playsLeft--;
+    // Call server API for the play result
+    try {
+      const response = await fetch("/api/game/play", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: currentCode, gameId: 'scratch', bet: 1 }),
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        playsLeft = result.playsLeft;
+        pendingPlayResult = { prize: result.prize, symbol: result.symbol };
+
+        // Generate symbols based on server result
+        currentPrize = result.prize;
+        symbols = generateSymbols(currentPrize);
+
+        // Update session winnings from server (cumulative)
+        sessionWinnings = result.totalWinnings;
+
+        // Near-miss on losers
+        if (currentPrize === 0) {
+          const nearPrize = getNearMissPrize();
+          nearMissText = `Premio $${nearPrize}`;
+        }
+      } else {
+        // On error, treat as loss
+        currentPrize = 0;
+        symbols = generateSymbols(0);
+      }
+    } catch {
+      // On network error, treat as loss
+      currentPrize = 0;
+      symbols = generateSymbols(0);
+    }
 
     // Need to wait for DOM update before resizing canvas
     setTimeout(resizeCanvas, 0);
@@ -334,11 +364,7 @@
     if (revealed) return; // Prevent playing sounds multiple times
     revealed = true;
 
-    // Add winnings to session
-    if (currentPrize > 0) {
-      sessionWinnings += currentPrize;
-    }
-
+    // Session winnings already updated from server in startNewPlay
     prizeText =
       currentPrize > 0 ? `¡Ganaste $${currentPrize}!` : "¡Has Perdido!";
 
@@ -460,7 +486,7 @@
     const response = await fetch("/api/scratch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, gameId: 'scratch' }),
     });
 
     const data = await response.json();
@@ -472,10 +498,12 @@
     // Load the session
     currentCode = data.code;
     playsLeft = data.plays;
-    sessionWinnings = 0;
+    sessionWinnings = data.totalWinnings || 0;
 
-    // Start first play automatically
-    startNewPlay();
+    // Start first play automatically if we have plays
+    if (playsLeft > 0) {
+      startNewPlay();
+    }
     saveSession();
   }
 </script>
