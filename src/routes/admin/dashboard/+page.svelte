@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import { goto } from '$app/navigation';
   import {
     LayoutDashboard,
@@ -16,7 +15,7 @@
     AlertCircle
   } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
+  import { initLanguage, t, direction } from '$lib/i18n';
 
   interface User {
     userId: string;
@@ -98,14 +97,8 @@
   let loading = $state(true);
   let error = $state('');
 
-  // i18n
-  let i18n = $state<Translations | null>(null);
-  let dir = $state<'ltr' | 'rtl'>('ltr');
-
   onMount(async () => {
     initLanguage();
-    i18n = get(t);
-    dir = getDirection();
     await checkAuth();
     await loadStats();
   });
@@ -146,11 +139,10 @@
   }
 </script>
 
-{#if i18n}
-<div class="admin-container" dir={dir}>
+<div class="admin-container" dir={$direction}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>{i18n.common.casinoAdmin}</h2>
+      <h2>{$t.common.casinoAdmin}</h2>
       {#if user}
         <span class="user-badge">{user.role}</span>
       {/if}
@@ -160,39 +152,39 @@
       <li class="active">
         <a href="/admin/dashboard">
           <LayoutDashboard size={20} />
-          <span>{i18n.nav.dashboard}</span>
+          <span>{$t.nav.dashboard}</span>
         </a>
       </li>
       {#if user?.role === 'admin' || user?.role === 'super'}
         <li>
           <a href="/admin/users">
             <Users size={20} />
-            <span>{i18n.nav.users}</span>
+            <span>{$t.nav.users}</span>
           </a>
         </li>
         <li>
           <a href="/admin/games">
             <Gamepad2 size={20} />
-            <span>{i18n.nav.games}</span>
+            <span>{$t.nav.games}</span>
           </a>
         </li>
       {/if}
       <li>
         <a href="/admin/cards">
           <CreditCard size={20} />
-          <span>{i18n.nav.rechargeCards}</span>
+          <span>{$t.nav.rechargeCards}</span>
         </a>
       </li>
       <li>
         <a href="/admin/sales">
           <TrendingUp size={20} />
-          <span>{i18n.nav.sales}</span>
+          <span>{$t.nav.sales}</span>
         </a>
       </li>
       <li>
         <a href="/admin/payouts">
           <Receipt size={20} />
-          <span>{i18n.nav.payouts}</span>
+          <span>{$t.nav.payouts}</span>
         </a>
       </li>
     </ul>
@@ -200,21 +192,21 @@
     <div class="sidebar-footer">
       <button onclick={logout} class="logout-btn">
         <LogOut size={20} />
-        <span>{i18n.nav.logout}</span>
+        <span>{$t.nav.logout}</span>
       </button>
     </div>
   </nav>
 
   <main class="main-content">
     <header class="top-bar">
-      <h1>{i18n.dashboard.title}</h1>
+      <h1>{$t.dashboard.title}</h1>
       {#if user}
-        <span class="welcome">{i18n.common.welcome}, {user.name}</span>
+        <span class="welcome">{$t.common.welcome}, {user.name}</span>
       {/if}
     </header>
 
     {#if loading}
-      <div class="loading">{i18n.common.loading}</div>
+      <div class="loading">{$t.common.loading}</div>
     {:else if error}
       <div class="error-msg">
         <AlertCircle size={20} />
@@ -227,9 +219,9 @@
             <DollarSign size={24} />
           </div>
           <div class="stat-info">
-            <span class="stat-label">{i18n.dashboard.totalRevenue}</span>
+            <span class="stat-label">{$t.dashboard.totalRevenue}</span>
             <span class="stat-value">${stats.sales.totalRevenue.toFixed(2)}</span>
-            <span class="stat-sub">{i18n.common.today}: ${stats.sales.todayRevenue.toFixed(2)}</span>
+            <span class="stat-sub">{$t.common.today}: ${stats.sales.todayRevenue.toFixed(2)}</span>
           </div>
         </div>
 
@@ -238,9 +230,9 @@
             <ShoppingCart size={24} />
           </div>
           <div class="stat-info">
-            <span class="stat-label">{i18n.dashboard.totalSales}</span>
+            <span class="stat-label">{$t.dashboard.totalSales}</span>
             <span class="stat-value">{stats.sales.totalSales}</span>
-            <span class="stat-sub">{i18n.common.today}: {stats.sales.todaySales}</span>
+            <span class="stat-sub">{$t.common.today}: {stats.sales.todaySales}</span>
           </div>
         </div>
 
@@ -249,9 +241,9 @@
             <Wallet size={24} />
           </div>
           <div class="stat-info">
-            <span class="stat-label">{i18n.dashboard.totalPayouts}</span>
+            <span class="stat-label">{$t.dashboard.totalPayouts}</span>
             <span class="stat-value">${stats.payouts.totalAmount.toFixed(2)}</span>
-            <span class="stat-sub">{i18n.common.today}: ${stats.payouts.todayAmount.toFixed(2)}</span>
+            <span class="stat-sub">{$t.common.today}: ${stats.payouts.todayAmount.toFixed(2)}</span>
           </div>
         </div>
 
@@ -260,31 +252,31 @@
             <TrendingUp size={24} />
           </div>
           <div class="stat-info">
-            <span class="stat-label">{i18n.dashboard.netProfit}</span>
+            <span class="stat-label">{$t.dashboard.netProfit}</span>
             <span class="stat-value">${stats.netProfit.toFixed(2)}</span>
-            <span class="stat-sub">{stats.netProfit >= 0 ? i18n.dashboard.positive : i18n.dashboard.negative}</span>
+            <span class="stat-sub">{stats.netProfit >= 0 ? $t.dashboard.positive : $t.dashboard.negative}</span>
           </div>
         </div>
       </div>
 
       {#if stats.cards && (user?.role === 'admin' || user?.role === 'super')}
         <div class="cards-summary">
-          <h3>{i18n.dashboard.rechargeCards}</h3>
+          <h3>{$t.dashboard.rechargeCards}</h3>
           <div class="cards-stats">
             <div class="card-stat">
-              <span class="label">{i18n.cardsAdmin.total}</span>
+              <span class="label">{$t.cardsAdmin.total}</span>
               <span class="value">{stats.cards.total}</span>
             </div>
             <div class="card-stat">
-              <span class="label">{i18n.cardsAdmin.used}</span>
+              <span class="label">{$t.cardsAdmin.used}</span>
               <span class="value">{stats.cards.used}</span>
             </div>
             <div class="card-stat">
-              <span class="label">{i18n.cardsAdmin.available}</span>
+              <span class="label">{$t.cardsAdmin.available}</span>
               <span class="value">{stats.cards.unused}</span>
             </div>
             <div class="card-stat">
-              <span class="label">{i18n.cardsAdmin.sold}</span>
+              <span class="label">{$t.cardsAdmin.sold}</span>
               <span class="value">{stats.cards.sold}</span>
             </div>
           </div>
@@ -293,24 +285,24 @@
 
       {#if stats.payoutRequests}
         <div class="payout-requests-summary">
-          <h3>{i18n.dashboard.payoutRequests}</h3>
+          <h3>{$t.dashboard.payoutRequests}</h3>
           <div class="cards-stats">
             <div class="card-stat pending">
-              <span class="label">{i18n.dashboard.pending}</span>
+              <span class="label">{$t.dashboard.pending}</span>
               <span class="value">{stats.payoutRequests.pending}</span>
               <span class="sub">${stats.payoutRequests.pendingAmount.toFixed(2)}</span>
             </div>
             <div class="card-stat">
-              <span class="label">{i18n.dashboard.paid}</span>
+              <span class="label">{$t.dashboard.paid}</span>
               <span class="value">{stats.payoutRequests.paid}</span>
               <span class="sub">${stats.payoutRequests.paidAmount.toFixed(2)}</span>
             </div>
             <div class="card-stat">
-              <span class="label">{i18n.cardsAdmin.total}</span>
+              <span class="label">{$t.cardsAdmin.total}</span>
               <span class="value">{stats.payoutRequests.total}</span>
             </div>
             {#if stats.payoutRequests.pending > 0}
-              <a href="/admin/payouts" class="view-requests-btn">{i18n.dashboard.viewRequests} →</a>
+              <a href="/admin/payouts" class="view-requests-btn">{$t.dashboard.viewRequests} →</a>
             {/if}
           </div>
         </div>
@@ -318,26 +310,26 @@
 
       {#if stats.playsBreakdown && (user?.role === 'admin' || user?.role === 'super')}
         <div class="plays-summary">
-          <h3>{i18n.dashboard.gameStatistics}</h3>
+          <h3>{$t.dashboard.gameStatistics}</h3>
           <div class="cards-stats">
             <div class="card-stat">
-              <span class="label">{i18n.dashboard.totalPlays}</span>
+              <span class="label">{$t.dashboard.totalPlays}</span>
               <span class="value">{stats.playsBreakdown.totalPlays.toLocaleString()}</span>
             </div>
             <div class="card-stat win">
-              <span class="label">{i18n.dashboard.wins}</span>
+              <span class="label">{$t.dashboard.wins}</span>
               <span class="value">{stats.playsBreakdown.totalWins.toLocaleString()}</span>
             </div>
             <div class="card-stat loss">
-              <span class="label">{i18n.dashboard.losses}</span>
+              <span class="label">{$t.dashboard.losses}</span>
               <span class="value">{stats.playsBreakdown.totalLosses.toLocaleString()}</span>
             </div>
             <div class="card-stat">
-              <span class="label">{i18n.dashboard.winRate}</span>
+              <span class="label">{$t.dashboard.winRate}</span>
               <span class="value">{stats.playsBreakdown.winRate.toFixed(2)}%</span>
             </div>
             <div class="card-stat prize">
-              <span class="label">{i18n.dashboard.prizesPaid}</span>
+              <span class="label">{$t.dashboard.prizesPaid}</span>
               <span class="value">${stats.playsBreakdown.totalPrizesPaid.toFixed(2)}</span>
             </div>
           </div>
@@ -346,16 +338,16 @@
 
       {#if stats.prizeStats && stats.prizeStats.length > 0 && (user?.role === 'admin' || user?.role === 'super')}
         <div class="prize-stats-panel">
-          <h3>{i18n.dashboard.prizeDistribution}</h3>
+          <h3>{$t.dashboard.prizeDistribution}</h3>
           <table>
             <thead>
               <tr>
-                <th>{i18n.dashboard.prize}</th>
-                <th>{i18n.dashboard.count}</th>
-                <th>{i18n.dashboard.totalPayouts}</th>
-                <th>{i18n.dashboard.expectedOdds}</th>
-                <th>{i18n.dashboard.actualOdds}</th>
-                <th>{i18n.cardsAdmin.status}</th>
+                <th>{$t.dashboard.prize}</th>
+                <th>{$t.dashboard.count}</th>
+                <th>{$t.dashboard.totalPayouts}</th>
+                <th>{$t.dashboard.expectedOdds}</th>
+                <th>{$t.dashboard.actualOdds}</th>
+                <th>{$t.cardsAdmin.status}</th>
               </tr>
             </thead>
             <tbody>
@@ -370,11 +362,11 @@
                     {#if prize.actualOdds === 0}
                       <span class="odds-status neutral">-</span>
                     {:else if prize.actualOdds > prize.expectedOdds * 1.2}
-                      <span class="odds-status good">{i18n.dashboard.under}</span>
+                      <span class="odds-status good">{$t.dashboard.under}</span>
                     {:else if prize.actualOdds < prize.expectedOdds * 0.8}
-                      <span class="odds-status bad">{i18n.dashboard.over}</span>
+                      <span class="odds-status bad">{$t.dashboard.over}</span>
                     {:else}
-                      <span class="odds-status ok">{i18n.dashboard.normal}</span>
+                      <span class="odds-status ok">{$t.dashboard.normal}</span>
                     {/if}
                   </td>
                 </tr>
@@ -386,15 +378,15 @@
 
       <div class="recent-section">
         <div class="recent-panel">
-          <h3>{i18n.dashboard.recentSales}</h3>
+          <h3>{$t.dashboard.recentSales}</h3>
           {#if stats.recentSales.length > 0}
             <table>
               <thead>
                 <tr>
-                  <th>{i18n.rechargeCard.code}</th>
-                  <th>{i18n.sales.price}</th>
-                  <th>{i18n.dashboard.seller}</th>
-                  <th>{i18n.common.date}</th>
+                  <th>{$t.rechargeCard.code}</th>
+                  <th>{$t.sales.price}</th>
+                  <th>{$t.dashboard.seller}</th>
+                  <th>{$t.common.date}</th>
                 </tr>
               </thead>
               <tbody>
@@ -409,20 +401,20 @@
               </tbody>
             </table>
           {:else}
-            <p class="empty">{i18n.dashboard.noSalesYet}</p>
+            <p class="empty">{$t.dashboard.noSalesYet}</p>
           {/if}
         </div>
 
         <div class="recent-panel">
-          <h3>{i18n.dashboard.recentPayouts}</h3>
+          <h3>{$t.dashboard.recentPayouts}</h3>
           {#if stats.recentPayouts.length > 0}
             <table>
               <thead>
                 <tr>
-                  <th>{i18n.rechargeCard.code}</th>
-                  <th>{i18n.rechargeCard.amount}</th>
-                  <th>{i18n.dashboard.paidBy}</th>
-                  <th>{i18n.common.date}</th>
+                  <th>{$t.rechargeCard.code}</th>
+                  <th>{$t.rechargeCard.amount}</th>
+                  <th>{$t.dashboard.paidBy}</th>
+                  <th>{$t.common.date}</th>
                 </tr>
               </thead>
               <tbody>
@@ -437,7 +429,7 @@
               </tbody>
             </table>
           {:else}
-            <p class="empty">{i18n.dashboard.noPayoutsYet}</p>
+            <p class="empty">{$t.dashboard.noPayoutsYet}</p>
           {/if}
         </div>
       </div>
@@ -446,7 +438,6 @@
     <Footer />
   </main>
 </div>
-{/if}
 
 <style>
   .admin-container {

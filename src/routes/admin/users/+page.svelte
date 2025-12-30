@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import { goto } from '$app/navigation';
   import {
     Users,
@@ -19,7 +18,7 @@
     EyeOff
   } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
+  import { initLanguage, t, direction } from '$lib/i18n';
 
   type UserRole = 'super' | 'admin' | 'seller';
 
@@ -76,10 +75,6 @@
   // Check if current user can create admin users
   let canCreateAdmin = $derived(currentUser?.role === 'super');
 
-  // i18n
-  let i18n = $state<Translations | null>(null);
-  let dir = $state<'ltr' | 'rtl'>('ltr');
-
   // Check if current user can edit a specific user
   function canEditUser(user: User): boolean {
     if (!currentUser) return false;
@@ -96,8 +91,6 @@
 
   onMount(async () => {
     initLanguage();
-    i18n = get(t);
-    dir = getDirection();
     await checkAuth();
     await loadUsers();
   });
@@ -248,18 +241,17 @@
   }
 </script>
 
-{#if i18n}
-<div class="admin-container" dir={dir}>
+<div class="admin-container" dir={$direction}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>{i18n.common.casinoAdmin}</h2>
+      <h2>{$t.common.casinoAdmin}</h2>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>{i18n.common.backToDashboard}</span>
+          <span>{$t.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -269,17 +261,17 @@
     <header class="top-bar">
       <h1>
         <Users size={28} />
-        <span>{i18n.users.title}</span>
+        <span>{$t.users.title}</span>
       </h1>
       <button class="add-btn" onclick={() => showNewForm = true}>
         <UserPlus size={20} />
-        <span>{i18n.users.addUser}</span>
+        <span>{$t.users.addUser}</span>
       </button>
     </header>
 
     {#if showNewForm}
       <div class="form-card">
-        <h3>{i18n.users.newUser}</h3>
+        <h3>{$t.users.newUser}</h3>
         <form onsubmit={createUser}>
           {#if formError}
             <div class="form-error">{formError}</div>
@@ -287,11 +279,11 @@
 
           <div class="form-row">
             <label>
-              <span>{i18n.users.username}</span>
+              <span>{$t.users.username}</span>
               <input type="text" bind:value={newUsername} required />
             </label>
             <label>
-              <span>{i18n.users.password}</span>
+              <span>{$t.users.password}</span>
               <div class="password-field">
                 <input
                   type={showNewPassword ? 'text' : 'password'}
@@ -316,15 +308,15 @@
 
           <div class="form-row">
             <label>
-              <span>{i18n.users.name}</span>
+              <span>{$t.users.name}</span>
               <input type="text" bind:value={newName} required />
             </label>
             <label>
-              <span>{i18n.users.role}</span>
+              <span>{$t.users.role}</span>
               <select bind:value={newRole}>
-                <option value="seller">{i18n.users.seller}</option>
+                <option value="seller">{$t.users.seller}</option>
                 {#if canCreateAdmin}
-                  <option value="admin">{i18n.users.admin}</option>
+                  <option value="admin">{$t.users.admin}</option>
                 {/if}
               </select>
             </label>
@@ -332,10 +324,10 @@
 
           <div class="form-actions">
             <button type="button" class="cancel-btn" onclick={() => showNewForm = false}>
-              {i18n.cardsAdmin.cancel}
+              {$t.cardsAdmin.cancel}
             </button>
             <button type="submit" class="submit-btn" disabled={formLoading}>
-              {formLoading ? i18n.users.creating : i18n.users.createUser}
+              {formLoading ? $t.users.creating : $t.users.createUser}
             </button>
           </div>
         </form>
@@ -343,7 +335,7 @@
     {/if}
 
     {#if loading}
-      <div class="loading">{i18n.users.loading}</div>
+      <div class="loading">{$t.users.loading}</div>
     {:else if error}
       <div class="error-msg">{error}</div>
     {:else}
@@ -351,12 +343,12 @@
         <table>
           <thead>
             <tr>
-              <th>{i18n.users.username}</th>
-              <th>{i18n.users.name}</th>
-              <th>{i18n.users.role}</th>
-              <th>{i18n.cardsAdmin.status}</th>
-              <th>{i18n.users.lastLogin}</th>
-              <th>{i18n.cardsAdmin.actions}</th>
+              <th>{$t.users.username}</th>
+              <th>{$t.users.name}</th>
+              <th>{$t.users.role}</th>
+              <th>{$t.cardsAdmin.status}</th>
+              <th>{$t.users.lastLogin}</th>
+              <th>{$t.cardsAdmin.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -373,14 +365,14 @@
                 <td>
                   {#if editingUser?._id === user._id && user.role !== 'super' && !(currentUser?.role === 'admin' && user._id === currentUser.userId)}
                     <select bind:value={editRole} class="inline-select">
-                      <option value="seller">{i18n.users.seller}</option>
+                      <option value="seller">{$t.users.seller}</option>
                       {#if canCreateAdmin}
-                        <option value="admin">{i18n.users.admin}</option>
+                        <option value="admin">{$t.users.admin}</option>
                       {/if}
                     </select>
                   {:else}
                     <span class="role-badge" class:admin={user.role === 'admin'} class:super={user.role === 'super'}>
-                      {user.role === 'super' ? i18n.users.super : user.role === 'admin' ? i18n.users.admin : i18n.users.seller}
+                      {user.role === 'super' ? $t.users.super : user.role === 'admin' ? $t.users.admin : $t.users.seller}
                     </span>
                   {/if}
                 </td>
@@ -393,15 +385,15 @@
                     >
                       {#if user.active}
                         <ToggleRight size={20} />
-                        <span>{i18n.users.active}</span>
+                        <span>{$t.users.active}</span>
                       {:else}
                         <ToggleLeft size={20} />
-                        <span>{i18n.users.inactive}</span>
+                        <span>{$t.users.inactive}</span>
                       {/if}
                     </button>
                   {:else}
                     <span class="status-badge" class:active={user.active}>
-                      {user.active ? i18n.users.active : i18n.users.inactive}
+                      {user.active ? $t.users.active : $t.users.inactive}
                     </span>
                   {/if}
                 </td>
@@ -411,7 +403,7 @@
                     <input
                       type="password"
                       bind:value={editPassword}
-                      placeholder={i18n.users.newPassword}
+                      placeholder={$t.users.newPassword}
                       class="password-input"
                     />
                     <button class="icon-btn save" onclick={saveEdit}>
@@ -448,7 +440,7 @@
       <div class="modal-header">
         <h3>
           <BarChart3 size={24} />
-          <span>{i18n.users.statsFor} {showStatsUser.name}</span>
+          <span>{$t.users.statsFor} {showStatsUser.name}</span>
         </h3>
         <button class="close-btn" onclick={closeStats}>
           <X size={20} />
@@ -456,49 +448,48 @@
       </div>
 
       {#if statsLoading}
-        <div class="modal-loading">{i18n.users.loading}</div>
+        <div class="modal-loading">{$t.users.loading}</div>
       {:else if userStats}
         <div class="stats-grid">
           <div class="stat-item">
             <DollarSign size={20} />
             <div class="stat-content">
-              <span class="stat-label">{i18n.users.totalRevenue}</span>
+              <span class="stat-label">{$t.users.totalRevenue}</span>
               <span class="stat-value">${userStats.totalRevenue.toFixed(2)}</span>
             </div>
           </div>
           <div class="stat-item">
             <ShoppingCart size={20} />
             <div class="stat-content">
-              <span class="stat-label">{i18n.users.totalSales}</span>
+              <span class="stat-label">{$t.users.totalSales}</span>
               <span class="stat-value">{userStats.totalSales}</span>
             </div>
           </div>
           <div class="stat-item today">
             <TrendingUp size={20} />
             <div class="stat-content">
-              <span class="stat-label">{i18n.common.today}</span>
-              <span class="stat-value">{userStats.todaySales} {i18n.sales.sales} (${userStats.todayRevenue.toFixed(2)})</span>
+              <span class="stat-label">{$t.common.today}</span>
+              <span class="stat-value">{userStats.todaySales} {$t.sales.sales} (${userStats.todayRevenue.toFixed(2)})</span>
             </div>
           </div>
           <div class="stat-item month">
             <TrendingUp size={20} />
             <div class="stat-content">
-              <span class="stat-label">{i18n.common.thisMonth}</span>
-              <span class="stat-value">{userStats.monthSales} {i18n.sales.sales} (${userStats.monthRevenue.toFixed(2)})</span>
+              <span class="stat-label">{$t.common.thisMonth}</span>
+              <span class="stat-value">{userStats.monthSales} {$t.sales.sales} (${userStats.monthRevenue.toFixed(2)})</span>
             </div>
           </div>
         </div>
         <div class="modal-actions">
           <a href="/admin/sales?sellerId={showStatsUser._id}" class="view-sales-btn">
-            {i18n.sales.recentSales}
+            {$t.sales.recentSales}
           </a>
         </div>
       {:else}
-        <div class="modal-empty">{i18n.users.stats}</div>
+        <div class="modal-empty">{$t.users.stats}</div>
       {/if}
     </div>
   </div>
-{/if}
 {/if}
 
 <style>
