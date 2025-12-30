@@ -165,7 +165,7 @@
 
       reels = getWinSymbols(basePrize);
       prizeText = `YOU WIN $${currentPrize}!`;
-      credits += currentPrize;
+      // Winnings tracked separately, not added to credits
       sessionWinnings += currentPrize;
 
       if (currentPrize >= 50) {
