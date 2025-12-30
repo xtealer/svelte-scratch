@@ -6,7 +6,7 @@
   import ClaimModal from "$lib/ClaimModal.svelte";
   import SlotSymbol from "$lib/SlotSymbols.svelte";
   import Footer from "$lib/Footer.svelte";
-  import { initLanguage, direction } from "$lib/i18n";
+  import { initLanguage, direction, t } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play } from "lucide-svelte";
 
   const MAX_PRIZE = 500;
@@ -422,16 +422,16 @@
 <div class="container" dir={$direction}>
   <!-- Top controls -->
   <div class="top-controls">
-    <a href="/" class="control-btn back-btn" title="Volver al Menú">
+    <a href="/" class="control-btn back-btn" title={$t.gameUI.backToMenu}>
       <ArrowLeft size={20} />
     </a>
     <div class="spacer"></div>
     {#if hasActiveSession}
-      <button class="control-btn end-btn" onclick={resetSession} title="Terminar Sesión">
+      <button class="control-btn end-btn" onclick={resetSession} title={$t.gameUI.endSession}>
         <X size={20} />
       </button>
     {/if}
-    <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? "Activar Sonido" : "Silenciar"}>
+    <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? $t.gameUI.unmute : $t.gameUI.mute}>
       {#if muted}
         <VolumeX size={20} />
       {:else}
@@ -465,16 +465,16 @@
     <div class="bottom-controls">
       <div class="left-info">
         <div class="info-row">
-          <span class="info-label">Credit:</span>
+          <span class="info-label">{$t.gameUI.credit}:</span>
           <span class="info-value">${credits}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Bet:</span>
+          <span class="info-label">{$t.gameUI.bet}:</span>
           <span class="info-value">${betSize}</span>
         </div>
         {#if sessionWinnings > 0}
           <div class="info-row winnings">
-            <span class="info-label">Ganado:</span>
+            <span class="info-label">{$t.gameUI.won}:</span>
             <span class="info-value winnings-value">${sessionWinnings}</span>
           </div>
         {/if}
@@ -493,15 +493,15 @@
             class:spinning
           >
             <RotateCw size={24} />
-            <span>SPIN</span>
+            <span>{$t.gameUI.spin}</span>
           </button>
         {:else if sessionWinnings > 0}
           <button class="spin-btn claim" onclick={openClaimModal}>
-            <span>Cobrar ${sessionWinnings}</span>
+            <span>{$t.gameUI.claim} ${sessionWinnings}</span>
           </button>
         {:else}
           <button class="spin-btn new-code" onclick={openCodeModal}>
-            <span>CÓDIGO</span>
+            <span>{$t.gameUI.code}</span>
           </button>
         {/if}
 
@@ -513,15 +513,15 @@
       <div class="right-controls">
         <button class="side-btn" onclick={openPrizeList}>
           <Grid3x3 size={16} />
-          <span>Pay Table</span>
+          <span>{$t.gameUI.payTable}</span>
         </button>
         <button class="side-btn" onclick={toggleAutoplay} class:active={autoplayActive}>
           <Play size={16} />
-          <span>AUTO | {autoplayActive ? 'ON' : 'OFF'}</span>
+          <span>{$t.gameUI.auto} | {autoplayActive ? $t.gameUI.on : $t.gameUI.off}</span>
         </button>
         {#if sessionWinnings > 0}
           <button class="claim-btn" onclick={openClaimModal}>
-            Cobrar ${sessionWinnings}
+            {$t.gameUI.claim} ${sessionWinnings}
           </button>
         {/if}
       </div>
@@ -529,7 +529,7 @@
   {:else}
     <div class="enter-code-container">
       <button class="enter-code-btn" onclick={openCodeModal}>
-        Ingresar Código
+        {$t.gameUI.enterCode}
       </button>
     </div>
   {/if}

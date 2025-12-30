@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { get } from "svelte/store";
   import { browser } from "$app/environment";
   import PrizeModal from "$lib/PrizeModal.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
   import Footer from "$lib/Footer.svelte";
-  import { initLanguage, direction } from "$lib/i18n";
+  import { initLanguage, direction, t } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
 
   interface PrizeConfig {
@@ -186,7 +187,7 @@
 
   function showWelcomeMessage(): void {
     symbols = ["❓", "❓", "❓"];
-    prizeText = "Ingresa Código";
+    prizeText = get(t).gameUI.enterCode;
     nearMissText = "";
   }
 
@@ -347,7 +348,7 @@
         // Near-miss on losers
         if (currentPrize === 0) {
           const nearPrize = getNearMissPrize();
-          nearMissText = `Premio $${nearPrize}`;
+          nearMissText = `${get(t).gameUI.prize} $${nearPrize}`;
         }
       } else {
         // On error, treat as loss
@@ -369,8 +370,9 @@
     revealed = true;
 
     // Session winnings already updated from server in startNewPlay
+    const translations = get(t);
     prizeText =
-      currentPrize > 0 ? `¡Ganaste $${currentPrize}!` : "¡Has Perdido!";
+      currentPrize > 0 ? `${translations.gameUI.youWon} $${currentPrize}!` : translations.gameUI.youLost;
 
     // Play win or lose sound when result is revealed
     if (currentPrize > 0) {
@@ -525,15 +527,15 @@
 {#if hasActiveSession}
   <div class="session-info">
     <div class="info-item">
-      <span class="label">Código:</span>
+      <span class="label">{$t.gameUI.code}:</span>
       <span class="value">{currentCode}</span>
     </div>
     <div class="info-item">
-      <span class="label">Jugadas:</span>
+      <span class="label">{$t.gameUI.plays}:</span>
       <span class="value plays">{playsLeft}</span>
     </div>
     <div class="info-item">
-      <span class="label">Ganancias:</span>
+      <span class="label">{$t.gameUI.winnings}:</span>
       <span class="value winnings">${sessionWinnings.toFixed(2)}</span>
     </div>
   </div>
@@ -543,10 +545,10 @@
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
-        <a href="/" class="control-btn back-btn" title="Volver al Menú">
+        <a href="/" class="control-btn back-btn" title={$t.gameUI.backToMenu}>
           <ArrowLeft size={20} />
         </a>
-        <button class="control-btn" onclick={openPrizeList} title="Ver Premios">
+        <button class="control-btn" onclick={openPrizeList} title={$t.gameUI.viewPrizes}>
           <Trophy size={20} />
         </button>
       </div>
@@ -555,7 +557,7 @@
           <button
             class="control-btn end-btn"
             onclick={resetSession}
-            title="Terminar Sesión"
+            title={$t.gameUI.endSession}
           >
             <X size={20} />
           </button>
@@ -564,7 +566,7 @@
           class="control-btn"
           class:muted
           onclick={toggleMute}
-          title={muted ? "Activar Sonido" : "Silenciar"}
+          title={muted ? $t.gameUI.unmute : $t.gameUI.mute}
         >
           {#if muted}
             <VolumeX size={20} />
@@ -574,9 +576,9 @@
         </button>
       </div>
     </div>
-    <div class="ticket-title">RASPA Y GANA</div>
-    <div class="ticket-subtitle">Gana Hasta $500</div>
-    <div class="ticket-header">¡3 IGUALES GANAN!</div>
+    <div class="ticket-title">{$t.gameUI.scratchAndWin}</div>
+    <div class="ticket-subtitle">{$t.gameUI.winUpTo}</div>
+    <div class="ticket-header">{$t.gameUI.threeMatchWin}</div>
     <div
       class="scratch-area"
       bind:this={scratchArea}
@@ -600,31 +602,31 @@
       {#if hasActiveSession}
         <div class="footer-left">
           <div class="plays-counter">
-            <span class="plays-label">Jugadas:</span>
+            <span class="plays-label">{$t.gameUI.plays}:</span>
             <span class="plays-value">{playsLeft}</span>
           </div>
           {#if sessionWinnings > 0}
             <button class="claim-btn" onclick={openClaimModal}>
-              Cobrar ${sessionWinnings.toFixed(2)}
+              {$t.gameUI.claim} ${sessionWinnings.toFixed(2)}
             </button>
           {/if}
         </div>
         <div class="footer-right">
           {#if !revealed}
-            <button class="reveal-btn" onclick={revealAll}> Revelar </button>
+            <button class="reveal-btn" onclick={revealAll}> {$t.gameUI.reveal} </button>
           {:else if playsLeft > 0}
             <button class="next-play-btn" onclick={startNewPlay}>
-              Siguiente
+              {$t.gameUI.next}
             </button>
           {:else}
             <button class="next-play-btn" onclick={openCodeModal}>
-              Nuevo Código
+              {$t.gameUI.newCode}
             </button>
           {/if}
         </div>
       {:else}
         <button class="enter-code-btn" onclick={openCodeModal}>
-          Ingresar Código
+          {$t.gameUI.enterCode}
         </button>
       {/if}
     </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Globe } from 'lucide-svelte';
-  import { currentLanguage, setLanguage, getSupportedLanguages, type Language } from './i18n';
+  import { currentLanguage, setLanguage, getSupportedLanguages, t, type Language } from './i18n';
 
   let isOpen = $state(false);
 
@@ -27,7 +27,7 @@
 
 <footer class="app-footer">
   <div class="footer-content">
-    <span class="copyright">Casino Admin Panel</span>
+    <span class="copyright">{$t.footer.copyright}</span>
 
     <div class="language-selector">
       <button class="lang-btn" onclick={(e) => { e.stopPropagation(); isOpen = !isOpen; }}>
