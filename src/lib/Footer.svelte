@@ -1,10 +1,27 @@
 <script lang="ts">
   import { Globe } from 'lucide-svelte';
-  import { currentLanguage, setLanguage, getSupportedLanguages, t, type Language } from './i18n';
+  import { currentLanguage, setLanguage, getSupportedLanguages, t, type Language, type Translations } from './i18n';
+  import { get } from 'svelte/store';
 
   let isOpen = $state(false);
+  let i18n = $state<Translations>(get(t));
+  let lang = $state<Language>(get(currentLanguage));
 
   const languages = getSupportedLanguages();
+
+  // Subscribe to translation changes
+  $effect(() => {
+    const unsubscribeT = t.subscribe(value => {
+      i18n = value;
+    });
+    const unsubscribeLang = currentLanguage.subscribe(value => {
+      lang = value;
+    });
+    return () => {
+      unsubscribeT();
+      unsubscribeLang();
+    };
+  });
 
   function selectLanguage(code: Language) {
     setLanguage(code);
@@ -27,24 +44,24 @@
 
 <footer class="app-footer">
   <div class="footer-content">
-    <span class="copyright">{$t.footer.copyright}</span>
+    <span class="copyright">{i18n.footer.copyright}</span>
 
     <div class="language-selector">
       <button class="lang-btn" onclick={(e) => { e.stopPropagation(); isOpen = !isOpen; }}>
         <Globe size={16} />
-        <span>{getCurrentLabel($currentLanguage)}</span>
+        <span>{getCurrentLabel(lang)}</span>
       </button>
 
       {#if isOpen}
         <div class="lang-dropdown">
-          {#each languages as lang}
+          {#each languages as language}
             <button
               class="lang-option"
-              class:active={$currentLanguage === lang.code}
-              onclick={(e) => { e.stopPropagation(); selectLanguage(lang.code); }}
+              class:active={lang === language.code}
+              onclick={(e) => { e.stopPropagation(); selectLanguage(language.code); }}
             >
-              <span class="native">{lang.nativeLabel}</span>
-              <span class="english">{lang.label}</span>
+              <span class="native">{language.nativeLabel}</span>
+              <span class="english">{language.label}</span>
             </button>
           {/each}
         </div>
