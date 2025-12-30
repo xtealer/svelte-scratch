@@ -4,24 +4,64 @@
   import PrizeModal from "$lib/PrizeModal.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
-  import { prizes, symbolMap, loseSymbols, getPrize, getWinSymbols, getLoseSymbols, getNearMissSymbols } from "$lib/prizeConfig";
+  import SlotSymbol from "$lib/SlotSymbols.svelte";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
 
-  const MAX_PRIZE = 500; // Cap max win at $500
+  const MAX_PRIZE = 500;
   const MIN_BET = 1;
   const MAX_BET = 10;
   const BET_STEPS = [1, 2, 5, 10];
 
-  // All possible symbols for spinning
-  const allSymbols = ["💎", "⭐", "🎰", "💰", "🪙", "🪶"];
+  // Classic slot symbols
+  const allSymbols = ["cherry", "plum", "lemon", "bell", "seven", "bar", "diamond", "star"];
+
+  // Symbol to prize mapping
+  const symbolPrizes: Record<string, number> = {
+    diamond: 500,
+    seven: 100,
+    bar: 50,
+    bell: 20,
+    star: 10,
+    cherry: 5,
+    plum: 2,
+    lemon: 1,
+  };
+
+  // Prize odds (~50% RTP, ~18% win rate)
+  const prizes = [
+    { amount: 500, odds: 8945, symbol: "diamond" },
+    { amount: 100, odds: 3334, symbol: "seven" },
+    { amount: 50, odds: 1243, symbol: "bar" },
+    { amount: 20, odds: 463, symbol: "bell" },
+    { amount: 10, odds: 173, symbol: "star" },
+    { amount: 5, odds: 64, symbol: "cherry" },
+    { amount: 2, odds: 24, symbol: "plum" },
+    { amount: 1, odds: 9, symbol: "lemon" },
+    { amount: 0, odds: 0 },
+  ];
+
+  // Calculate probabilities
+  let totalProb = 0;
+  prizes.forEach((p) => {
+    if (p.amount > 0) totalProb += 1 / p.odds;
+  });
+  const loseProb = 1 - totalProb;
 
   // Game state
   let currentPrize = $state(0);
-  let reels = $state<string[]>(["❓", "❓", "❓"]);
+  // Each reel shows 3 symbols [top, middle, bottom]
+  let reels = $state<string[][]>([
+    ["cherry", "plum", "lemon"],
+    ["bell", "seven", "bar"],
+    ["diamond", "star", "cherry"]
+  ]);
   let prizeText = $state("INGRESA CÓDIGO");
   let muted = $state(false);
   let spinning = $state(false);
   let betSize = $state(1);
+
+  // Reel animation offsets
+  let reelOffsets = $state([0, 0, 0]);
 
   // Session state
   let hasActiveSession = $state(false);
@@ -59,7 +99,6 @@
       if (saved) {
         try {
           const session = JSON.parse(saved);
-          // Only restore if there are credits or winnings
           if (session.credits > 0 || session.sessionWinnings > 0) {
             currentCode = session.code || "";
             credits = session.credits || 0;
@@ -133,13 +172,59 @@
   }
 
   function maxBet() {
-    // Set to highest bet we can afford
     for (let i = BET_STEPS.length - 1; i >= 0; i--) {
       if (BET_STEPS[i] <= credits) {
         betSize = BET_STEPS[i];
         return;
       }
     }
+  }
+
+  function getRandomSymbol(): string {
+    return allSymbols[Math.floor(Math.random() * allSymbols.length)];
+  }
+
+  function getRandomReelStrip(): string[] {
+    return [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
+  }
+
+  function getPrize(): { amount: number; symbol: string } {
+    const rand = Math.random();
+    let cum = 0;
+    for (const p of prizes) {
+      if (p.amount > 0) {
+        cum += 1 / p.odds;
+        if (rand <= cum) return { amount: p.amount, symbol: p.symbol! };
+      }
+    }
+    return { amount: 0, symbol: "" };
+  }
+
+  function getWinReels(symbol: string): string[][] {
+    // All three middle symbols match
+    return [
+      [getRandomSymbol(), symbol, getRandomSymbol()],
+      [getRandomSymbol(), symbol, getRandomSymbol()],
+      [getRandomSymbol(), symbol, getRandomSymbol()]
+    ];
+  }
+
+  function getLoseReels(): string[][] {
+    let r: string[][];
+    do {
+      r = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
+    } while (r[0][1] === r[1][1] && r[1][1] === r[2][1]); // Ensure middle row doesn't match
+    return r;
+  }
+
+  function getNearMissReels(): string[][] {
+    const symbol = allSymbols[Math.floor(Math.random() * 3)]; // Pick a valuable symbol
+    const otherSymbol = allSymbols.find(s => s !== symbol) || "lemon";
+    return [
+      [getRandomSymbol(), symbol, getRandomSymbol()],
+      [getRandomSymbol(), symbol, getRandomSymbol()],
+      [getRandomSymbol(), otherSymbol, getRandomSymbol()] // Near miss - last one different
+    ];
   }
 
   async function handleCodeSubmit(code: string): Promise<void> {
@@ -156,13 +241,13 @@
     }
 
     currentCode = data.code;
-    credits = data.plays; // Each "play" is $1 credit
+    credits = data.plays;
     sessionWinnings = 0;
     hasActiveSession = true;
     betSize = Math.min(betSize, credits);
     if (betSize < 1) betSize = 1;
     prizeText = "¡GIRA Y GANA!";
-    reels = ["❓", "❓", "❓"];
+    reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
     saveSession();
   }
 
@@ -174,7 +259,7 @@
     credits = 0;
     sessionWinnings = 0;
     currentPrize = 0;
-    reels = ["❓", "❓", "❓"];
+    reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
     prizeText = "INGRESA CÓDIGO";
     betSize = 1;
   }
@@ -202,32 +287,30 @@
     prizeText = "";
     playSound(sounds?.spin);
 
-    // Animate spinning
+    // Animate spinning with offset animation
     const spinDuration = 2000;
-    const spinInterval = 80;
+    const spinInterval = 60;
 
     const spinAnimation = setInterval(() => {
-      reels = [
-        allSymbols[Math.floor(Math.random() * allSymbols.length)],
-        allSymbols[Math.floor(Math.random() * allSymbols.length)],
-        allSymbols[Math.floor(Math.random() * allSymbols.length)],
+      reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
+      reelOffsets = [
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5,
+        Math.random() * 10 - 5
       ];
     }, spinInterval);
 
-    // Wait for spin to complete
     await new Promise((resolve) => setTimeout(resolve, spinDuration));
     clearInterval(spinAnimation);
+    reelOffsets = [0, 0, 0];
 
-    // Determine base result
-    let basePrize = getPrize();
+    // Determine result
+    const result = getPrize();
 
-    if (basePrize > 0) {
-      // Calculate win with bet multiplier, capped at MAX_PRIZE
-      currentPrize = Math.min(basePrize * betSize, MAX_PRIZE);
-
-      reels = getWinSymbols(basePrize);
+    if (result.amount > 0) {
+      currentPrize = Math.min(result.amount * betSize, MAX_PRIZE);
+      reels = getWinReels(result.symbol);
       prizeText = `¡GANASTE $${currentPrize}!`;
-      // Winnings tracked separately, not added to credits
       sessionWinnings += currentPrize;
 
       if (currentPrize >= 50) {
@@ -236,13 +319,11 @@
         playSound(sounds?.win);
       }
     } else {
-      // 30% chance of near miss
       if (Math.random() < 0.3) {
-        const nearMiss = getNearMissSymbols();
-        reels = nearMiss.symbols;
+        reels = getNearMissReels();
         prizeText = "¡CASI!";
       } else {
-        reels = getLoseSymbols();
+        reels = getLoseReels();
         prizeText = "¡OTRA VEZ!";
       }
       playSound(sounds?.lose);
@@ -250,7 +331,6 @@
 
     spinning = false;
 
-    // Adjust bet if we can't afford current bet
     if (credits < betSize && credits > 0) {
       for (let i = BET_STEPS.length - 1; i >= 0; i--) {
         if (BET_STEPS[i] <= credits) {
@@ -260,16 +340,13 @@
       }
     }
 
-    // Save session after each spin
     saveSession();
 
-    // Continue autoplay if active
     if (autoplayActive) {
       autoplaySpinsLeft--;
       if (autoplaySpinsLeft <= 0 || credits < betSize) {
         stopAutoplay();
       } else {
-        // Small delay before next spin
         setTimeout(() => spin(), 500);
       }
     }
@@ -307,12 +384,25 @@
     <div class="machine-subtitle">¡3 Iguales Ganan!</div>
 
     <div class="reels-container">
-      <div class="reels">
-        {#each reels as symbol, i}
-          <div class="reel">
-            <span class="symbol" class:spinning style="animation-delay: {i * 0.05}s">{symbol}</span>
-          </div>
-        {/each}
+      <div class="reels-frame">
+        <div class="reels">
+          {#each reels as reel, i}
+            <div class="reel" class:spinning style="--offset: {reelOffsets[i]}px">
+              <div class="reel-strip">
+                {#each reel as symbol, j}
+                  <div class="symbol-wrapper" class:center={j === 1}>
+                    <SlotSymbol {symbol} size={55} />
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {/each}
+        </div>
+        <!-- Win line indicator -->
+        <div class="win-line"></div>
+        <!-- Gradient overlays for classic look -->
+        <div class="reel-shadow top"></div>
+        <div class="reel-shadow bottom"></div>
       </div>
     </div>
 
@@ -497,45 +587,120 @@
   }
 
   .reels-container {
-    background: linear-gradient(#111, #222);
+    background: linear-gradient(180deg, #0a0a0a, #1a1a1a, #0a0a0a);
     border-radius: 15px;
-    padding: 20px;
+    padding: 15px;
     margin-bottom: 15px;
-    box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.8);
+    box-shadow:
+      inset 0 5px 20px rgba(0, 0, 0, 0.9),
+      0 0 15px rgba(255, 215, 0, 0.3);
+    border: 2px solid #333;
+  }
+
+  .reels-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #111 0%, #222 50%, #111 100%);
   }
 
   .reels {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 8px;
+    padding: 5px;
   }
 
   .reel {
-    width: 80px;
-    height: 100px;
-    background: linear-gradient(#333, #222, #333);
-    border-radius: 10px;
+    width: 90px;
+    height: 180px;
+    background: linear-gradient(
+      180deg,
+      #1a1a1a 0%,
+      #e8e8e8 15%,
+      #ffffff 50%,
+      #e8e8e8 85%,
+      #1a1a1a 100%
+    );
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow:
+      inset 2px 0 8px rgba(0, 0, 0, 0.3),
+      inset -2px 0 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid #444;
+  }
+
+  .reel.spinning .reel-strip {
+    animation: reelSpin 0.1s linear infinite;
+  }
+
+  .reel-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateY(var(--offset, 0));
+    transition: transform 0.05s ease-out;
+  }
+
+  .symbol-wrapper {
+    width: 100%;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow:
-      inset 0 3px 8px rgba(0, 0, 0, 0.6),
-      0 2px 4px rgba(255, 215, 0, 0.2);
-    border: 2px solid #555;
+    opacity: 0.5;
   }
 
-  .symbol {
-    font-size: 3.5em;
-    line-height: 1;
+  .symbol-wrapper.center {
+    opacity: 1;
+    transform: scale(1.1);
   }
 
-  .symbol.spinning {
-    animation: symbolSpin 0.08s infinite;
+  @keyframes reelSpin {
+    0% { transform: translateY(-20px); }
+    100% { transform: translateY(0); }
   }
 
-  @keyframes symbolSpin {
-    0%, 100% { transform: translateY(0); opacity: 1; }
-    50% { transform: translateY(-2px); opacity: 0.8; }
+  .win-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    transform: translateY(-50%);
+    box-shadow: 0 0 10px #ffd700;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .reel-shadow {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .reel-shadow.top {
+    top: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 10, 10, 0.95) 0%,
+      rgba(10, 10, 10, 0.7) 40%,
+      transparent 100%
+    );
+  }
+
+  .reel-shadow.bottom {
+    bottom: 0;
+    background: linear-gradient(
+      0deg,
+      rgba(10, 10, 10, 0.95) 0%,
+      rgba(10, 10, 10, 0.7) 40%,
+      transparent 100%
+    );
   }
 
   .prize-display {
@@ -797,12 +962,17 @@
     }
 
     .reel {
-      width: 65px;
-      height: 85px;
+      width: 75px;
+      height: 150px;
     }
 
-    .symbol {
-      font-size: 2.8em;
+    .symbol-wrapper {
+      height: 50px;
+    }
+
+    .symbol-wrapper :global(svg) {
+      width: 45px;
+      height: 45px;
     }
 
     .spin-btn {
