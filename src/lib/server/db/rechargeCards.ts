@@ -5,26 +5,25 @@ import { ObjectId } from 'mongodb';
 const CARDS_COLLECTION = 'rechargeCards';
 const SALES_COLLECTION = 'sales';
 
-// Generate sequential code
+// Generate random unique code
 async function generateCode(): Promise<string> {
   const db = await getDB();
 
-  // Find the highest code number
-  const lastCard = await db.collection<RechargeCard>(CARDS_COLLECTION)
-    .find({})
-    .sort({ code: -1 })
-    .limit(1)
-    .toArray();
+  let code: string;
+  let exists = true;
 
-  let nextNumber = 1;
-  if (lastCard.length > 0) {
-    const match = lastCard[0].code.match(/GOLD-001-(\d+)/);
-    if (match) {
-      nextNumber = parseInt(match[1], 10) + 1;
-    }
+  // Keep generating until we find a unique code
+  while (exists) {
+    // Generate random 9-digit number
+    const randomNum = Math.floor(Math.random() * 1000000000);
+    code = `001-${randomNum.toString().padStart(9, '0')}`;
+
+    // Check if code already exists
+    const existing = await db.collection<RechargeCard>(CARDS_COLLECTION).findOne({ code });
+    exists = !!existing;
   }
 
-  return `GOLD-001-${nextNumber.toString().padStart(9, '0')}`;
+  return code!;
 }
 
 export async function createRechargeCard(

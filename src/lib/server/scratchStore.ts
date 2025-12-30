@@ -11,14 +11,10 @@ export interface ScratchTicket {
 // In-memory database
 const scratchCodes: Map<string, ScratchTicket> = new Map();
 
-// Sequential counter for code generation
-let codeCounter = 0;
-
-// Generate sequential code in format: GOLD-001-000000001
+// Generate random code in format: 001-XXXXXXXXX
 function generateCode(): string {
-  codeCounter++;
-  const sequenceNumber = codeCounter.toString().padStart(9, "0");
-  return `GOLD-001-${sequenceNumber}`;
+  const randomNum = Math.floor(Math.random() * 1000000000);
+  return `001-${randomNum.toString().padStart(9, "0")}`;
 }
 
 // Generate a unique code that doesn't exist in the store
