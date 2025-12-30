@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { LogIn, User, Lock, AlertCircle } from 'lucide-svelte';
+  import { LogIn, User, Lock, AlertCircle, Eye, EyeOff } from 'lucide-svelte';
 
   let username = $state('');
+  let showPassword = $state(false);
   let password = $state('');
   let error = $state('');
   let loading = $state(false);
@@ -83,12 +84,24 @@
         <div class="input-group">
           <Lock size={20} />
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             bind:value={password}
             placeholder="Password"
             required
             disabled={loading}
           />
+          <button
+            type="button"
+            class="toggle-password"
+            onclick={() => showPassword = !showPassword}
+            tabindex={-1}
+          >
+            {#if showPassword}
+              <EyeOff size={20} />
+            {:else}
+              <Eye size={20} />
+            {/if}
+          </button>
         </div>
 
         <button type="submit" class="login-btn" disabled={loading}>
@@ -186,6 +199,21 @@
 
   .input-group input::placeholder {
     color: #666;
+  }
+
+  .toggle-password {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #888;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+
+  .toggle-password:hover {
+    color: #ffd700;
   }
 
   .login-btn {
