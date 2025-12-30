@@ -1,22 +1,18 @@
 <script lang="ts">
   import { Globe } from 'lucide-svelte';
-  import { getLanguage, setLanguage, getSupportedLanguages, type Language } from './i18n';
+  import { currentLanguage, setLanguage, getSupportedLanguages, type Language } from './i18n';
 
-  let currentLang = $state(getLanguage());
   let isOpen = $state(false);
 
   const languages = getSupportedLanguages();
 
   function selectLanguage(code: Language) {
     setLanguage(code);
-    currentLang = code;
     isOpen = false;
-    // Reload page to apply language changes
-    window.location.reload();
   }
 
-  function getCurrentLabel(): string {
-    return languages.find(l => l.code === currentLang)?.nativeLabel || 'English';
+  function getCurrentLabel(lang: Language): string {
+    return languages.find(l => l.code === lang)?.nativeLabel || 'English';
   }
 
   function handleClickOutside(event: MouseEvent) {
@@ -36,7 +32,7 @@
     <div class="language-selector">
       <button class="lang-btn" onclick={(e) => { e.stopPropagation(); isOpen = !isOpen; }}>
         <Globe size={16} />
-        <span>{getCurrentLabel()}</span>
+        <span>{getCurrentLabel($currentLanguage)}</span>
       </button>
 
       {#if isOpen}
@@ -44,7 +40,7 @@
           {#each languages as lang}
             <button
               class="lang-option"
-              class:active={currentLang === lang.code}
+              class:active={$currentLanguage === lang.code}
               onclick={(e) => { e.stopPropagation(); selectLanguage(lang.code); }}
             >
               <span class="native">{lang.nativeLabel}</span>
@@ -59,22 +55,27 @@
 
 <style>
   .app-footer {
+    width: 100%;
     margin-top: auto;
-    padding: 16px 20px;
-    background: rgba(20, 20, 35, 0.9);
+    padding: 12px 16px;
+    background: rgba(20, 20, 35, 0.95);
     border-top: 1px solid #333;
+    flex-shrink: 0;
   }
 
   .footer-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 100%;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 8px;
   }
 
   .copyright {
     color: #666;
-    font-size: 0.85em;
+    font-size: 0.8em;
   }
 
   .language-selector {
@@ -85,7 +86,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
+    padding: 8px 12px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid #444;
     border-radius: 6px;
@@ -109,9 +110,9 @@
     border: 1px solid #444;
     border-radius: 8px;
     overflow: hidden;
-    z-index: 100;
+    z-index: 1000;
     min-width: 150px;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
   }
 
   .lang-option {
@@ -151,10 +152,22 @@
     color: #b8860b;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 480px) {
+    .app-footer {
+      padding: 10px 12px;
+    }
+
     .footer-content {
-      flex-direction: column;
-      gap: 12px;
+      padding: 0 4px;
+    }
+
+    .copyright {
+      font-size: 0.75em;
+    }
+
+    .lang-btn {
+      padding: 6px 10px;
+      font-size: 0.8em;
     }
   }
 </style>

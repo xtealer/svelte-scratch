@@ -26,20 +26,20 @@
 
   :global(body) {
     margin: 0;
-    padding: 10px;
-    padding-top: max(10px, env(safe-area-inset-top));
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
-    padding-left: max(10px, env(safe-area-inset-left));
-    padding-right: max(10px, env(safe-area-inset-right));
+    padding: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
     font-family: 'Arial Black', Arial, sans-serif;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
     color: #ffd700;
     text-align: center;
     min-height: 100vh;
     min-height: 100dvh;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
     touch-action: manipulation;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
