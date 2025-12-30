@@ -2,7 +2,7 @@
 </script>
 
 <div class="menu">
-  <h1>JUEGOS DE ORO</h1>
+  <h1>GOLD GAMES</h1>
   <p class="subtitle">Elige Tu Juego</p>
 
   <div class="games">
