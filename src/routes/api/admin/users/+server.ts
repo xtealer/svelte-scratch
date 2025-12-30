@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { requireAdmin } from '$lib/server/auth';
+import { requireAdmin, handleAuthError } from '$lib/server/auth';
 import { createUser, getAllUsers, updateUser, changePassword, getUserById } from '$lib/server/db/users';
 import { ObjectId } from 'mongodb';
 
@@ -24,11 +24,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 
     return json({ users: safeUsers });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized' || message === 'Admin access required') {
-      return json({ error: message }, { status: 403 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };
 
@@ -83,14 +79,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       }
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
+    // Handle specific business logic error
+    const message = error instanceof Error ? error.message : '';
     if (message === 'Username already exists') {
       return json({ error: message }, { status: 400 });
     }
-    if (message === 'Unauthorized' || message === 'Admin access required') {
-      return json({ error: message }, { status: 403 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };
 
@@ -151,10 +145,6 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
 
     return json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized' || message === 'Admin access required') {
-      return json({ error: message }, { status: 403 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };

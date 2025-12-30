@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { requireAuth, requireAdmin } from '$lib/server/auth';
+import { requireAuth, isAdminOrSuper, handleAuthError } from '$lib/server/auth';
 import {
   createRechargeCard,
   createMultipleRechargeCards,
@@ -11,14 +11,14 @@ import {
 } from '$lib/server/db/rechargeCards';
 import { ObjectId } from 'mongodb';
 
-// GET - List cards (admin sees all, seller sees own)
+// GET - List cards (admin/super sees all, seller sees own)
 export const GET: RequestHandler = async ({ cookies, url }) => {
   try {
     const user = requireAuth(cookies);
     const limit = parseInt(url.searchParams.get('limit') || '100');
 
     let cards;
-    if (user.role === 'admin') {
+    if (isAdminOrSuper(user)) {
       cards = await getAllCards(limit);
     } else {
       cards = await getCardsByCreator(new ObjectId(user.userId));
@@ -40,11 +40,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
       stats
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized') {
-      return json({ error: message }, { status: 401 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };
 
@@ -87,11 +83,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       }))
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized') {
-      return json({ error: message }, { status: 401 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };
 
@@ -126,10 +118,6 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
       }
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized') {
-      return json({ error: message }, { status: 401 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };

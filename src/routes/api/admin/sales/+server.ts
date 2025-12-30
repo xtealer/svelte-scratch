@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { requireAuth } from '$lib/server/auth';
+import { requireAuth, isAdminOrSuper, handleAuthError } from '$lib/server/auth';
 import { getAllSales, getSalesByUser, getSalesStats, getTopSellers } from '$lib/server/db/sales';
 import { ObjectId } from 'mongodb';
 
@@ -14,7 +14,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
     let sales;
     let stats;
 
-    if (user.role === 'admin' || user.role === 'super') {
+    if (isAdminOrSuper(user)) {
       // Admin/super can filter by seller or see all
       if (filterSellerId) {
         const sellerId = new ObjectId(filterSellerId);
@@ -31,7 +31,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
       stats = await getSalesStats(userId);
     }
 
-    const topSellers = (user.role === 'admin' || user.role === 'super') ? await getTopSellers(5) : [];
+    const topSellers = isAdminOrSuper(user) ? await getTopSellers(5) : [];
 
     return json({
       sales: sales.map(s => ({
@@ -51,10 +51,6 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
       }))
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized') {
-      return json({ error: message }, { status: 401 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };

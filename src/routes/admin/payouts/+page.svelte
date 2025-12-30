@@ -57,7 +57,7 @@
         goto('/admin');
         return;
       }
-      isAdmin = data.user.role === 'admin';
+      isAdmin = data.user.role === 'admin' || data.user.role === 'super';
     } catch {
       goto('/admin');
     }

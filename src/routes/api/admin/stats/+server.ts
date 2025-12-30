@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { requireAuth } from '$lib/server/auth';
+import { requireAuth, isAdminOrSuper, handleAuthError } from '$lib/server/auth';
 import { getSalesStats, getAllSales } from '$lib/server/db/sales';
 import { getPayoutStats, getAllPayouts } from '$lib/server/db/payouts';
 import { getCardStats } from '$lib/server/db/rechargeCards';
@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
   try {
     const user = requireAuth(cookies);
 
-    const isAdmin = user.role === 'admin';
+    const isAdmin = isAdminOrSuper(user);
     const userId = new ObjectId(user.userId);
 
     const salesStats = await getSalesStats(isAdmin ? undefined : userId);
@@ -46,10 +46,6 @@ export const GET: RequestHandler = async ({ cookies }) => {
       netProfit: salesStats.totalRevenue - payoutStats.totalAmount
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized') {
-      return json({ error: message }, { status: 401 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };

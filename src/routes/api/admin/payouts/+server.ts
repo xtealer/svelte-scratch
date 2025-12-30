@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { requireAuth } from '$lib/server/auth';
+import { requireAuth, isAdminOrSuper, handleAuthError } from '$lib/server/auth';
 import {
   recordPayout,
   getAllPayouts,
@@ -10,7 +10,7 @@ import {
 } from '$lib/server/db/payouts';
 import { ObjectId } from 'mongodb';
 
-// GET - List payouts (admin sees all, seller sees own)
+// GET - List payouts (admin/super sees all, seller sees own)
 export const GET: RequestHandler = async ({ cookies, url }) => {
   try {
     const user = requireAuth(cookies);
@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
     let payouts;
     let stats;
 
-    if (user.role === 'admin') {
+    if (isAdminOrSuper(user)) {
       payouts = await getAllPayouts(limit);
       stats = await getPayoutStats();
     } else {
@@ -47,11 +47,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
       stats
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized') {
-      return json({ error: message }, { status: 401 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };
 
@@ -94,10 +90,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       }
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized') {
-      return json({ error: message }, { status: 401 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };

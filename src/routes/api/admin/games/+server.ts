@@ -1,16 +1,13 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { requireAdmin, getAuthUser } from '$lib/server/auth';
+import { requireAuth, requireAdmin, handleAuthError } from '$lib/server/auth';
 import { getAllGames, updateGame } from '$lib/server/db/games';
 import { ObjectId } from 'mongodb';
 
-// GET - List all games
+// GET - List all games (any authenticated user)
 export const GET: RequestHandler = async ({ cookies }) => {
   try {
-    const user = getAuthUser(cookies);
-    if (!user) {
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    requireAuth(cookies);
 
     const games = await getAllGames();
 
@@ -23,8 +20,8 @@ export const GET: RequestHandler = async ({ cookies }) => {
         updatedAt: g.updatedAt
       }))
     });
-  } catch {
-    return json({ error: 'Server error' }, { status: 500 });
+  } catch (error) {
+    return handleAuthError(error);
   }
 };
 
@@ -56,10 +53,6 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
 
     return json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Server error';
-    if (message === 'Unauthorized' || message === 'Admin access required') {
-      return json({ error: message }, { status: 403 });
-    }
-    return json({ error: 'Server error' }, { status: 500 });
+    return handleAuthError(error);
   }
 };
