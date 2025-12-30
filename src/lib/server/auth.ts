@@ -29,7 +29,7 @@ export function requireAuth(cookies: Cookies): AuthUser {
 
 export function requireAdmin(cookies: Cookies): AuthUser {
   const user = requireAuth(cookies);
-  if (user.role !== 'admin' && user.role !== 'superadmin') {
+  if (user.role !== 'admin' && user.role !== 'super') {
     throw new Error('Admin access required');
   }
   return user;
@@ -37,7 +37,7 @@ export function requireAdmin(cookies: Cookies): AuthUser {
 
 export function requireSuperAdmin(cookies: Cookies): AuthUser {
   const user = requireAuth(cookies);
-  if (user.role !== 'superadmin') {
+  if (user.role !== 'super') {
     throw new Error('Super admin access required');
   }
   return user;

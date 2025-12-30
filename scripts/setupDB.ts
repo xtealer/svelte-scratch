@@ -96,7 +96,7 @@ async function main() {
     const usersCollection = db.collection('users');
 
     // Check if super admin already exists
-    const existingSuperAdmin = await usersCollection.findOne({ role: 'superadmin' });
+    const existingSuperAdmin = await usersCollection.findOne({ role: 'super' });
 
     if (existingSuperAdmin) {
       console.log('⚠️  A super admin already exists!');
@@ -157,7 +157,7 @@ async function main() {
     const superAdmin = {
       username: username.toLowerCase(),
       password: hashedPassword,
-      role: 'superadmin',
+      role: 'super',
       name,
       active: true,
       createdAt: new Date()

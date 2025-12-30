@@ -4,7 +4,7 @@ import { requireAdmin } from '$lib/server/auth';
 import { createUser, getAllUsers, updateUser, changePassword, getUserById } from '$lib/server/db/users';
 import { ObjectId } from 'mongodb';
 
-// GET - List all users (admin/superadmin only)
+// GET - List all users (admin/super only)
 export const GET: RequestHandler = async ({ cookies }) => {
   try {
     requireAdmin(cookies);
@@ -33,7 +33,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 };
 
 // POST - Create new user
-// superadmin: can create admin and seller
+// super: can create admin and seller
 // admin: can only create seller
 // seller: cannot create users
 export const POST: RequestHandler = async ({ request, cookies }) => {
@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     // Validate role based on current user's role
     const allowedRoles: string[] = [];
 
-    if (currentUser.role === 'superadmin') {
+    if (currentUser.role === 'super') {
       // Super admin can create admin and seller
       allowedRoles.push('admin', 'seller');
     } else if (currentUser.role === 'admin') {
@@ -94,7 +94,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   }
 };
 
-// PATCH - Update user (admin/superadmin only)
+// PATCH - Update user (admin/super only)
 export const PATCH: RequestHandler = async ({ request, cookies }) => {
   try {
     const currentUser = requireAdmin(cookies);
@@ -112,8 +112,8 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
     }
 
     // Permission checks
-    // Cannot modify superadmin unless you are superadmin
-    if (targetUser.role === 'superadmin' && currentUser.role !== 'superadmin') {
+    // Cannot modify super unless you are super
+    if (targetUser.role === 'super' && currentUser.role !== 'super') {
       return json({ error: 'Cannot modify super admin' }, { status: 403 });
     }
 
@@ -128,8 +128,8 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
 
     // Role change restrictions
     if (role !== undefined) {
-      if (currentUser.role === 'superadmin') {
-        // Superadmin can change to any role except superadmin
+      if (currentUser.role === 'super') {
+        // Superadmin can change to any role except super
         if (['admin', 'seller'].includes(role)) {
           updates.role = role;
         }

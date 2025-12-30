@@ -1,10 +1,10 @@
 import type { ObjectId } from 'mongodb';
 
 // User roles
-// superadmin: can create admin and seller users
+// super: can create admin and seller users
 // admin: can only create seller users
 // seller: cannot create any users
-export type UserRole = 'superadmin' | 'admin' | 'seller';
+export type UserRole = 'super' | 'admin' | 'seller';
 
 // User account
 export interface User {

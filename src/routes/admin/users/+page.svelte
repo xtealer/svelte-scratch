@@ -13,7 +13,7 @@
     Check
   } from 'lucide-svelte';
 
-  type UserRole = 'superadmin' | 'admin' | 'seller';
+  type UserRole = 'super' | 'admin' | 'seller';
 
   interface User {
     _id: string;
@@ -51,7 +51,7 @@
   let editPassword = $state('');
 
   // Check if current user can create admin users
-  let canCreateAdmin = $derived(currentUser?.role === 'superadmin');
+  let canCreateAdmin = $derived(currentUser?.role === 'super');
 
   onMount(async () => {
     await checkAuth();
@@ -62,8 +62,8 @@
     try {
       const res = await fetch('/api/admin/auth');
       const data = await res.json();
-      // Allow superadmin and admin
-      if (!data.authenticated || (data.user.role !== 'admin' && data.user.role !== 'superadmin')) {
+      // Allow super and admin
+      if (!data.authenticated || (data.user.role !== 'admin' && data.user.role !== 'super')) {
         goto('/admin');
         return;
       }
@@ -286,7 +286,7 @@
                   {/if}
                 </td>
                 <td>
-                  {#if editingUser?._id === user._id && user.role !== 'superadmin'}
+                  {#if editingUser?._id === user._id && user.role !== 'super'}
                     <select bind:value={editRole} class="inline-select">
                       <option value="seller">Seller</option>
                       {#if canCreateAdmin}
@@ -294,7 +294,7 @@
                       {/if}
                     </select>
                   {:else}
-                    <span class="role-badge" class:admin={user.role === 'admin'} class:superadmin={user.role === 'superadmin'}>
+                    <span class="role-badge" class:admin={user.role === 'admin'} class:super={user.role === 'super'}>
                       {user.role}
                     </span>
                   {/if}
@@ -578,7 +578,7 @@
     color: #ffd700;
   }
 
-  .role-badge.superadmin {
+  .role-badge.super {
     background: rgba(255, 0, 150, 0.2);
     border-color: #ff0096;
     color: #ff0096;

@@ -126,7 +126,7 @@ export async function changePassword(id: string | ObjectId, newPassword: string)
 
 export async function getSuperAdminCount(): Promise<number> {
   const db = await getDB();
-  return db.collection<User>(COLLECTION).countDocuments({ role: 'superadmin' });
+  return db.collection<User>(COLLECTION).countDocuments({ role: 'super' });
 }
 
 export async function createSuperAdmin(
@@ -134,11 +134,11 @@ export async function createSuperAdmin(
   password: string,
   name: string
 ): Promise<User> {
-  // Check if superadmin already exists
+  // Check if super admin already exists
   const count = await getSuperAdminCount();
   if (count > 0) {
     throw new Error('Super admin already exists. Use the admin panel to create more users.');
   }
 
-  return createUser(username, password, 'superadmin', name);
+  return createUser(username, password, 'super', name);
 }
