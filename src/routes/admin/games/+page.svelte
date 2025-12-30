@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { Gamepad2, ArrowLeft, ToggleLeft, ToggleRight, Save } from 'lucide-svelte';
+  import Footer from '$lib/Footer.svelte';
+  import { initLanguage } from '$lib/i18n';
 
   interface Game {
     gameId: string;
@@ -16,6 +18,7 @@
   let saving = $state<string | null>(null);
 
   onMount(async () => {
+    initLanguage();
     await checkAuth();
     await loadGames();
   });
@@ -143,6 +146,8 @@
         </ul>
       </div>
     {/if}
+
+    <Footer />
   </main>
 </div>
 
@@ -196,6 +201,8 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1200px) {
@@ -233,6 +240,7 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
+    flex: 1;
   }
 
   .game-card {

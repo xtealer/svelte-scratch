@@ -10,9 +10,10 @@
     Copy,
     Check,
     Image,
-    FileText
+    FileText,
+    ShoppingCart
   } from 'lucide-svelte';
-  import LanguageSelector from '$lib/LanguageSelector.svelte';
+  import Footer from '$lib/Footer.svelte';
   import { initLanguage, t, getLanguage, getDirection } from '$lib/i18n';
 
   interface Card {
@@ -23,6 +24,7 @@
     usedAt?: string;
     createdAt: string;
     soldAt?: string;
+    sold?: boolean;
   }
 
   interface Stats {
@@ -48,6 +50,9 @@
   // Generated card display
   let generatedCard = $state<{ code: string; amount: number } | null>(null);
   let copiedCode = $state<string | null>(null);
+
+  // Mark as sold
+  let markingAsSold = $state<string | null>(null);
 
   onMount(async () => {
     initLanguage();
@@ -259,15 +264,30 @@ ${rc.goodLuck}`;
     generatedCard = null;
     showGenerate = false;
   }
+
+  async function markAsSold(code: string) {
+    markingAsSold = code;
+    try {
+      const res = await fetch('/api/admin/cards', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+
+      if (res.ok) {
+        await loadCards();
+      }
+    } catch {
+      // Handle error
+    }
+    markingAsSold = null;
+  }
 </script>
 
 <div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
       <h2>{i18n.common.casinoAdmin}</h2>
-      <div class="lang-wrapper">
-        <LanguageSelector />
-      </div>
     </div>
 
     <ul class="nav-menu">
@@ -389,6 +409,7 @@ ${rc.goodLuck}`;
               <th>{i18n.cardsAdmin.status}</th>
               <th>{i18n.cardsAdmin.created}</th>
               <th>{i18n.cardsAdmin.usedAt}</th>
+              <th>{i18n.cardsAdmin.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -397,18 +418,40 @@ ${rc.goodLuck}`;
                 <td class="code">{card.code}</td>
                 <td class="amount">${card.amount}</td>
                 <td>
-                  <span class="status" class:active={!card.used}>
-                    {card.used ? i18n.cardsAdmin.used : i18n.cardsAdmin.available}
-                  </span>
+                  {#if card.used}
+                    <span class="status">{i18n.cardsAdmin.used}</span>
+                  {:else if card.soldAt}
+                    <span class="status sold">{i18n.cardsAdmin.sold}</span>
+                  {:else}
+                    <span class="status active">{i18n.cardsAdmin.available}</span>
+                  {/if}
                 </td>
                 <td class="date">{formatDate(card.createdAt)}</td>
                 <td class="date">{formatDate(card.usedAt)}</td>
+                <td class="actions">
+                  {#if !card.used && !card.soldAt}
+                    <button
+                      class="sell-btn"
+                      onclick={() => markAsSold(card.code)}
+                      disabled={markingAsSold === card.code}
+                    >
+                      <ShoppingCart size={14} />
+                      <span>{markingAsSold === card.code ? '...' : i18n.cardsAdmin.markAsSold}</span>
+                    </button>
+                  {:else if card.soldAt && !card.used}
+                    <span class="sold-label">{i18n.cardsAdmin.sold}</span>
+                  {:else}
+                    -
+                  {/if}
+                </td>
               </tr>
             {/each}
           </tbody>
         </table>
       </div>
     {/if}
+
+    <Footer />
   </main>
 </div>
 
@@ -441,14 +484,9 @@ ${rc.goodLuck}`;
   }
 
   .sidebar-header h2 {
-    margin: 0 0 12px 0;
+    margin: 0;
     color: #ffd700;
     font-size: 1.3em;
-  }
-
-  .lang-wrapper {
-    display: flex;
-    justify-content: center;
   }
 
   .nav-menu {
@@ -475,6 +513,8 @@ ${rc.goodLuck}`;
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1200px) {
@@ -724,6 +764,7 @@ ${rc.goodLuck}`;
     border-radius: 12px;
     border: 1px solid #333;
     overflow: hidden;
+    flex: 1;
   }
 
   table {
@@ -786,6 +827,44 @@ ${rc.goodLuck}`;
     background: rgba(0, 200, 0, 0.2);
     border-color: #00cc00;
     color: #00cc00;
+  }
+
+  .status.sold {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: #ffd700;
+    color: #ffd700;
+  }
+
+  .actions {
+    min-width: 120px;
+  }
+
+  .sell-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 215, 0, 0.2);
+    border: 1px solid #ffd700;
+    border-radius: 6px;
+    color: #ffd700;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .sell-btn:hover:not(:disabled) {
+    background: rgba(255, 215, 0, 0.3);
+  }
+
+  .sell-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .sold-label {
+    color: #888;
+    font-size: 0.85em;
   }
 
   @media (max-width: 768px) {

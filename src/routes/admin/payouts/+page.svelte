@@ -19,6 +19,8 @@
     XCircle,
     Ban
   } from 'lucide-svelte';
+  import Footer from '$lib/Footer.svelte';
+  import { initLanguage } from '$lib/i18n';
 
   interface Payout {
     _id: string;
@@ -89,6 +91,7 @@
   let processingId = $state<string | null>(null);
 
   onMount(async () => {
+    initLanguage();
     await checkAuth();
     await loadPayouts();
   });
@@ -577,6 +580,8 @@
         {/if}
       </div>
     {/if}
+
+    <Footer />
   </main>
 </div>
 
@@ -629,6 +634,8 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1200px) {
@@ -887,6 +894,7 @@
     border-radius: 12px;
     border: 1px solid #333;
     padding: 20px;
+    flex: 1;
   }
 
   .payouts-table h3 {

@@ -17,6 +17,8 @@
     Eye,
     EyeOff
   } from 'lucide-svelte';
+  import Footer from '$lib/Footer.svelte';
+  import { initLanguage } from '$lib/i18n';
 
   type UserRole = 'super' | 'admin' | 'seller';
 
@@ -88,6 +90,7 @@
   }
 
   onMount(async () => {
+    initLanguage();
     await checkAuth();
     await loadUsers();
   });
@@ -426,6 +429,8 @@
         </table>
       </div>
     {/if}
+
+    <Footer />
   </main>
 </div>
 
@@ -537,6 +542,8 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1200px) {
@@ -712,6 +719,7 @@
     border-radius: 12px;
     border: 1px solid #333;
     overflow: hidden;
+    flex: 1;
   }
 
   table {

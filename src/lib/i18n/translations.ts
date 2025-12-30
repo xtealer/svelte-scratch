@@ -34,6 +34,8 @@ export interface CardsAdminTranslations {
   usedAt: string;
   available: string;
   loading: string;
+  markAsSold: string;
+  actions: string;
 }
 
 export interface CommonTranslations {
@@ -87,6 +89,8 @@ export const translations: Record<Language, Translations> = {
       usedAt: 'Used At',
       available: 'Available',
       loading: 'Loading cards...',
+      markAsSold: 'Mark as Sold',
+      actions: 'Actions',
     },
     // Common
     common: {
@@ -133,6 +137,8 @@ export const translations: Record<Language, Translations> = {
       usedAt: 'Usada',
       available: 'Disponible',
       loading: 'Cargando tarjetas...',
+      markAsSold: 'Marcar como Vendida',
+      actions: 'Acciones',
     },
     // Common
     common: {
@@ -179,6 +185,8 @@ export const translations: Record<Language, Translations> = {
       usedAt: 'تاريخ الاستخدام',
       available: 'متاحة',
       loading: 'جاري تحميل البطاقات...',
+      markAsSold: 'تسجيل كمباعة',
+      actions: 'الإجراءات',
     },
     // Common
     common: {

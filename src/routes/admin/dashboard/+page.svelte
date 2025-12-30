@@ -14,6 +14,8 @@
     Wallet,
     AlertCircle
   } from 'lucide-svelte';
+  import Footer from '$lib/Footer.svelte';
+  import { initLanguage } from '$lib/i18n';
 
   interface User {
     userId: string;
@@ -96,6 +98,7 @@
   let error = $state('');
 
   onMount(async () => {
+    initLanguage();
     await checkAuth();
     await loadStats();
   });
@@ -431,6 +434,8 @@
         </div>
       </div>
     {/if}
+
+    <Footer />
   </main>
 </div>
 
@@ -529,6 +534,8 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1200px) {
@@ -691,6 +698,7 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
+    flex: 1;
   }
 
   @media (min-width: 1024px) {

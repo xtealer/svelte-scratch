@@ -3,6 +3,8 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { TrendingUp, ArrowLeft, DollarSign, ShoppingCart, Calendar, Filter, X } from 'lucide-svelte';
+  import Footer from '$lib/Footer.svelte';
+  import { initLanguage } from '$lib/i18n';
 
   interface Sale {
     _id: string;
@@ -45,6 +47,7 @@
   let selectedSeller = $state<string>('');
 
   onMount(async () => {
+    initLanguage();
     // Check for sellerId in URL params
     const urlSellerId = $page.url.searchParams.get('sellerId');
     if (urlSellerId) {
@@ -241,6 +244,8 @@
         {/if}
       </div>
     {/if}
+
+    <Footer />
   </main>
 </div>
 
@@ -293,6 +298,8 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   @media (min-width: 1200px) {
@@ -468,6 +475,7 @@
     border-radius: 12px;
     border: 1px solid #333;
     padding: 20px;
+    flex: 1;
   }
 
   .sales-table h3 {
