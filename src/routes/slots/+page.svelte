@@ -187,6 +187,23 @@
     showClaimModal = true;
   }
 
+  function convertWinningsToCredits() {
+    if (sessionWinnings > 0) {
+      credits += sessionWinnings;
+      sessionWinnings = 0;
+      // Adjust bet size if needed
+      if (betSize > credits) {
+        for (let i = BET_STEPS.length - 1; i >= 0; i--) {
+          if (BET_STEPS[i] <= credits) {
+            betSize = BET_STEPS[i];
+            break;
+          }
+        }
+      }
+      saveSession();
+    }
+  }
+
   function increaseBet() {
     const currentIndex = BET_STEPS.indexOf(betSize);
     if (currentIndex < BET_STEPS.length - 1) {
@@ -501,6 +518,7 @@
   bind:show={showClaimModal}
   scratchCode={currentCode}
   totalWinnings={sessionWinnings}
+  onPlayMore={convertWinningsToCredits}
 />
 
 <style>

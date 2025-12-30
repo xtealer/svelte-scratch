@@ -3,10 +3,12 @@
     show = $bindable(false),
     scratchCode,
     totalWinnings,
+    onPlayMore,
   }: {
     show: boolean;
     scratchCode: string;
     totalWinnings: number;
+    onPlayMore?: () => void;
   } = $props();
 
   // Generate QR code URL using goqr.me API
@@ -22,6 +24,13 @@
     if (event.target === event.currentTarget) {
       close();
     }
+  }
+
+  function handlePlayMore(): void {
+    if (onPlayMore) {
+      onPlayMore();
+    }
+    close();
   }
 </script>
 
@@ -51,7 +60,14 @@
         <p>Guarda este código hasta cobrar tu premio.</p>
       </div>
 
-      <button class="close-btn" onclick={close}>Cerrar</button>
+      <div class="button-group">
+        {#if onPlayMore}
+          <button class="play-more-btn" onclick={handlePlayMore}>
+            Seguir Jugando
+          </button>
+        {/if}
+        <button class="close-btn" onclick={close}>Cerrar</button>
+      </div>
     </div>
   </div>
 {/if}
@@ -161,6 +177,30 @@
 
   .info p {
     margin: 4px 0;
+  }
+
+  .button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .play-more-btn {
+    padding: 12px;
+    font-size: 1.2em;
+    width: 100%;
+    background: linear-gradient(#00cc00, #008800);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .play-more-btn:active {
+    transform: scale(0.98);
   }
 
   .close-btn {
