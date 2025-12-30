@@ -1,35 +1,18 @@
 <script lang="ts">
   import { Globe } from 'lucide-svelte';
-  import { currentLanguage, setLanguage, getSupportedLanguages, t, type Language, type Translations } from './i18n';
-  import { get } from 'svelte/store';
+  import { currentLanguage, setLanguage, getSupportedLanguages, t, type Language } from './i18n';
 
   let isOpen = $state(false);
-  let i18n = $state<Translations>(get(t));
-  let lang = $state<Language>(get(currentLanguage));
 
   const languages = getSupportedLanguages();
-
-  // Subscribe to translation changes
-  $effect(() => {
-    const unsubscribeT = t.subscribe(value => {
-      i18n = value;
-    });
-    const unsubscribeLang = currentLanguage.subscribe(value => {
-      lang = value;
-    });
-    return () => {
-      unsubscribeT();
-      unsubscribeLang();
-    };
-  });
 
   function selectLanguage(code: Language) {
     setLanguage(code);
     isOpen = false;
   }
 
-  function getCurrentLabel(lang: Language): string {
-    return languages.find(l => l.code === lang)?.nativeLabel || 'English';
+  function getCurrentLabel(langCode: Language): string {
+    return languages.find(l => l.code === langCode)?.nativeLabel || 'English';
   }
 
   function handleClickOutside(event: MouseEvent) {
@@ -44,12 +27,12 @@
 
 <footer class="app-footer">
   <div class="footer-content">
-    <span class="copyright">{i18n.footer.copyright}</span>
+    <span class="copyright">{$t.footer.copyright}</span>
 
     <div class="language-selector">
       <button class="lang-btn" onclick={(e) => { e.stopPropagation(); isOpen = !isOpen; }}>
         <Globe size={16} />
-        <span>{getCurrentLabel(lang)}</span>
+        <span>{getCurrentLabel($currentLanguage)}</span>
       </button>
 
       {#if isOpen}
@@ -57,7 +40,7 @@
           {#each languages as language}
             <button
               class="lang-option"
-              class:active={lang === language.code}
+              class:active={$currentLanguage === language.code}
               onclick={(e) => { e.stopPropagation(); selectLanguage(language.code); }}
             >
               <span class="native">{language.nativeLabel}</span>
