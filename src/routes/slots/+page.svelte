@@ -389,6 +389,12 @@
           <span class="info-label">Bet:</span>
           <span class="info-value">${betSize}</span>
         </div>
+        {#if sessionWinnings > 0}
+          <div class="info-row winnings">
+            <span class="info-label">Ganado:</span>
+            <span class="info-value winnings-value">${sessionWinnings}</span>
+          </div>
+        {/if}
       </div>
 
       <div class="center-controls">
@@ -611,6 +617,18 @@
     font-size: 1.3em;
     font-weight: bold;
     color: #fff;
+  }
+
+  .info-row.winnings {
+    background: rgba(0, 255, 0, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+  }
+
+  .winnings-value {
+    color: #00ff00 !important;
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
   }
 
   .center-controls {
