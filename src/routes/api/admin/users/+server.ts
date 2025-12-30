@@ -5,14 +5,21 @@ import { createUser, getAllUsers, updateUser, changePassword, getUserById } from
 import { ObjectId } from 'mongodb';
 
 // GET - List all users (admin/super only)
+// Admin users cannot see super admins
 export const GET: RequestHandler = async ({ cookies }) => {
   try {
-    requireAdmin(cookies);
+    const currentUser = requireAdmin(cookies);
 
     const users = await getAllUsers();
 
+    // Filter users based on current user's role
+    // Admin users cannot see super admins
+    const filteredUsers = currentUser.role === 'super'
+      ? users
+      : users.filter(u => u.role !== 'super');
+
     // Remove passwords from response
-    const safeUsers = users.map(u => ({
+    const safeUsers = filteredUsers.map(u => ({
       _id: u._id?.toString(),
       username: u.username,
       name: u.name,
@@ -22,7 +29,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
       lastLogin: u.lastLogin
     }));
 
-    return json({ users: safeUsers });
+    return json({ users: safeUsers, currentUserRole: currentUser.role });
   } catch (error) {
     return handleAuthError(error);
   }

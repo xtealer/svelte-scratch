@@ -73,6 +73,20 @@
   // Check if current user can create admin users
   let canCreateAdmin = $derived(currentUser?.role === 'super');
 
+  // Check if current user can edit a specific user
+  function canEditUser(user: User): boolean {
+    if (!currentUser) return false;
+    // Super admin can edit anyone except other super admins
+    if (currentUser.role === 'super') return user.role !== 'super';
+    // Admin cannot edit other admin users (only themselves or sellers)
+    if (currentUser.role === 'admin') {
+      if (user.role === 'super') return false;
+      if (user.role === 'admin' && user._id !== currentUser.userId) return false;
+      return true;
+    }
+    return false;
+  }
+
   onMount(async () => {
     await checkAuth();
     await loadUsers();
@@ -360,19 +374,25 @@
                   {/if}
                 </td>
                 <td>
-                  <button
-                    class="toggle-btn"
-                    class:active={user.active}
-                    onclick={() => toggleActive(user)}
-                  >
-                    {#if user.active}
-                      <ToggleRight size={20} />
-                      <span>Active</span>
-                    {:else}
-                      <ToggleLeft size={20} />
-                      <span>Inactive</span>
-                    {/if}
-                  </button>
+                  {#if canEditUser(user)}
+                    <button
+                      class="toggle-btn"
+                      class:active={user.active}
+                      onclick={() => toggleActive(user)}
+                    >
+                      {#if user.active}
+                        <ToggleRight size={20} />
+                        <span>Active</span>
+                      {:else}
+                        <ToggleLeft size={20} />
+                        <span>Inactive</span>
+                      {/if}
+                    </button>
+                  {:else}
+                    <span class="status-badge" class:active={user.active}>
+                      {user.active ? 'Active' : 'Inactive'}
+                    </span>
+                  {/if}
                 </td>
                 <td class="date">{formatDate(user.lastLogin)}</td>
                 <td class="actions">
@@ -393,9 +413,11 @@
                     <button class="icon-btn stats" onclick={() => viewUserStats(user)} title="View Stats">
                       <BarChart3 size={18} />
                     </button>
-                    <button class="icon-btn" onclick={() => startEdit(user)} title="Edit">
-                      <Edit size={18} />
-                    </button>
+                    {#if canEditUser(user)}
+                      <button class="icon-btn" onclick={() => startEdit(user)} title="Edit">
+                        <Edit size={18} />
+                      </button>
+                    {/if}
                   {/if}
                 </td>
               </tr>
@@ -762,6 +784,20 @@
   .toggle-btn.active {
     background: rgba(0, 200, 0, 0.2);
     border-color: #00cc00;
+    color: #00cc00;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(255, 0, 0, 0.1);
+    border-radius: 16px;
+    color: #ff6666;
+    font-size: 0.85em;
+  }
+
+  .status-badge.active {
+    background: rgba(0, 200, 0, 0.1);
     color: #00cc00;
   }
 
