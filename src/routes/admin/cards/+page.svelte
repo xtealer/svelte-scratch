@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import QRCode from 'qrcode';
   import {
     CreditCard,
     ArrowLeft,
@@ -100,15 +101,22 @@
     generating = false;
   }
 
-  async function copyCode(code: string) {
-    await navigator.clipboard.writeText(code);
+  async function copyCode(code: string, amount: number) {
+    const message = `🎰 TARJETA DE RECARGA 🎰\n\nCódigo: ${code}\nMonto: $${amount}\n\nIngresa este código en el juego para recargar tu saldo.\n¡Buena suerte!`;
+    await navigator.clipboard.writeText(message);
     copiedCode = code;
     setTimeout(() => copiedCode = null, 2000);
   }
 
   function downloadAsText() {
     if (!generatedCard) return;
-    const text = `RECHARGE CARD\n\nCode: ${generatedCard.code}\nAmount: $${generatedCard.amount}\n`;
+    const text = `🎰 TARJETA DE RECARGA 🎰
+
+Código: ${generatedCard.code}
+Monto: $${generatedCard.amount}
+
+Ingresa este código en el juego para recargar tu saldo.
+¡Buena suerte!`;
 
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -119,14 +127,33 @@
     URL.revokeObjectURL(url);
   }
 
-  function downloadAsImage() {
+  async function downloadAsImage() {
     if (!generatedCard) return;
     const card = generatedCard; // Capture for closure
+
+    // Generate QR code as data URL
+    const qrDataUrl = await QRCode.toDataURL(card.code, {
+      width: 120,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    });
+
+    // Load QR code image
+    const qrImg = new window.Image();
+    qrImg.src = qrDataUrl;
+
+    await new Promise<void>((resolve) => {
+      qrImg.onload = () => resolve();
+    });
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
 
-    const cardWidth = 350;
-    const cardHeight = 150;
+    const cardWidth = 400;
+    const cardHeight = 200;
     const padding = 20;
 
     canvas.width = cardWidth + padding * 2;
@@ -147,28 +174,48 @@
 
     // Border
     ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.stroke();
 
     // Title
     ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 16px Arial';
-    ctx.fillText('RECHARGE CARD', x + 20, y + 30);
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText('🎰 TARJETA DE RECARGA', x + 20, y + 35);
+
+    // Code label
+    ctx.fillStyle = '#888888';
+    ctx.font = '12px Arial';
+    ctx.fillText('CÓDIGO:', x + 20, y + 65);
 
     // Code
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px monospace';
-    ctx.fillText(card.code, x + 20, y + 70);
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText(card.code, x + 20, y + 85);
 
     // Amount
     ctx.fillStyle = '#00cc00';
-    ctx.font = 'bold 20px Arial';
-    ctx.fillText(`$${card.amount}`, x + 20, y + 115);
+    ctx.font = 'bold 28px Arial';
+    ctx.fillText(`$${card.amount}`, x + 20, y + 130);
 
-    // Logo
-    ctx.fillStyle = '#ffd700';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText('🎰', x + cardWidth - 50, y + 40);
+    // Instructions
+    ctx.fillStyle = '#888888';
+    ctx.font = '11px Arial';
+    ctx.fillText('Escanea el QR o ingresa el código', x + 20, y + 160);
+    ctx.fillText('en el juego para recargar', x + 20, y + 175);
+
+    // Draw QR code on the right side
+    const qrSize = 130;
+    const qrX = x + cardWidth - qrSize - 15;
+    const qrY = y + (cardHeight - qrSize) / 2;
+
+    // QR background
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.roundRect(qrX - 5, qrY - 5, qrSize + 10, qrSize + 10, 8);
+    ctx.fill();
+
+    // Draw QR code
+    ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
     canvas.toBlob(blob => {
       if (blob) {
@@ -261,7 +308,8 @@
                 <span class="gen-info">${generatedCard.amount}</span>
                 <button
                   class="copy-btn"
-                  onclick={() => copyCode(generatedCard!.code)}
+                  onclick={() => copyCode(generatedCard!.code, generatedCard!.amount)}
+                  title="Copy with message"
                 >
                   {#if copiedCode === generatedCard.code}
                     <Check size={16} />
