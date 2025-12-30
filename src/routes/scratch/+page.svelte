@@ -4,7 +4,13 @@
   import PrizeModal from "$lib/PrizeModal.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
+  import Footer from "$lib/Footer.svelte";
+  import { initLanguage, t, getDirection, type Translations } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
+
+  // i18n
+  let i18n = $state<Translations>(t());
+  let dir = $state<'ltr' | 'rtl'>('ltr');
 
   interface PrizeConfig {
     amount: number;
@@ -119,6 +125,10 @@
   }
 
   onMount(() => {
+    initLanguage();
+    i18n = t();
+    dir = getDirection();
+
     if (!browser) return;
 
     // Initialize Web Audio API for scratch sound
@@ -535,7 +545,7 @@
   </div>
 {/if}
 
-<div class="container">
+<div class="container" dir={dir}>
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
@@ -625,6 +635,8 @@
       {/if}
     </div>
   </div>
+
+  <Footer />
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
