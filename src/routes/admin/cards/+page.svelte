@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import { goto } from '$app/navigation';
   import QRCode from 'qrcode';
   import {
@@ -39,7 +40,7 @@
   let cards = $state<Card[]>([]);
   let stats = $state<Stats | null>(null);
   let loading = $state(true);
-  let i18n = $state(t());
+  let i18n = $state<ReturnType<typeof get<typeof t>> | null>(null);
   let dir = $state<'ltr' | 'rtl'>('ltr');
 
   // Generate form
@@ -56,7 +57,7 @@
 
   onMount(async () => {
     initLanguage();
-    i18n = t();
+    i18n = get(t);
     dir = getDirection();
     await checkAuth();
     await loadCards();

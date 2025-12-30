@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store';
   import { goto } from '$app/navigation';
   import {
     LayoutDashboard,
@@ -98,12 +99,12 @@
   let error = $state('');
 
   // i18n
-  let i18n = $state<Translations>(t());
+  let i18n = $state<Translations | null>(null);
   let dir = $state<'ltr' | 'rtl'>('ltr');
 
   onMount(async () => {
     initLanguage();
-    i18n = t();
+    i18n = get(t);
     dir = getDirection();
     await checkAuth();
     await loadStats();
