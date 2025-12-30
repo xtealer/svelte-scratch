@@ -121,6 +121,20 @@ export interface Payout {
   notes?: string;
 }
 
+// Credit conversion record (when player converts winnings to credits)
+export interface CreditConversion {
+  _id?: ObjectId;
+  code: string;
+  gameId: string;
+  amount: number;
+  playerName: string;
+  playerPhone: string;
+  playerCountry: string;
+  convertedAt: Date;
+  sellerId?: ObjectId;
+  sellerName?: string;
+}
+
 // Prize stats for dashboard
 export interface PrizeStats {
   prizeAmount: number;

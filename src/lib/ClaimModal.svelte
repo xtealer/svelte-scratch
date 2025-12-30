@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronDown } from 'lucide-svelte';
+  import { ChevronDown, Coins, DollarSign } from 'lucide-svelte';
 
   let {
     show = $bindable(false),
@@ -43,16 +43,24 @@
     { code: 'CU', name: 'Cuba', dial: '+53' },
   ];
 
+  type ActionType = 'payout' | 'credits';
+
   // Form state
   let playerName = $state('');
   let selectedCountry = $state('US');
   let phoneNumber = $state('');
   let submitting = $state(false);
   let submitted = $state(false);
+  let submittedAction = $state<ActionType>('payout');
   let error = $state('');
 
   // Get selected country info
   let selectedCountryInfo = $derived(countries.find(c => c.code === selectedCountry) || countries[0]);
+
+  // Form validation
+  let isFormValid = $derived(
+    playerName.trim().length >= 2 && phoneNumber.trim().length >= 6
+  );
 
   function close(): void {
     show = false;
@@ -70,26 +78,68 @@
     }
   }
 
-  function handlePlayMore(): void {
-    if (onPlayMore) {
-      onPlayMore();
-    }
-    close();
-  }
-
-  async function submitRequest(): Promise<void> {
+  function validateForm(): boolean {
     error = '';
 
-    // Validate
     if (!playerName.trim() || playerName.trim().length < 2) {
       error = 'Por favor ingresa tu nombre completo';
-      return;
+      return false;
     }
 
     if (!phoneNumber.trim() || phoneNumber.trim().length < 6) {
       error = 'Por favor ingresa un número de teléfono válido';
-      return;
+      return false;
     }
+
+    return true;
+  }
+
+  async function handleConvertToCredits(): Promise<void> {
+    if (!validateForm()) return;
+
+    submitting = true;
+
+    try {
+      const fullPhone = `${selectedCountryInfo.dial} ${phoneNumber.trim()}`;
+
+      // Record the credit conversion with player info
+      const response = await fetch('/api/game/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: scratchCode,
+          gameId,
+          amount: totalWinnings,
+          playerName: playerName.trim(),
+          playerPhone: fullPhone,
+          playerCountry: selectedCountry
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        error = data.error || 'Error al convertir créditos';
+        submitting = false;
+        return;
+      }
+
+      submitted = true;
+      submittedAction = 'credits';
+      submitting = false;
+
+      // Call the onPlayMore callback to actually convert credits
+      if (onPlayMore) {
+        onPlayMore();
+      }
+    } catch {
+      error = 'Error de conexión';
+      submitting = false;
+    }
+  }
+
+  async function submitPayoutRequest(): Promise<void> {
+    if (!validateForm()) return;
 
     submitting = true;
 
@@ -118,6 +168,7 @@
       }
 
       submitted = true;
+      submittedAction = 'payout';
       submitting = false;
 
       if (onRequestSubmitted) {
@@ -138,20 +189,34 @@
       {#if submitted}
         <div class="success-view">
           <div class="success-icon">✓</div>
-          <div class="modal-header">¡SOLICITUD ENVIADA!</div>
-          <div class="winnings">
-            <span class="label">Monto Solicitado</span>
-            <span class="amount">${totalWinnings.toFixed(2)}</span>
-          </div>
-          <div class="info">
-            <p>Tu solicitud de pago ha sido enviada.</p>
-            <p>Te contactaremos al número proporcionado.</p>
-            <p class="code-ref">Código: <strong>{scratchCode}</strong></p>
-          </div>
-          <button class="close-btn" onclick={close}>Cerrar</button>
+          {#if submittedAction === 'payout'}
+            <div class="modal-header">¡SOLICITUD ENVIADA!</div>
+            <div class="winnings">
+              <span class="label">Monto Solicitado</span>
+              <span class="amount">${totalWinnings.toFixed(2)}</span>
+            </div>
+            <div class="info">
+              <p>Tu solicitud de pago ha sido enviada.</p>
+              <p>Te contactaremos al número proporcionado.</p>
+              <p class="code-ref">Código: <strong>{scratchCode}</strong></p>
+            </div>
+          {:else}
+            <div class="modal-header">¡CRÉDITOS AGREGADOS!</div>
+            <div class="winnings credits-added">
+              <span class="label">Créditos Agregados</span>
+              <span class="amount">${totalWinnings.toFixed(2)}</span>
+            </div>
+            <div class="info">
+              <p>Tus ganancias se han convertido en créditos.</p>
+              <p>¡Sigue jugando y buena suerte!</p>
+            </div>
+          {/if}
+          <button class="close-btn" onclick={close}>
+            {submittedAction === 'credits' ? '¡A Jugar!' : 'Cerrar'}
+          </button>
         </div>
       {:else}
-        <div class="modal-header">SOLICITAR PAGO</div>
+        <div class="modal-header">¿QUÉ DESEAS HACER?</div>
 
         <div class="winnings">
           <span class="label">Ganancias Totales</span>
@@ -160,7 +225,7 @@
 
         <div class="form-section">
           <div class="form-group">
-            <label for="playerName">Nombre Completo</label>
+            <label for="playerName">Nombre Completo <span class="required">*</span></label>
             <input
               type="text"
               id="playerName"
@@ -171,7 +236,7 @@
           </div>
 
           <div class="form-group">
-            <label for="phone">Número de Teléfono</label>
+            <label for="phone">Número de Teléfono <span class="required">*</span></label>
             <div class="phone-input">
               <div class="country-select">
                 <select bind:value={selectedCountry} disabled={submitting}>
@@ -197,22 +262,30 @@
         {/if}
 
         <div class="info">
-          <p>Te contactaremos para coordinar tu pago.</p>
+          <p>Completa tus datos para continuar.</p>
         </div>
 
         <div class="button-group">
           <button
-            class="submit-btn"
-            onclick={submitRequest}
-            disabled={submitting}
+            class="submit-btn payout-btn"
+            onclick={submitPayoutRequest}
+            disabled={submitting || !isFormValid}
           >
+            <DollarSign size={20} />
             {submitting ? 'Enviando...' : 'Solicitar Pago'}
           </button>
+
           {#if onPlayMore}
-            <button class="play-more-btn" onclick={handlePlayMore} disabled={submitting}>
-              Seguir Jugando
+            <button
+              class="submit-btn credits-btn"
+              onclick={handleConvertToCredits}
+              disabled={submitting || !isFormValid}
+            >
+              <Coins size={20} />
+              {submitting ? 'Procesando...' : 'Convertir a Créditos'}
             </button>
           {/if}
+
           <button class="cancel-btn" onclick={close} disabled={submitting}>Cancelar</button>
         </div>
       {/if}
@@ -266,6 +339,15 @@
     margin-bottom: 16px;
   }
 
+  .winnings.credits-added {
+    border-color: #00cc00;
+  }
+
+  .winnings.credits-added .amount {
+    color: #00ff00;
+    text-shadow: 0 0 15px #0f0;
+  }
+
   .winnings .label {
     display: block;
     color: #aaa;
@@ -295,6 +377,10 @@
     color: #aaa;
     font-size: 0.85em;
     margin-bottom: 6px;
+  }
+
+  .form-group label .required {
+    color: #ff6666;
   }
 
   .form-group input {
@@ -391,17 +477,30 @@
   }
 
   .submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 14px;
-    font-size: 1.2em;
+    font-size: 1.1em;
     width: 100%;
-    background: linear-gradient(#ffd700, #b8860b);
-    color: #000;
     border: none;
     border-radius: 10px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     font-weight: bold;
     transition: transform 0.1s, opacity 0.2s;
+  }
+
+  .submit-btn.payout-btn {
+    background: linear-gradient(#ffd700, #b8860b);
+    color: #000;
+  }
+
+  .submit-btn.credits-btn {
+    background: linear-gradient(#00cc00, #008800);
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   }
 
   .submit-btn:hover:not(:disabled) {
@@ -413,30 +512,7 @@
   }
 
   .submit-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .play-more-btn {
-    padding: 12px;
-    font-size: 1em;
-    width: 100%;
-    background: linear-gradient(#00cc00, #008800);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-  }
-
-  .play-more-btn:active:not(:disabled) {
-    transform: scale(0.98);
-  }
-
-  .play-more-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 

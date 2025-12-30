@@ -472,6 +472,16 @@
     }
   }
 
+  // Convert winnings to plays ($1 = 1 play)
+  function convertWinningsToPlays(): void {
+    if (sessionWinnings > 0) {
+      const additionalPlays = Math.floor(sessionWinnings);
+      playsLeft += additionalPlays;
+      sessionWinnings = 0;
+      saveSession();
+    }
+  }
+
   function resetSession(): void {
     currentCode = "";
     playsLeft = 0;
@@ -623,6 +633,8 @@
   bind:show={showClaimModal}
   scratchCode={currentCode}
   totalWinnings={sessionWinnings}
+  gameId="scratch"
+  onPlayMore={convertWinningsToPlays}
 />
 
 <style>

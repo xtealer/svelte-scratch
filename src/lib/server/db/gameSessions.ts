@@ -1,10 +1,11 @@
 import { getDB } from './index';
-import type { GameSession, GamePlay, PayoutRequest, PrizeStats, RechargeCard } from './types';
+import type { GameSession, GamePlay, PayoutRequest, PrizeStats, RechargeCard, CreditConversion } from './types';
 import { ObjectId } from 'mongodb';
 
 const SESSIONS_COLLECTION = 'gameSessions';
 const PLAYS_COLLECTION = 'gamePlays';
 const PAYOUT_REQUESTS_COLLECTION = 'payoutRequests';
+const CREDIT_CONVERSIONS_COLLECTION = 'creditConversions';
 
 // Prize configuration (~50% RTP, ~18% win rate)
 export const PRIZE_CONFIG = [
@@ -450,5 +451,51 @@ export async function getPayoutRequestStats(userId?: ObjectId, role?: string) {
     totalAmount: requests.reduce((sum, r) => sum + r.amount, 0),
     pendingAmount: requests.filter(r => r.status === 'pending').reduce((sum, r) => sum + r.amount, 0),
     paidAmount: requests.filter(r => r.status === 'paid').reduce((sum, r) => sum + r.amount, 0),
+  };
+}
+
+// ==================== CREDIT CONVERSIONS ====================
+
+// Record when a player converts winnings to credits
+export async function recordCreditConversion(
+  code: string,
+  gameId: string,
+  amount: number,
+  playerName: string,
+  playerPhone: string,
+  playerCountry: string
+): Promise<CreditConversion> {
+  const db = await getDB();
+  const upperCode = code.toUpperCase().trim();
+
+  // Get the seller who sold this code
+  const card = await db.collection<RechargeCard>('rechargeCards').findOne({ code: upperCode });
+
+  const conversion: CreditConversion = {
+    code: upperCode,
+    gameId,
+    amount,
+    playerName,
+    playerPhone,
+    playerCountry,
+    convertedAt: new Date(),
+    sellerId: card?.soldBy,
+    sellerName: card?.soldByName
+  };
+
+  const result = await db.collection<CreditConversion>(CREDIT_CONVERSIONS_COLLECTION).insertOne(conversion);
+  conversion._id = result.insertedId;
+
+  return conversion;
+}
+
+// Get credit conversion stats
+export async function getCreditConversionStats() {
+  const db = await getDB();
+  const conversions = await db.collection<CreditConversion>(CREDIT_CONVERSIONS_COLLECTION).find({}).toArray();
+
+  return {
+    total: conversions.length,
+    totalAmount: conversions.reduce((sum, c) => sum + c.amount, 0)
   };
 }
