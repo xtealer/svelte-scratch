@@ -406,6 +406,10 @@
             <RotateCw size={24} />
             <span>SPIN</span>
           </button>
+        {:else if sessionWinnings > 0}
+          <button class="spin-btn claim" onclick={openClaimModal}>
+            <span>Cobrar ${sessionWinnings}</span>
+          </button>
         {:else}
           <button class="spin-btn new-code" onclick={openCodeModal}>
             <span>CÓDIGO</span>
@@ -690,6 +694,11 @@
     color: #000;
   }
 
+  .spin-btn.claim {
+    background: linear-gradient(180deg, #ff6600 0%, #cc4400 100%);
+    color: #fff;
+  }
+
   .right-controls {
     display: flex;
     flex-direction: column;
@@ -762,38 +771,21 @@
     transform: scale(1.05);
   }
 
-  @media (max-width: 420px) {
-    .container {
-      padding: 10px;
-    }
-
-    .symbol-cell {
-      width: 80px;
-      height: 72px;
-    }
-
-    .symbol-cell :global(svg) {
-      width: 50px;
-      height: 50px;
-    }
-
-    .spin-btn {
-      padding: 12px 20px;
-      font-size: 1em;
-    }
-
+  /* Tablet and small desktop */
+  @media (max-width: 500px) {
     .bottom-controls {
       flex-wrap: wrap;
       justify-content: center;
+      gap: 12px;
     }
 
     .left-info {
       order: 1;
       flex-direction: row;
-      gap: 15px;
+      gap: 20px;
       width: 100%;
       justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
 
     .center-controls {
@@ -805,9 +797,71 @@
     .right-controls {
       order: 3;
       flex-direction: row;
+      flex-wrap: wrap;
       width: 100%;
       justify-content: center;
-      margin-top: 10px;
+      margin-top: 5px;
+      gap: 8px;
+    }
+
+    .claim-btn {
+      display: none;
+    }
+  }
+
+  /* Mobile phones */
+  @media (max-width: 400px) {
+    .container {
+      padding: 8px;
+    }
+
+    .top-controls {
+      margin-bottom: 8px;
+    }
+
+    .win-display {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    .slot-machine {
+      padding: 10px;
+      border-radius: 16px;
+    }
+
+    .reels-container {
+      gap: 6px;
+    }
+
+    .reel-column {
+      gap: 6px;
+    }
+
+    .symbol-cell {
+      width: 72px;
+      height: 65px;
+      border-radius: 10px;
+    }
+
+    .symbol-cell :global(svg) {
+      width: 45px;
+      height: 45px;
+    }
+
+    .spin-btn {
+      padding: 12px 24px;
+      font-size: 1em;
+    }
+
+    .spin-btn :global(svg) {
+      width: 20px;
+      height: 20px;
+    }
+
+    .bet-adjust-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 1.3em;
     }
 
     .control-btn {
@@ -820,8 +874,56 @@
       height: 18px;
     }
 
+    .info-label {
+      font-size: 0.85em;
+    }
+
+    .info-value {
+      font-size: 1.1em;
+    }
+
+    .side-btn {
+      padding: 6px 10px;
+      font-size: 0.7em;
+    }
+
+    .side-btn :global(svg) {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  /* Very small phones */
+  @media (max-width: 350px) {
+    .symbol-cell {
+      width: 62px;
+      height: 58px;
+    }
+
+    .symbol-cell :global(svg) {
+      width: 38px;
+      height: 38px;
+    }
+
+    .slot-machine {
+      padding: 8px;
+    }
+
+    .reels-container {
+      gap: 4px;
+    }
+
+    .reel-column {
+      gap: 4px;
+    }
+
+    .spin-btn {
+      padding: 10px 18px;
+      font-size: 0.9em;
+    }
+
     .win-display {
-      font-size: 1.6em;
+      font-size: 1.3em;
     }
   }
 </style>
