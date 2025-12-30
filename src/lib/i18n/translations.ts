@@ -677,7 +677,7 @@ export const translations: Record<Language, Translations> = {
       copyright: '© Gold Games',
     },
     gameMenu: {
-      title: 'JUEGOS DE ORO',
+      title: 'GOLD GAMES',
       subtitle: 'Elige Tu Juego',
       scratchTitle: 'RASCA Y GANA',
       scratchDesc: '¡Rasca y Gana!',
@@ -907,7 +907,7 @@ export const translations: Record<Language, Translations> = {
       copyright: '© Gold Games',
     },
     gameMenu: {
-      title: 'ألعاب الذهب',
+      title: 'GOLD GAMES',
       subtitle: 'اختر لعبتك',
       scratchTitle: 'اخدش واربح',
       scratchDesc: 'اخدش واربح!',
