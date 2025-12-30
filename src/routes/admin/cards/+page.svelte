@@ -12,6 +12,8 @@
     Image,
     FileText
   } from 'lucide-svelte';
+  import LanguageSelector from '$lib/LanguageSelector.svelte';
+  import { initLanguage, t, getLanguage, getDirection } from '$lib/i18n';
 
   interface Card {
     _id: string;
@@ -35,6 +37,8 @@
   let cards = $state<Card[]>([]);
   let stats = $state<Stats | null>(null);
   let loading = $state(true);
+  let i18n = $state(t());
+  let dir = $state<'ltr' | 'rtl'>('ltr');
 
   // Generate form
   let showGenerate = $state(false);
@@ -46,6 +50,9 @@
   let copiedCode = $state<string | null>(null);
 
   onMount(async () => {
+    initLanguage();
+    i18n = t();
+    dir = getDirection();
     await checkAuth();
     await loadCards();
   });
@@ -102,7 +109,7 @@
   }
 
   async function copyCode(code: string, amount: number) {
-    const message = `🎰 TARJETA DE RECARGA 🎰\n\nCódigo: ${code}\nMonto: $${amount}\n\nIngresa este código en el juego para recargar tu saldo.\n¡Buena suerte!`;
+    const message = i18n.rechargeCard.copyMessage(code, amount);
     await navigator.clipboard.writeText(message);
     copiedCode = code;
     setTimeout(() => copiedCode = null, 2000);
@@ -110,13 +117,14 @@
 
   function downloadAsText() {
     if (!generatedCard) return;
-    const text = `🎰 TARJETA DE RECARGA 🎰
+    const rc = i18n.rechargeCard;
+    const text = `🎰 ${rc.title} 🎰
 
-Código: ${generatedCard.code}
-Monto: $${generatedCard.amount}
+${rc.code}: ${generatedCard.code}
+${rc.amount}: $${generatedCard.amount}
 
-Ingresa este código en el juego para recargar tu saldo.
-¡Buena suerte!`;
+${rc.instructions}
+${rc.goodLuck}`;
 
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -130,6 +138,8 @@ Ingresa este código en el juego para recargar tu saldo.
   async function downloadAsImage() {
     if (!generatedCard) return;
     const card = generatedCard; // Capture for closure
+    const rc = i18n.rechargeCard;
+    const isRtl = getLanguage() === 'ar';
 
     // Generate QR code as data URL
     const qrDataUrl = await QRCode.toDataURL(card.code, {
@@ -177,35 +187,46 @@ Ingresa este código en el juego para recargar tu saldo.
     ctx.lineWidth = 3;
     ctx.stroke();
 
+    // Set text direction for RTL
+    ctx.direction = isRtl ? 'rtl' : 'ltr';
+    ctx.textAlign = isRtl ? 'right' : 'left';
+    const textX = isRtl ? x + cardWidth - 160 : x + 20;
+
     // Title
     ctx.fillStyle = '#ffd700';
     ctx.font = 'bold 20px Arial';
-    ctx.fillText('🎰 TARJETA DE RECARGA', x + 20, y + 35);
+    ctx.fillText(`🎰 ${rc.title}`, textX, y + 35);
 
     // Code label
     ctx.fillStyle = '#888888';
     ctx.font = '12px Arial';
-    ctx.fillText('CÓDIGO:', x + 20, y + 65);
+    ctx.fillText(`${rc.code}:`, textX, y + 65);
 
-    // Code
+    // Code (always LTR for the code itself)
+    ctx.direction = 'ltr';
+    ctx.textAlign = isRtl ? 'right' : 'left';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 16px monospace';
-    ctx.fillText(card.code, x + 20, y + 85);
+    ctx.fillText(card.code, textX, y + 85);
+
+    // Restore direction
+    ctx.direction = isRtl ? 'rtl' : 'ltr';
+    ctx.textAlign = isRtl ? 'right' : 'left';
 
     // Amount
     ctx.fillStyle = '#00cc00';
     ctx.font = 'bold 28px Arial';
-    ctx.fillText(`$${card.amount}`, x + 20, y + 130);
+    ctx.fillText(`$${card.amount}`, textX, y + 130);
 
     // Instructions
     ctx.fillStyle = '#888888';
     ctx.font = '11px Arial';
-    ctx.fillText('Escanea el QR o ingresa el código', x + 20, y + 160);
-    ctx.fillText('en el juego para recargar', x + 20, y + 175);
+    ctx.fillText(rc.scanOrEnter, textX, y + 160);
+    ctx.fillText(rc.toRecharge, textX, y + 175);
 
-    // Draw QR code on the right side
+    // Draw QR code (position depends on RTL)
     const qrSize = 130;
-    const qrX = x + cardWidth - qrSize - 15;
+    const qrX = isRtl ? x + 15 : x + cardWidth - qrSize - 15;
     const qrY = y + (cardHeight - qrSize) / 2;
 
     // QR background
@@ -240,17 +261,20 @@ Ingresa este código en el juego para recargar tu saldo.
   }
 </script>
 
-<div class="admin-container">
+<div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>Casino Admin</h2>
+      <h2>{i18n.common.casinoAdmin}</h2>
+      <div class="lang-wrapper">
+        <LanguageSelector />
+      </div>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>Back to Dashboard</span>
+          <span>{i18n.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -260,38 +284,38 @@ Ingresa este código en el juego para recargar tu saldo.
     <header class="top-bar">
       <h1>
         <CreditCard size={28} />
-        <span>Recharge Cards</span>
+        <span>{i18n.cardsAdmin.title}</span>
       </h1>
       <button class="add-btn" onclick={() => { showGenerate = true; generatedCard = null; }}>
         <Plus size={20} />
-        <span>Generate Card</span>
+        <span>{i18n.cardsAdmin.generateCard}</span>
       </button>
     </header>
 
     {#if stats}
       <div class="stats-row">
         <div class="stat">
-          <span class="label">Total</span>
+          <span class="label">{i18n.cardsAdmin.total}</span>
           <span class="value">{stats.total}</span>
         </div>
         <div class="stat">
-          <span class="label">Unused</span>
+          <span class="label">{i18n.cardsAdmin.unused}</span>
           <span class="value green">{stats.unused}</span>
         </div>
         <div class="stat">
-          <span class="label">Used</span>
+          <span class="label">{i18n.cardsAdmin.used}</span>
           <span class="value">{stats.used}</span>
         </div>
         <div class="stat">
-          <span class="label">Sold</span>
+          <span class="label">{i18n.cardsAdmin.sold}</span>
           <span class="value gold">{stats.sold}</span>
         </div>
         <div class="stat">
-          <span class="label">Total Value</span>
+          <span class="label">{i18n.cardsAdmin.totalValue}</span>
           <span class="value">${stats.totalValue.toFixed(2)}</span>
         </div>
         <div class="stat">
-          <span class="label">Sold Value</span>
+          <span class="label">{i18n.cardsAdmin.soldValue}</span>
           <span class="value green">${stats.soldValue.toFixed(2)}</span>
         </div>
       </div>
@@ -301,7 +325,7 @@ Ingresa este código en el juego para recargar tu saldo.
       <div class="generate-panel">
         {#if generatedCard}
           <div class="generated-cards">
-            <h3>Card Generated</h3>
+            <h3>{i18n.cardsAdmin.cardGenerated}</h3>
             <div class="cards-list">
               <div class="gen-card">
                 <span class="gen-code">{generatedCard.code}</span>
@@ -309,7 +333,7 @@ Ingresa este código en el juego para recargar tu saldo.
                 <button
                   class="copy-btn"
                   onclick={() => copyCode(generatedCard!.code, generatedCard!.amount)}
-                  title="Copy with message"
+                  title={i18n.cardsAdmin.copyWithMessage}
                 >
                   {#if copiedCode === generatedCard.code}
                     <Check size={16} />
@@ -322,30 +346,30 @@ Ingresa este código en el juego para recargar tu saldo.
             <div class="download-actions">
               <button class="download-btn" onclick={downloadAsText}>
                 <FileText size={18} />
-                <span>Download as Text</span>
+                <span>{i18n.cardsAdmin.downloadText}</span>
               </button>
               <button class="download-btn image" onclick={downloadAsImage}>
                 <Image size={18} />
-                <span>Download as Image</span>
+                <span>{i18n.cardsAdmin.downloadImage}</span>
               </button>
             </div>
-            <button class="close-btn" onclick={closeGenerated}>Close</button>
+            <button class="close-btn" onclick={closeGenerated}>{i18n.cardsAdmin.close}</button>
           </div>
         {:else}
-          <h3>Generate Recharge Card</h3>
+          <h3>{i18n.cardsAdmin.generateRechargeCard}</h3>
           <form onsubmit={generateCard}>
             <div class="form-grid single">
               <label>
-                <span>Amount ($)</span>
+                <span>{i18n.cardsAdmin.amountLabel}</span>
                 <input type="number" bind:value={genAmount} min="1" max="1000" step="1" required />
               </label>
             </div>
             <div class="form-actions">
               <button type="button" class="cancel-btn" onclick={() => showGenerate = false}>
-                Cancel
+                {i18n.cardsAdmin.cancel}
               </button>
               <button type="submit" class="submit-btn" disabled={generating}>
-                {generating ? 'Generating...' : 'Generate Card'}
+                {generating ? i18n.cardsAdmin.generating : i18n.cardsAdmin.generateCard}
               </button>
             </div>
           </form>
@@ -354,17 +378,17 @@ Ingresa este código en el juego para recargar tu saldo.
     {/if}
 
     {#if loading}
-      <div class="loading">Loading cards...</div>
+      <div class="loading">{i18n.cardsAdmin.loading}</div>
     {:else}
       <div class="cards-table">
         <table>
           <thead>
             <tr>
-              <th>Code</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Used At</th>
+              <th>{i18n.rechargeCard.code}</th>
+              <th>{i18n.rechargeCard.amount}</th>
+              <th>{i18n.cardsAdmin.status}</th>
+              <th>{i18n.cardsAdmin.created}</th>
+              <th>{i18n.cardsAdmin.usedAt}</th>
             </tr>
           </thead>
           <tbody>
@@ -374,7 +398,7 @@ Ingresa este código en el juego para recargar tu saldo.
                 <td class="amount">${card.amount}</td>
                 <td>
                   <span class="status" class:active={!card.used}>
-                    {card.used ? 'Used' : 'Available'}
+                    {card.used ? i18n.cardsAdmin.used : i18n.cardsAdmin.available}
                   </span>
                 </td>
                 <td class="date">{formatDate(card.createdAt)}</td>
@@ -395,10 +419,19 @@ Ingresa este código en el juego para recargar tu saldo.
     background: #0f0f1a;
   }
 
+  .admin-container[dir="rtl"] {
+    direction: rtl;
+  }
+
   .sidebar {
     width: 250px;
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
     border-right: 1px solid #333;
+  }
+
+  [dir="rtl"] .sidebar {
+    border-right: none;
+    border-left: 1px solid #333;
   }
 
   .sidebar-header {
@@ -408,9 +441,14 @@ Ingresa este código en el juego para recargar tu saldo.
   }
 
   .sidebar-header h2 {
-    margin: 0;
+    margin: 0 0 12px 0;
     color: #ffd700;
     font-size: 1.3em;
+  }
+
+  .lang-wrapper {
+    display: flex;
+    justify-content: center;
   }
 
   .nav-menu {
@@ -615,6 +653,7 @@ Ingresa este código en el juego para recargar tu saldo.
     font-size: 1.1em;
     flex: 1;
     text-align: left;
+    direction: ltr;
   }
 
   .gen-info {
@@ -698,6 +737,10 @@ Ingresa este código en el juego para recargar tu saldo.
     border-bottom: 1px solid #333;
   }
 
+  [dir="rtl"] th, [dir="rtl"] td {
+    text-align: right;
+  }
+
   th {
     background: rgba(0, 0, 0, 0.3);
     color: #888;
@@ -716,6 +759,7 @@ Ingresa este código en el juego para recargar tu saldo.
   .code {
     font-family: monospace;
     color: #ffd700;
+    direction: ltr;
   }
 
   .amount {
@@ -753,6 +797,10 @@ Ingresa este código en el juego para recargar tu saldo.
       width: 100%;
       border-right: none;
       border-bottom: 1px solid #333;
+    }
+
+    [dir="rtl"] .sidebar {
+      border-left: none;
     }
 
     .nav-menu {
