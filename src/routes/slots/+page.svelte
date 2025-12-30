@@ -49,6 +49,7 @@
   // Game state
   let currentPrize = $state(0);
   let lastWin = $state(0);
+  let displayedWin = $state(0); // For animated counter
   // 3x3 grid: reels[col][row]
   let reels = $state<string[][]>([
     ["bar", "bar", "cherry"],
@@ -58,6 +59,44 @@
   let muted = $state(false);
   let spinning = $state(false);
   let betSize = $state(1);
+
+  // Animation state
+  let isWinAnimating = $state(false);
+  let winAnimationFrame: number | null = null;
+
+  // Animate win counter from 0 to target
+  function animateWinCounter(targetWin: number) {
+    // Cancel any existing animation
+    if (winAnimationFrame) {
+      cancelAnimationFrame(winAnimationFrame);
+    }
+
+    displayedWin = 0;
+    isWinAnimating = true;
+
+    const duration = 1000; // 1 second animation
+    const startTime = performance.now();
+
+    function animate(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Easing function for smooth animation (ease-out)
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+
+      displayedWin = Math.round(targetWin * easeOut);
+
+      if (progress < 1) {
+        winAnimationFrame = requestAnimationFrame(animate);
+      } else {
+        displayedWin = targetWin;
+        isWinAnimating = false;
+        winAnimationFrame = null;
+      }
+    }
+
+    winAnimationFrame = requestAnimationFrame(animate);
+  }
 
   // Session state
   let hasActiveSession = $state(false);
@@ -278,6 +317,7 @@
     credits -= betSize;
     currentPrize = 0;
     lastWin = 0;
+    displayedWin = 0;
     playSound(sounds?.spin);
 
     const spinDuration = 2000;
@@ -297,6 +337,9 @@
       lastWin = currentPrize;
       reels = getWinReels(result.symbol);
       sessionWinnings += currentPrize;
+
+      // Animate the win counter
+      animateWinCounter(currentPrize);
 
       if (currentPrize >= 50) {
         playSound(sounds?.bigWin);
@@ -358,8 +401,8 @@
   </div>
 
   <!-- Win display -->
-  <div class="win-display" class:winner={lastWin > 0}>
-    WIN: ${lastWin}
+  <div class="win-display" class:winner={lastWin > 0} class:counting={isWinAnimating}>
+    WIN: ${displayedWin}
   </div>
 
   <!-- Slot machine reels -->
@@ -537,6 +580,15 @@
     animation: pulse 0.5s ease-in-out infinite alternate;
   }
 
+  .win-display.counting {
+    animation: countPulse 0.1s ease-in-out infinite alternate;
+  }
+
+  @keyframes countPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.02); }
+  }
+
   @keyframes pulse {
     from { transform: scale(1); }
     to { transform: scale(1.05); }
@@ -581,7 +633,9 @@
   }
 
   .symbol-cell.spinning {
-    opacity: 0.8;
+    opacity: 0.85;
+    filter: blur(3px);
+    transform: scale(0.95);
   }
 
   .bottom-controls {
