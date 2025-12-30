@@ -5,12 +5,8 @@
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
   import Footer from "$lib/Footer.svelte";
-  import { initLanguage, t, getDirection, type Translations } from "$lib/i18n";
+  import { initLanguage, direction } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
-
-  // i18n
-  let i18n = $state<Translations>(t());
-  let dir = $state<'ltr' | 'rtl'>('ltr');
 
   interface PrizeConfig {
     amount: number;
@@ -126,8 +122,6 @@
 
   onMount(() => {
     initLanguage();
-    i18n = t();
-    dir = getDirection();
 
     if (!browser) return;
 
@@ -545,7 +539,7 @@
   </div>
 {/if}
 
-<div class="container" dir={dir}>
+<div class="container" dir={$direction}>
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">

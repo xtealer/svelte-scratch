@@ -1,31 +1,18 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { browser } from '$app/environment';
   import { Globe } from 'lucide-svelte';
-  import { getLanguage, setLanguage, getSupportedLanguages, type Language } from './i18n';
+  import { currentLanguage, setLanguage, getSupportedLanguages, type Language } from './i18n';
 
-  let currentLang = $state<Language>('en');
   let isOpen = $state(false);
-  let mounted = $state(false);
 
   const languages = getSupportedLanguages();
 
-  onMount(() => {
-    currentLang = getLanguage();
-    mounted = true;
-  });
-
   function selectLanguage(code: Language) {
-    if (!browser) return;
     setLanguage(code);
-    currentLang = code;
     isOpen = false;
-    // Reload page to apply language changes
-    window.location.reload();
   }
 
-  function getCurrentLabel(): string {
-    return languages.find(l => l.code === currentLang)?.nativeLabel || 'English';
+  function getCurrentLabel(lang: Language): string {
+    return languages.find(l => l.code === lang)?.nativeLabel || 'English';
   }
 
   function handleClickOutside(event: MouseEvent) {
@@ -45,7 +32,7 @@
     <div class="language-selector">
       <button class="lang-btn" onclick={(e) => { e.stopPropagation(); isOpen = !isOpen; }}>
         <Globe size={16} />
-        <span>{getCurrentLabel()}</span>
+        <span>{getCurrentLabel($currentLanguage)}</span>
       </button>
 
       {#if isOpen}
@@ -53,7 +40,7 @@
           {#each languages as lang}
             <button
               class="lang-option"
-              class:active={currentLang === lang.code}
+              class:active={$currentLanguage === lang.code}
               onclick={(e) => { e.stopPropagation(); selectLanguage(lang.code); }}
             >
               <span class="native">{lang.nativeLabel}</span>

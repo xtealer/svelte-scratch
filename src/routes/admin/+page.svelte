@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { LogIn, User, Lock, AlertCircle, Eye, EyeOff } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
+  import { initLanguage, t, direction } from '$lib/i18n';
 
   let username = $state('');
   let showPassword = $state(false);
@@ -12,14 +12,8 @@
   let loading = $state(false);
   let checkingAuth = $state(true);
 
-  // i18n
-  let i18n = $state<Translations>(t());
-  let dir = $state<'ltr' | 'rtl'>('ltr');
-
   onMount(async () => {
     initLanguage();
-    i18n = t();
-    dir = getDirection();
     // Check if already logged in
     try {
       const res = await fetch('/api/admin/auth');
@@ -61,14 +55,14 @@
   }
 </script>
 
-<div class="login-container" dir={dir}>
+<div class="login-container" dir={$direction}>
   {#if checkingAuth}
-    <div class="loading">{i18n.common.loading}</div>
+    <div class="loading">{$t.common.loading}</div>
   {:else}
     <div class="login-box">
       <div class="login-header">
         <LogIn size={40} />
-        <h1>{i18n.common.casinoAdmin}</h1>
+        <h1>{$t.common.casinoAdmin}</h1>
       </div>
 
       <form onsubmit={handleLogin}>

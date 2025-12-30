@@ -1,17 +1,16 @@
+import { writable, derived, get } from 'svelte/store';
+import { browser } from '$app/environment';
 import { translations, type Language, type Translations } from './translations';
 
 const SUPPORTED_LANGUAGES: Language[] = ['en', 'es', 'ar'];
 const DEFAULT_LANGUAGE: Language = 'en';
 const STORAGE_KEY = 'casino-language';
 
-// Current language (non-reactive, managed by components)
-let currentLanguage: Language = DEFAULT_LANGUAGE;
-
 /**
  * Detect browser language and return supported language or default
  */
 function detectBrowserLanguage(): Language {
-  if (typeof window === 'undefined') return DEFAULT_LANGUAGE;
+  if (!browser) return DEFAULT_LANGUAGE;
 
   // Try to get from localStorage first (user preference)
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -31,18 +30,33 @@ function detectBrowserLanguage(): Language {
   return DEFAULT_LANGUAGE;
 }
 
+// Create a writable store for the current language
+const initialLang = browser ? detectBrowserLanguage() : DEFAULT_LANGUAGE;
+export const currentLanguage = writable<Language>(initialLang);
+
+// Derived store for translations
+export const t = derived(currentLanguage, ($lang) => translations[$lang]);
+
+// Derived store for direction
+export const direction = derived(currentLanguage, ($lang) => $lang === 'ar' ? 'rtl' as const : 'ltr' as const);
+
+// Derived store for RTL check
+export const isRTL = derived(currentLanguage, ($lang) => $lang === 'ar');
+
 /**
- * Initialize language detection - call this on app mount
+ * Initialize language detection - call this on app mount (client-side only)
  */
 export function initLanguage(): void {
-  currentLanguage = detectBrowserLanguage();
+  if (!browser) return;
+  const lang = detectBrowserLanguage();
+  currentLanguage.set(lang);
 }
 
 /**
- * Get current language
+ * Get current language value (non-reactive, for one-time reads)
  */
 export function getLanguage(): Language {
-  return currentLanguage;
+  return get(currentLanguage);
 }
 
 /**
@@ -53,38 +67,24 @@ export function setLanguage(lang: Language): void {
     console.warn(`Unsupported language: ${lang}, falling back to ${DEFAULT_LANGUAGE}`);
     lang = DEFAULT_LANGUAGE;
   }
-  currentLanguage = lang;
-  if (typeof window !== 'undefined') {
+  currentLanguage.set(lang);
+  if (browser) {
     localStorage.setItem(STORAGE_KEY, lang);
   }
 }
 
 /**
- * Get translations for current language
- */
-export function t(): Translations {
-  return translations[currentLanguage];
-}
-
-/**
- * Get translation for a specific language (useful for generated content)
+ * Get translations for a specific language (useful for generated content)
  */
 export function tFor(lang: Language): Translations {
   return translations[lang];
 }
 
 /**
- * Check if current language is RTL (Arabic)
- */
-export function isRTL(): boolean {
-  return currentLanguage === 'ar';
-}
-
-/**
- * Get text direction for current language
+ * Get text direction for current language (non-reactive)
  */
 export function getDirection(): 'ltr' | 'rtl' {
-  return currentLanguage === 'ar' ? 'rtl' : 'ltr';
+  return get(currentLanguage) === 'ar' ? 'rtl' : 'ltr';
 }
 
 /**

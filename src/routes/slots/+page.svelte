@@ -6,12 +6,8 @@
   import ClaimModal from "$lib/ClaimModal.svelte";
   import SlotSymbol from "$lib/SlotSymbols.svelte";
   import Footer from "$lib/Footer.svelte";
-  import { initLanguage, t, getDirection, type Translations } from "$lib/i18n";
+  import { initLanguage, direction } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play } from "lucide-svelte";
-
-  // i18n
-  let i18n = $state<Translations>(t());
-  let dir = $state<'ltr' | 'rtl'>('ltr');
 
   const MAX_PRIZE = 500;
   const MIN_BET = 1;
@@ -128,8 +124,6 @@
 
   onMount(() => {
     initLanguage();
-    i18n = t();
-    dir = getDirection();
 
     if (browser) {
       sounds = {
@@ -425,7 +419,7 @@
   }
 </script>
 
-<div class="container" dir={dir}>
+<div class="container" dir={$direction}>
   <!-- Top controls -->
   <div class="top-controls">
     <a href="/" class="control-btn back-btn" title="Volver al Menú">

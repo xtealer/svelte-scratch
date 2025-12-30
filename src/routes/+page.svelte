@@ -2,20 +2,14 @@
   import { onMount } from "svelte";
   import { Ticket, Dices } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
-  import { initLanguage, t, getDirection, type Translations } from "$lib/i18n";
-
-  // i18n
-  let i18n = $state<Translations>(t());
-  let dir = $state<'ltr' | 'rtl'>('ltr');
+  import { initLanguage, direction } from "$lib/i18n";
 
   onMount(() => {
     initLanguage();
-    i18n = t();
-    dir = getDirection();
   });
 </script>
 
-<div class="menu" dir={dir}>
+<div class="menu" dir={$direction}>
   <h1>JUEGOS DE ORO</h1>
   <p class="subtitle">Elige Tu Juego</p>
 
