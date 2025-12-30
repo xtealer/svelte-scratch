@@ -285,6 +285,7 @@ ${rc.goodLuck}`;
   }
 </script>
 
+{#if i18n}
 <div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
@@ -455,6 +456,7 @@ ${rc.goodLuck}`;
     <Footer />
   </main>
 </div>
+{/if}
 
 <style>
   .admin-container {
