@@ -28,22 +28,22 @@ async function generateCode(): Promise<string> {
 }
 
 export async function createRechargeCard(
-  plays: number,
-  price: number,
+  amount: number,
   createdBy: ObjectId
 ): Promise<RechargeCard> {
   const db = await getDB();
 
-  if (plays < 1 || plays > 1000) {
-    throw new Error('Plays must be between 1 and 1000');
+  if (!Number.isInteger(amount) || amount < 1 || amount > 1000) {
+    throw new Error('Amount must be an integer between 1 and 1000');
   }
 
   const code = await generateCode();
 
+  // amount = plays = price (all the same value)
   const card: RechargeCard = {
     code,
-    plays,
-    price,
+    plays: amount,
+    price: amount,
     used: false,
     createdAt: new Date(),
     createdBy,
@@ -53,22 +53,6 @@ export async function createRechargeCard(
   card._id = result.insertedId;
 
   return card;
-}
-
-export async function createMultipleRechargeCards(
-  count: number,
-  plays: number,
-  price: number,
-  createdBy: ObjectId
-): Promise<RechargeCard[]> {
-  const cards: RechargeCard[] = [];
-
-  for (let i = 0; i < count; i++) {
-    const card = await createRechargeCard(plays, price, createdBy);
-    cards.push(card);
-  }
-
-  return cards;
 }
 
 export async function getRechargeCard(code: string): Promise<RechargeCard | null> {
@@ -168,7 +152,6 @@ export async function getCardStats() {
     used: cards.filter(c => c.used).length,
     unused: cards.filter(c => !c.used).length,
     sold: cards.filter(c => c.soldAt).length,
-    totalPlays: cards.reduce((sum, c) => sum + c.plays, 0),
     totalValue: cards.reduce((sum, c) => sum + c.price, 0),
     soldValue: cards.filter(c => c.soldAt).reduce((sum, c) => sum + c.price, 0),
   };

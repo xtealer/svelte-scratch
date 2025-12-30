@@ -3,7 +3,6 @@ import type { RequestHandler } from './$types';
 import { requireAuth, isAdminOrSuper, handleAuthError } from '$lib/server/auth';
 import {
   createRechargeCard,
-  createMultipleRechargeCards,
   getAllCards,
   getCardsByCreator,
   getCardStats,
@@ -30,8 +29,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
       cards: cards.map(c => ({
         _id: c._id?.toString(),
         code: c.code,
-        plays: c.plays,
-        price: c.price,
+        amount: c.price, // amount = price = plays
         used: c.used,
         usedAt: c.usedAt,
         createdAt: c.createdAt,
@@ -44,43 +42,28 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
   }
 };
 
-// POST - Create recharge card(s)
+// POST - Create recharge card
 export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
     const user = requireAuth(cookies);
 
-    const { plays, price, count = 1 } = await request.json();
+    const { amount } = await request.json();
 
-    if (!plays || plays < 1 || plays > 1000) {
-      return json({ error: 'Plays must be between 1 and 1000' }, { status: 400 });
-    }
-
-    if (price === undefined || price < 0) {
-      return json({ error: 'Price is required' }, { status: 400 });
-    }
-
-    if (count < 1 || count > 100) {
-      return json({ error: 'Count must be between 1 and 100' }, { status: 400 });
+    // Validate amount is a positive integer between 1 and 1000
+    if (!amount || !Number.isInteger(amount) || amount < 1 || amount > 1000) {
+      return json({ error: 'Amount must be an integer between 1 and 1000' }, { status: 400 });
     }
 
     const userId = new ObjectId(user.userId);
-
-    let cards;
-    if (count === 1) {
-      const card = await createRechargeCard(plays, price, userId);
-      cards = [card];
-    } else {
-      cards = await createMultipleRechargeCards(count, plays, price, userId);
-    }
+    const card = await createRechargeCard(amount, userId);
 
     return json({
       success: true,
-      cards: cards.map(c => ({
-        _id: c._id?.toString(),
-        code: c.code,
-        plays: c.plays,
-        price: c.price
-      }))
+      card: {
+        _id: card._id?.toString(),
+        code: card.code,
+        amount: card.price
+      }
     });
   } catch (error) {
     return handleAuthError(error);

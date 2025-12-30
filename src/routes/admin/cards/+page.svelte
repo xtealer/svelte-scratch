@@ -15,8 +15,7 @@
   interface Card {
     _id: string;
     code: string;
-    plays: number;
-    price: number;
+    amount: number;
     used: boolean;
     usedAt?: string;
     createdAt: string;
@@ -28,7 +27,6 @@
     used: number;
     unused: number;
     sold: number;
-    totalPlays: number;
     totalValue: number;
     soldValue: number;
   }
@@ -39,13 +37,11 @@
 
   // Generate form
   let showGenerate = $state(false);
-  let genPlays = $state(10);
-  let genPrice = $state(5);
-  let genCount = $state(1);
+  let genAmount = $state(1);
   let generating = $state(false);
 
-  // Generated cards display
-  let generatedCards = $state<Array<{ code: string; plays: number; price: number }>>([]);
+  // Generated card display
+  let generatedCard = $state<{ code: string; amount: number } | null>(null);
   let copiedCode = $state<string | null>(null);
 
   onMount(async () => {
@@ -80,7 +76,7 @@
     loading = false;
   }
 
-  async function generateCards(e: Event) {
+  async function generateCard(e: Event) {
     e.preventDefault();
     generating = true;
 
@@ -89,15 +85,13 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          plays: genPlays,
-          price: genPrice,
-          count: genCount
+          amount: genAmount
         })
       });
 
       if (res.ok) {
         const data = await res.json();
-        generatedCards = data.cards;
+        generatedCard = data.card;
         await loadCards();
       }
     } catch {
@@ -113,81 +107,75 @@
   }
 
   function downloadAsText() {
-    const text = generatedCards.map(c =>
-      `Code: ${c.code}\nPlays: ${c.plays}\nPrice: $${c.price.toFixed(2)}\n---`
-    ).join('\n');
+    if (!generatedCard) return;
+    const text = `RECHARGE CARD\n\nCode: ${generatedCard.code}\nAmount: $${generatedCard.amount}\n`;
 
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `recharge-cards-${Date.now()}.txt`;
+    a.download = `recharge-card-${generatedCard.code}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
   function downloadAsImage() {
+    if (!generatedCard) return;
+    const card = generatedCard; // Capture for closure
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
 
     const cardWidth = 350;
     const cardHeight = 150;
     const padding = 20;
-    const cols = Math.min(generatedCards.length, 3);
-    const rows = Math.ceil(generatedCards.length / cols);
 
-    canvas.width = cols * cardWidth + (cols + 1) * padding;
-    canvas.height = rows * cardHeight + (rows + 1) * padding;
+    canvas.width = cardWidth + padding * 2;
+    canvas.height = cardHeight + padding * 2;
 
     // Background
     ctx.fillStyle = '#1a1a2e';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    generatedCards.forEach((card, i) => {
-      const col = i % cols;
-      const row = Math.floor(i / cols);
-      const x = padding + col * (cardWidth + padding);
-      const y = padding + row * (cardHeight + padding);
+    const x = padding;
+    const y = padding;
 
-      // Card background
-      ctx.fillStyle = '#2a2a4a';
-      ctx.beginPath();
-      ctx.roundRect(x, y, cardWidth, cardHeight, 12);
-      ctx.fill();
+    // Card background
+    ctx.fillStyle = '#2a2a4a';
+    ctx.beginPath();
+    ctx.roundRect(x, y, cardWidth, cardHeight, 12);
+    ctx.fill();
 
-      // Border
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+    // Border
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-      // Title
-      ctx.fillStyle = '#ffd700';
-      ctx.font = 'bold 16px Arial';
-      ctx.fillText('RECHARGE CARD', x + 20, y + 30);
+    // Title
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText('RECHARGE CARD', x + 20, y + 30);
 
-      // Code
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 18px monospace';
-      ctx.fillText(card.code, x + 20, y + 65);
+    // Code
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText(card.code, x + 20, y + 70);
 
-      // Info
-      ctx.fillStyle = '#aaaaaa';
-      ctx.font = '14px Arial';
-      ctx.fillText(`Plays: ${card.plays}`, x + 20, y + 100);
-      ctx.fillText(`Price: $${card.price.toFixed(2)}`, x + 20, y + 125);
+    // Amount
+    ctx.fillStyle = '#00cc00';
+    ctx.font = 'bold 20px Arial';
+    ctx.fillText(`$${card.amount}`, x + 20, y + 115);
 
-      // Logo
-      ctx.fillStyle = '#ffd700';
-      ctx.font = 'bold 24px Arial';
-      ctx.fillText('🎰', x + cardWidth - 50, y + 40);
-    });
+    // Logo
+    ctx.fillStyle = '#ffd700';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText('🎰', x + cardWidth - 50, y + 40);
 
     canvas.toBlob(blob => {
       if (blob) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `recharge-cards-${Date.now()}.png`;
+        a.download = `recharge-card-${card.code}.png`;
         a.click();
         URL.revokeObjectURL(url);
       }
@@ -200,7 +188,7 @@
   }
 
   function closeGenerated() {
-    generatedCards = [];
+    generatedCard = null;
     showGenerate = false;
   }
 </script>
@@ -227,9 +215,9 @@
         <CreditCard size={28} />
         <span>Recharge Cards</span>
       </h1>
-      <button class="add-btn" onclick={() => { showGenerate = true; generatedCards = []; }}>
+      <button class="add-btn" onclick={() => { showGenerate = true; generatedCard = null; }}>
         <Plus size={20} />
-        <span>Generate Cards</span>
+        <span>Generate Card</span>
       </button>
     </header>
 
@@ -264,26 +252,24 @@
 
     {#if showGenerate}
       <div class="generate-panel">
-        {#if generatedCards.length > 0}
+        {#if generatedCard}
           <div class="generated-cards">
-            <h3>Generated Cards</h3>
+            <h3>Card Generated</h3>
             <div class="cards-list">
-              {#each generatedCards as card}
-                <div class="gen-card">
-                  <span class="gen-code">{card.code}</span>
-                  <span class="gen-info">{card.plays} plays - ${card.price.toFixed(2)}</span>
-                  <button
-                    class="copy-btn"
-                    onclick={() => copyCode(card.code)}
-                  >
-                    {#if copiedCode === card.code}
-                      <Check size={16} />
-                    {:else}
-                      <Copy size={16} />
-                    {/if}
-                  </button>
-                </div>
-              {/each}
+              <div class="gen-card">
+                <span class="gen-code">{generatedCard.code}</span>
+                <span class="gen-info">${generatedCard.amount}</span>
+                <button
+                  class="copy-btn"
+                  onclick={() => copyCode(generatedCard!.code)}
+                >
+                  {#if copiedCode === generatedCard.code}
+                    <Check size={16} />
+                  {:else}
+                    <Copy size={16} />
+                  {/if}
+                </button>
+              </div>
             </div>
             <div class="download-actions">
               <button class="download-btn" onclick={downloadAsText}>
@@ -298,20 +284,12 @@
             <button class="close-btn" onclick={closeGenerated}>Close</button>
           </div>
         {:else}
-          <h3>Generate Recharge Cards</h3>
-          <form onsubmit={generateCards}>
-            <div class="form-grid">
+          <h3>Generate Recharge Card</h3>
+          <form onsubmit={generateCard}>
+            <div class="form-grid single">
               <label>
-                <span>Number of Plays</span>
-                <input type="number" bind:value={genPlays} min="1" max="1000" required />
-              </label>
-              <label>
-                <span>Price ($)</span>
-                <input type="number" bind:value={genPrice} min="0" step="0.01" required />
-              </label>
-              <label>
-                <span>Quantity</span>
-                <input type="number" bind:value={genCount} min="1" max="100" required />
+                <span>Amount ($)</span>
+                <input type="number" bind:value={genAmount} min="1" max="1000" step="1" required />
               </label>
             </div>
             <div class="form-actions">
@@ -319,7 +297,7 @@
                 Cancel
               </button>
               <button type="submit" class="submit-btn" disabled={generating}>
-                {generating ? 'Generating...' : `Generate ${genCount} Card(s)`}
+                {generating ? 'Generating...' : 'Generate Card'}
               </button>
             </div>
           </form>
@@ -335,8 +313,7 @@
           <thead>
             <tr>
               <th>Code</th>
-              <th>Plays</th>
-              <th>Price</th>
+              <th>Amount</th>
               <th>Status</th>
               <th>Created</th>
               <th>Used At</th>
@@ -346,8 +323,7 @@
             {#each cards as card}
               <tr class:used={card.used}>
                 <td class="code">{card.code}</td>
-                <td>{card.plays}</td>
-                <td>${card.price.toFixed(2)}</td>
+                <td class="amount">${card.amount}</td>
                 <td>
                   <span class="status" class:active={!card.used}>
                     {card.used ? 'Used' : 'Available'}
@@ -508,6 +484,10 @@
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
     margin-bottom: 20px;
+  }
+
+  .form-grid.single {
+    max-width: 200px;
   }
 
   .form-grid label {
@@ -688,6 +668,11 @@
   .code {
     font-family: monospace;
     color: #ffd700;
+  }
+
+  .amount {
+    color: #00cc00;
+    font-weight: bold;
   }
 
   .date {
