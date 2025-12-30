@@ -7,7 +7,7 @@ if (!uri || !uri.startsWith('mongodb')) {
   throw new Error('MONGODB_URI is missing or invalid in config');
 }
 
-export const MONGO_DB_NAME = "lotto";
+export const MONGO_DB_NAME = "games";
 
 const options = {
   maxPoolSize: 10,
