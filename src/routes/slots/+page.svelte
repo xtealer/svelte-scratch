@@ -302,10 +302,10 @@
     <div class="machine-subtitle">Match 3 to Win!</div>
 
     <div class="reels-container">
-      <div class="reels" class:spinning>
+      <div class="reels">
         {#each reels as symbol, i}
-          <div class="reel" class:spinning style="animation-delay: {i * 0.1}s">
-            <span class="symbol">{symbol}</span>
+          <div class="reel">
+            <span class="symbol" class:spinning style="animation-delay: {i * 0.05}s">{symbol}</span>
           </div>
         {/each}
       </div>
@@ -515,18 +515,18 @@
     border: 2px solid #555;
   }
 
-  .reel.spinning {
-    animation: reelSpin 0.1s infinite;
-  }
-
-  @keyframes reelSpin {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-  }
-
   .symbol {
     font-size: 3.5em;
     line-height: 1;
+  }
+
+  .symbol.spinning {
+    animation: symbolSpin 0.08s infinite;
+  }
+
+  @keyframes symbolSpin {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-2px); opacity: 0.8; }
   }
 
   .prize-display {
