@@ -8,19 +8,14 @@
   let { show = $bindable(false) }: { show: boolean } = $props();
 
   const prizes: Prize[] = [
-    { symbol: '⭐', amount: 500, odds: '1 in 1,958,000' },
-    { symbol: '⭐', amount: 300, odds: '1 in 246,000' },
-    { symbol: '🎰', amount: 200, odds: '1 in 388,000' },
-    { symbol: '💎', amount: 100, odds: '1 in 71,000' },
-    { symbol: '💰', amount: 50, odds: '1 in 55,500' },
-    { symbol: '💰', amount: 40, odds: '1 in 52,000' },
-    { symbol: '💰', amount: 25, odds: '1 in 27,800' },
-    { symbol: '💰', amount: 20, odds: '1 in 4,900' },
-    { symbol: '🪙', amount: 10, odds: '1 in 1,640' },
-    { symbol: '🪶', amount: 5, odds: '1 in 1,210' },
-    { symbol: '🪶', amount: 4, odds: '1 in 820' },
-    { symbol: '🪶', amount: 2, odds: '1 in 250' },
-    { symbol: '🪶', amount: 1, odds: '1 in 160' }
+    { symbol: '💎', amount: 500, odds: '1 en 8,945' },
+    { symbol: '⭐', amount: 100, odds: '1 en 3,334' },
+    { symbol: '🎰', amount: 50, odds: '1 en 1,243' },
+    { symbol: '💰', amount: 20, odds: '1 en 463' },
+    { symbol: '🪙', amount: 10, odds: '1 en 173' },
+    { symbol: '🪙', amount: 5, odds: '1 en 64' },
+    { symbol: '🪶', amount: 2, odds: '1 en 24' },
+    { symbol: '🪶', amount: 1, odds: '1 en 9' }
   ];
 
   function close(): void {
@@ -39,7 +34,7 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">PRIZE LIST</div>
+      <div class="modal-header">LISTA DE PREMIOS</div>
       {#each prizes as prize}
         <div class="prize-row">
           <span class="prize-symbol">{prize.symbol}</span>
@@ -47,7 +42,7 @@
           <span>{prize.odds}</span>
         </div>
       {/each}
-      <button class="close-btn" onclick={close}>Close</button>
+      <button class="close-btn" onclick={close}>Cerrar</button>
     </div>
   </div>
 {/if}
@@ -60,28 +55,31 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.9);
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 
   .modal-content {
     background: linear-gradient(#222, #333);
     border: 3px solid #ffd700;
-    border-radius: 20px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 16px;
     width: 100%;
-    max-width: 400px;
-    max-height: 80vh;
+    max-width: 340px;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
     overflow-y: auto;
     box-shadow: 0 0 30px #ff0;
   }
 
   .modal-header {
-    font-size: 1.8em;
-    margin-bottom: 15px;
+    font-size: 1.4em;
+    margin-bottom: 12px;
     text-shadow: 0 0 10px #ff0;
     color: #ffd700;
     text-align: center;
@@ -90,9 +88,10 @@
   .prize-row {
     display: flex;
     justify-content: space-between;
-    padding: 12px 10px;
-    border-bottom: 1px solid #555;
-    font-size: 1.2em;
+    align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid #444;
+    font-size: 0.95em;
     color: #ffd700;
   }
 
@@ -103,40 +102,52 @@
   .prize-amount {
     font-weight: bold;
     color: #ffd700;
+    min-width: 50px;
+    text-align: center;
   }
 
   .prize-symbol {
-    font-size: 1.4em;
+    font-size: 1.3em;
   }
 
   .close-btn {
-    margin-top: 20px;
-    padding: 15px;
-    font-size: 1.4em;
+    margin-top: 12px;
+    padding: 12px;
+    font-size: 1.2em;
     width: 100%;
     background: linear-gradient(#ffd700, #b8860b);
     color: #000;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     font-weight: bold;
   }
 
-  .close-btn:hover {
-    transform: scale(1.03);
+  .close-btn:active {
+    transform: scale(0.98);
   }
 
-  @media (max-width: 480px) {
+  @media (min-width: 400px) {
     .modal-content {
-      padding: 15px;
-    }
-    .prize-row {
-      font-size: 1.1em;
-      padding: 10px;
+      padding: 20px;
+      max-width: 380px;
     }
     .modal-header {
       font-size: 1.6em;
+      margin-bottom: 16px;
+    }
+    .prize-row {
+      font-size: 1.1em;
+      padding: 12px 10px;
+    }
+    .prize-symbol {
+      font-size: 1.4em;
+    }
+    .close-btn {
+      margin-top: 16px;
+      padding: 14px;
+      font-size: 1.3em;
     }
   }
 </style>
