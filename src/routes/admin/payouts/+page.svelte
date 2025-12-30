@@ -363,6 +363,18 @@
     overflow-y: auto;
   }
 
+  @media (min-width: 1200px) {
+    .main-content {
+      padding: 30px 40px;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .main-content {
+      padding: 40px 60px;
+    }
+  }
+
   .top-bar {
     display: flex;
     justify-content: space-between;
@@ -624,10 +636,48 @@
 
     .sidebar {
       width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #333;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .nav-menu li a {
+      padding: 10px 15px;
+    }
+
+    .nav-menu li a span {
+      display: none;
+    }
+
+    .top-bar {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr 1fr;
     }
 
     .payouts-table {
       overflow-x: auto;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .form-panel {
+      max-width: 800px;
     }
   }
 </style>

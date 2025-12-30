@@ -198,6 +198,18 @@
     overflow-y: auto;
   }
 
+  @media (min-width: 1200px) {
+    .main-content {
+      padding: 30px 40px;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .main-content {
+      padding: 40px 60px;
+    }
+  }
+
   .top-bar {
     margin-bottom: 30px;
   }
@@ -361,6 +373,40 @@
 
     .sidebar {
       width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #333;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .nav-menu li a {
+      padding: 10px 15px;
+    }
+
+    .nav-menu li a span {
+      display: none;
+    }
+
+    .games-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .games-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .games-grid {
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 </style>

@@ -237,6 +237,18 @@
     overflow-y: auto;
   }
 
+  @media (min-width: 1200px) {
+    .main-content {
+      padding: 30px 40px;
+    }
+  }
+
+  @media (min-width: 1600px) {
+    .main-content {
+      padding: 40px 60px;
+    }
+  }
+
   .top-bar {
     margin-bottom: 20px;
   }
@@ -409,10 +421,49 @@
 
     .sidebar {
       width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #333;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .nav-menu li a {
+      padding: 10px 15px;
+    }
+
+    .nav-menu li a span {
+      display: none;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr 1fr;
     }
 
     .sales-table {
       overflow-x: auto;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .top-sellers {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .sellers-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
     }
   }
 </style>
