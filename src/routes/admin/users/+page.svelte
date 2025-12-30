@@ -13,7 +13,9 @@
     BarChart3,
     TrendingUp,
     DollarSign,
-    ShoppingCart
+    ShoppingCart,
+    Eye,
+    EyeOff
   } from 'lucide-svelte';
 
   type UserRole = 'super' | 'admin' | 'seller';
@@ -51,6 +53,7 @@
   let showNewForm = $state(false);
   let newUsername = $state('');
   let newPassword = $state('');
+  let showNewPassword = $state(false);
   let newName = $state('');
   let newRole = $state<'admin' | 'seller'>('seller');
   let formError = $state('');
@@ -264,7 +267,25 @@
             </label>
             <label>
               <span>Password</span>
-              <input type="password" bind:value={newPassword} required />
+              <div class="password-field">
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  bind:value={newPassword}
+                  required
+                />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  onclick={() => showNewPassword = !showNewPassword}
+                  tabindex={-1}
+                >
+                  {#if showNewPassword}
+                    <EyeOff size={18} />
+                  {:else}
+                    <Eye size={18} />
+                  {/if}
+                </button>
+              </div>
             </label>
           </div>
 
@@ -594,6 +615,35 @@
   .form-row select:focus {
     border-color: #ffd700;
     outline: none;
+  }
+
+  .password-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .password-field input {
+    flex: 1;
+  }
+
+  .toggle-password {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .toggle-password:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffd700;
   }
 
   .form-actions {
