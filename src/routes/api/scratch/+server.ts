@@ -1,6 +1,6 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
-import { getTicket, useTicket } from "$lib/server/scratchStore";
+import { getRechargeCard, useRechargeCard } from "$lib/server/db/rechargeCards";
 
 // POST - Validate and use a scratch code
 export const POST: RequestHandler = async ({ request }) => {
@@ -12,7 +12,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     const upperCode = code.toUpperCase().trim();
-    const ticket = getTicket(upperCode);
+    const ticket = await getRechargeCard(upperCode);
 
     if (!ticket) {
       return json({ error: "Code not found" }, { status: 404 });
@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     // Mark code as used
-    const usedTicket = useTicket(upperCode);
+    const usedTicket = await useRechargeCard(upperCode);
     if (!usedTicket) {
       return json({ error: "Failed to use code" }, { status: 500 });
     }
@@ -47,17 +47,21 @@ export const GET: RequestHandler = async ({ url }) => {
     return json({ error: "Code parameter required" }, { status: 400 });
   }
 
-  const upperCode = code.toUpperCase().trim();
-  const ticket = getTicket(upperCode);
+  try {
+    const upperCode = code.toUpperCase().trim();
+    const ticket = await getRechargeCard(upperCode);
 
-  if (!ticket) {
-    return json({ exists: false });
+    if (!ticket) {
+      return json({ exists: false });
+    }
+
+    return json({
+      exists: true,
+      used: ticket.used,
+      plays: ticket.used ? 0 : ticket.plays,
+      createdAt: ticket.createdAt,
+    });
+  } catch {
+    return json({ error: "Server error" }, { status: 500 });
   }
-
-  return json({
-    exists: true,
-    used: ticket.used,
-    plays: ticket.used ? 0 : ticket.plays,
-    createdAt: ticket.createdAt,
-  });
 };
