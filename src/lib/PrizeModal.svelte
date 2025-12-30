@@ -55,28 +55,31 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.9);
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 
   .modal-content {
     background: linear-gradient(#222, #333);
     border: 3px solid #ffd700;
-    border-radius: 20px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 16px;
     width: 100%;
-    max-width: 400px;
-    max-height: 80vh;
+    max-width: 340px;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
     overflow-y: auto;
     box-shadow: 0 0 30px #ff0;
   }
 
   .modal-header {
-    font-size: 1.8em;
-    margin-bottom: 15px;
+    font-size: 1.4em;
+    margin-bottom: 12px;
     text-shadow: 0 0 10px #ff0;
     color: #ffd700;
     text-align: center;
@@ -85,9 +88,10 @@
   .prize-row {
     display: flex;
     justify-content: space-between;
-    padding: 12px 10px;
-    border-bottom: 1px solid #555;
-    font-size: 1.2em;
+    align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid #444;
+    font-size: 0.95em;
     color: #ffd700;
   }
 
@@ -98,40 +102,52 @@
   .prize-amount {
     font-weight: bold;
     color: #ffd700;
+    min-width: 50px;
+    text-align: center;
   }
 
   .prize-symbol {
-    font-size: 1.4em;
+    font-size: 1.3em;
   }
 
   .close-btn {
-    margin-top: 20px;
-    padding: 15px;
-    font-size: 1.4em;
+    margin-top: 12px;
+    padding: 12px;
+    font-size: 1.2em;
     width: 100%;
     background: linear-gradient(#ffd700, #b8860b);
     color: #000;
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     font-weight: bold;
   }
 
-  .close-btn:hover {
-    transform: scale(1.03);
+  .close-btn:active {
+    transform: scale(0.98);
   }
 
-  @media (max-width: 480px) {
+  @media (min-width: 400px) {
     .modal-content {
-      padding: 15px;
-    }
-    .prize-row {
-      font-size: 1.1em;
-      padding: 10px;
+      padding: 20px;
+      max-width: 380px;
     }
     .modal-header {
       font-size: 1.6em;
+      margin-bottom: 16px;
+    }
+    .prize-row {
+      font-size: 1.1em;
+      padding: 12px 10px;
+    }
+    .prize-symbol {
+      font-size: 1.4em;
+    }
+    .close-btn {
+      margin-top: 16px;
+      padding: 14px;
+      font-size: 1.3em;
     }
   }
 </style>
