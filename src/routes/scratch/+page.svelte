@@ -95,6 +95,25 @@
   // Sounds
   let sounds: Sounds | null = null;
 
+  // LocalStorage key
+  const STORAGE_KEY = "goldRush_session";
+
+  function saveSession() {
+    if (browser && currentCode) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        code: currentCode,
+        playsLeft,
+        sessionWinnings
+      }));
+    }
+  }
+
+  function clearSession() {
+    if (browser) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
   onMount(() => {
     if (!browser) return;
 
@@ -117,6 +136,27 @@
     };
     Object.values(sounds).forEach((s) => s.load());
 
+    // Restore session from localStorage
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const session = JSON.parse(saved);
+        // Only restore if there are plays or winnings
+        if (session.playsLeft > 0 || session.sessionWinnings > 0) {
+          currentCode = session.code || "";
+          playsLeft = session.playsLeft || 0;
+          sessionWinnings = session.sessionWinnings || 0;
+          if (playsLeft > 0) {
+            startNewPlay();
+          }
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
     ctx = canvas.getContext("2d");
 
     window.addEventListener("resize", resizeCanvas);
@@ -125,7 +165,9 @@
     // Initialize canvas with "Enter Code" message
     setTimeout(() => {
       resizeCanvas();
-      showWelcomeMessage();
+      if (!currentCode) {
+        showWelcomeMessage();
+      }
     }, 0);
 
     return () => {
@@ -303,6 +345,9 @@
     } else {
       playSound("noWin", 0.6);
     }
+
+    // Save session after each reveal
+    saveSession();
   }
 
   function revealAll(): void {
@@ -402,6 +447,7 @@
     playsLeft = 0;
     sessionWinnings = 0;
     revealed = false;
+    clearSession();
     showWelcomeMessage();
     setTimeout(resizeCanvas, 0);
   }
@@ -426,6 +472,7 @@
 
     // Start first play automatically
     startNewPlay();
+    saveSession();
   }
 </script>
 
@@ -450,8 +497,8 @@
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
-        <a href="/" class="control-btn home-btn" title="Back to Menu">
-          <span class="control-icon">🏠</span>
+        <a href="/" class="control-btn back-btn" title="Back to Menu">
+          <span class="control-icon">←</span>
         </a>
         <button class="control-btn" onclick={openPrizeList} title="View Prize List">
           <span class="control-icon">🏆</span>

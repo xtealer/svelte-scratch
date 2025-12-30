@@ -38,6 +38,9 @@
   let showCodeModal = $state(false);
   let showClaimModal = $state(false);
 
+  // LocalStorage key
+  const STORAGE_KEY = "goldSlots_session";
+
   // Sounds
   let sounds: { spin: HTMLAudioElement; win: HTMLAudioElement; bigWin: HTMLAudioElement; lose: HTMLAudioElement } | null = null;
 
@@ -49,8 +52,44 @@
         bigWin: new Audio("https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"),
         lose: new Audio("https://assets.mixkit.co/active_storage/sfx/2001/2001-preview.mp3"),
       };
+
+      // Restore session from localStorage
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const session = JSON.parse(saved);
+          // Only restore if there are credits or winnings
+          if (session.credits > 0 || session.sessionWinnings > 0) {
+            currentCode = session.code || "";
+            credits = session.credits || 0;
+            sessionWinnings = session.sessionWinnings || 0;
+            hasActiveSession = true;
+            prizeText = "SPIN TO WIN!";
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        } catch {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
     }
   });
+
+  function saveSession() {
+    if (browser && hasActiveSession) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        code: currentCode,
+        credits,
+        sessionWinnings
+      }));
+    }
+  }
+
+  function clearSession() {
+    if (browser) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
 
   function playSound(sound: HTMLAudioElement | undefined) {
     if (sound && !muted) {
@@ -123,10 +162,12 @@
     if (betSize < 1) betSize = 1;
     prizeText = "SPIN TO WIN!";
     reels = ["❓", "❓", "❓"];
+    saveSession();
   }
 
   function resetSession() {
     stopAutoplay();
+    clearSession();
     hasActiveSession = false;
     currentCode = "";
     credits = 0;
@@ -218,6 +259,9 @@
       }
     }
 
+    // Save session after each spin
+    saveSession();
+
     // Continue autoplay if active
     if (autoplayActive) {
       autoplaySpinsLeft--;
@@ -235,8 +279,8 @@
   <div class="slot-machine">
     <div class="machine-controls">
       <div class="control-left">
-        <a href="/" class="control-btn home-btn" title="Back to Menu">
-          <span class="control-icon">🏠</span>
+        <a href="/" class="control-btn back-btn" title="Back to Menu">
+          <span class="control-icon">←</span>
         </a>
         <button class="control-btn" onclick={openPrizeList} title="View Prize List">
           <span class="control-icon">🏆</span>
