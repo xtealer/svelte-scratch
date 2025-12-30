@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
   import { Globe } from 'lucide-svelte';
   import { currentLanguage, setLanguage, getSupportedLanguages, t, type Language } from './i18n';
 
@@ -9,6 +10,10 @@
   function selectLanguage(code: Language) {
     setLanguage(code);
     isOpen = false;
+    // Reload page to apply language changes across all components
+    if (browser) {
+      window.location.reload();
+    }
   }
 
   function getCurrentLabel(lang: Language): string {
