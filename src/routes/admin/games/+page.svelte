@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { Gamepad2, ArrowLeft, ToggleLeft, ToggleRight, Save } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage } from '$lib/i18n';
+  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
 
   interface Game {
     gameId: string;
@@ -17,8 +17,14 @@
   let loading = $state(true);
   let saving = $state<string | null>(null);
 
+  // i18n
+  let i18n = $state<Translations>(t());
+  let dir = $state<'ltr' | 'rtl'>('ltr');
+
   onMount(async () => {
     initLanguage();
+    i18n = t();
+    dir = getDirection();
     await checkAuth();
     await loadGames();
   });
@@ -72,17 +78,17 @@
   }
 </script>
 
-<div class="admin-container">
+<div class="admin-container" dir={dir}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>Casino Admin</h2>
+      <h2>{i18n.common.casinoAdmin}</h2>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>Back to Dashboard</span>
+          <span>{i18n.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -92,12 +98,12 @@
     <header class="top-bar">
       <h1>
         <Gamepad2 size={28} />
-        <span>Game Management</span>
+        <span>{i18n.games.title}</span>
       </h1>
     </header>
 
     {#if loading}
-      <div class="loading">Loading games...</div>
+      <div class="loading">{i18n.games.loading}</div>
     {:else}
       <div class="games-grid">
         {#each games as game}
@@ -128,21 +134,21 @@
 
             <div class="game-footer">
               <span class="status" class:active={game.enabled}>
-                {game.enabled ? 'Active' : 'Disabled'}
+                {game.enabled ? i18n.games.active : i18n.games.disabled}
               </span>
-              <span class="updated">Updated: {formatDate(game.updatedAt)}</span>
+              <span class="updated">{i18n.games.updated}: {formatDate(game.updatedAt)}</span>
             </div>
           </div>
         {/each}
       </div>
 
       <div class="info-box">
-        <h4>Game Status Info</h4>
-        <p>When a game is <strong>disabled</strong>:</p>
+        <h4>{i18n.games.gameStatusInfo}</h4>
+        <p>{i18n.games.whenDisabled}</p>
         <ul>
-          <li>Players cannot access the game</li>
-          <li>Existing sessions are not affected</li>
-          <li>Game will show as "Under Maintenance"</li>
+          <li>{i18n.games.cannotAccess}</li>
+          <li>{i18n.games.existingSessions}</li>
+          <li>{i18n.games.showMaintenance}</li>
         </ul>
       </div>
     {/if}
@@ -156,6 +162,10 @@
     display: flex;
     min-height: 100vh;
     background: #0f0f1a;
+  }
+
+  .admin-container[dir="rtl"] {
+    direction: rtl;
   }
 
   .sidebar {

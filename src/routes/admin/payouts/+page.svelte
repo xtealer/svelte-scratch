@@ -20,7 +20,7 @@
     Ban
   } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage } from '$lib/i18n';
+  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
 
   interface Payout {
     _id: string;
@@ -90,8 +90,14 @@
   // Processing state
   let processingId = $state<string | null>(null);
 
+  // i18n
+  let i18n = $state<Translations>(t());
+  let dir = $state<'ltr' | 'rtl'>('ltr');
+
   onMount(async () => {
     initLanguage();
+    i18n = t();
+    dir = getDirection();
     await checkAuth();
     await loadPayouts();
   });
