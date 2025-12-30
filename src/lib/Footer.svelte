@@ -10,9 +10,9 @@
   function selectLanguage(code: Language) {
     setLanguage(code);
     isOpen = false;
-    // Reload page to apply language changes across all components
+    // Force full page refresh to apply language changes
     if (browser) {
-      window.location.reload();
+      window.location.href = window.location.href;
     }
   }
 
