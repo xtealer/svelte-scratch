@@ -11,11 +11,12 @@
  *   "setup:db": "tsx scripts/setupDB.ts"
  */
 
+import 'dotenv/config';
 import { MongoClient } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import * as readline from 'readline';
 
-// Load environment variables
+// Load environment variables from .env
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 const MONGO_DB_NAME = 'games';
 
