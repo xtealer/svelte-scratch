@@ -8,14 +8,14 @@
   <div class="games">
     <a href="/scratch" class="game-card">
       <div class="game-icon">🎫</div>
-      <div class="game-title">RASPA Y GANA</div>
+      <div class="game-title">RASPADITO</div>
       <div class="game-desc">Raspa y Gana!</div>
       <div class="game-prize">Gana hasta $500</div>
     </a>
 
     <a href="/slots" class="game-card">
       <div class="game-icon">🎰</div>
-      <div class="game-title">TRAGAMONEDAS</div>
+      <div class="game-title">SLOTS</div>
       <div class="game-desc">¡Gira y Gana!</div>
       <div class="game-prize">Gana hasta $500</div>
     </a>
