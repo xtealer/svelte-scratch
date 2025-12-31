@@ -4,6 +4,8 @@
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
+  import LoginModal from "$lib/LoginModal.svelte";
+  import RegisterModal from "$lib/RegisterModal.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { playerWallet } from "$lib/stores/playerWallet";
 
@@ -19,6 +21,8 @@
   }
 
   let showCodeModal = $state(false);
+  let showLoginModal = $state(false);
+  let showRegisterModal = $state(false);
   let recentPlays = $state<RecentPlay[]>([]);
   let loadingPlays = $state(true);
 
@@ -44,6 +48,24 @@
 
   function openCodeModal() {
     showCodeModal = true;
+  }
+
+  function openLoginModal() {
+    showLoginModal = true;
+  }
+
+  function openRegisterModal() {
+    showRegisterModal = true;
+  }
+
+  function switchToRegister() {
+    showLoginModal = false;
+    showRegisterModal = true;
+  }
+
+  function switchToLogin() {
+    showRegisterModal = false;
+    showLoginModal = true;
   }
 
   async function handleCodeSubmit(code: string): Promise<void> {
@@ -84,7 +106,7 @@
   }
 </script>
 
-<GameNavbar onEnterCode={openCodeModal} />
+<GameNavbar onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} />
 
 <div class="page" dir={$direction}>
   <main class="container">
@@ -184,6 +206,8 @@
 </div>
 
 <ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
+<LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
+<RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
 
 <style>
   .page {
