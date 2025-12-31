@@ -234,7 +234,7 @@
   /* Mobile adjustments */
   @media (max-width: 480px) {
     .game-navbar {
-      padding: 6px 10px;
+      padding: 12px 10px;
     }
 
     .balance-section {
@@ -242,8 +242,8 @@
     }
 
     .balance-item {
-      padding: 3px 6px;
-      font-size: 0.75em;
+      padding: 8px 10px;
+      font-size: 0.85em;
     }
 
     .balance-item .label {
@@ -251,34 +251,57 @@
     }
 
     .balance-item.code .value {
-      max-width: 70px;
+      max-width: 80px;
     }
 
     .end-session-btn {
-      width: 28px;
-      height: 28px;
+      width: 40px;
+      height: 40px;
     }
 
     .end-session-btn :global(svg) {
-      width: 14px;
-      height: 14px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .enter-code-btn {
+      padding: 10px 18px;
+      font-size: 0.9em;
+    }
+
+    .enter-code-btn :global(svg) {
+      width: 18px;
+      height: 18px;
     }
   }
 
   /* Very small phones */
   @media (max-width: 350px) {
+    .game-navbar {
+      padding: 10px 8px;
+    }
+
     .balance-item {
-      padding: 2px 4px;
-      font-size: 0.7em;
+      padding: 6px 8px;
+      font-size: 0.8em;
     }
 
     .balance-item :global(svg) {
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
     }
 
     .balance-item.code .value {
-      max-width: 50px;
+      max-width: 60px;
+    }
+
+    .end-session-btn {
+      width: 36px;
+      height: 36px;
+    }
+
+    .enter-code-btn {
+      padding: 8px 14px;
     }
   }
 </style>

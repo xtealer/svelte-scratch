@@ -250,6 +250,38 @@ export interface NavbarTranslations {
   enterCode: string;
 }
 
+export interface ClaimModalTranslations {
+  requestSent: string;
+  amountRequested: string;
+  payoutInfo1: string;
+  payoutInfo2: string;
+  codeRef: string;
+  creditsAdded: string;
+  creditsAddedAmount: string;
+  creditsInfo1: string;
+  creditsInfo2: string;
+  whatToDo: string;
+  totalWinnings: string;
+  fullName: string;
+  phoneNumber: string;
+  required: string;
+  namePlaceholder: string;
+  phonePlaceholder: string;
+  nameError: string;
+  phoneError: string;
+  convertError: string;
+  requestError: string;
+  connectionError: string;
+  completeInfo: string;
+  sending: string;
+  processing: string;
+  requestPayout: string;
+  convertToCredits: string;
+  cancel: string;
+  letsPlay: string;
+  close: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
@@ -264,6 +296,7 @@ export interface Translations {
   gameMenu: GameMenuTranslations;
   gameUI: GameUITranslations;
   navbar: NavbarTranslations;
+  claimModal: ClaimModalTranslations;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -506,6 +539,37 @@ export const translations: Record<Language, Translations> = {
       noCredits: 'No credits',
       enterCode: 'Enter Code',
     },
+    claimModal: {
+      requestSent: 'REQUEST SENT!',
+      amountRequested: 'Amount Requested',
+      payoutInfo1: 'Your payment request has been sent.',
+      payoutInfo2: 'We will contact you at the provided number.',
+      codeRef: 'Code',
+      creditsAdded: 'CREDITS ADDED!',
+      creditsAddedAmount: 'Credits Added',
+      creditsInfo1: 'Your winnings have been converted to credits.',
+      creditsInfo2: 'Keep playing and good luck!',
+      whatToDo: 'WHAT WOULD YOU LIKE TO DO?',
+      totalWinnings: 'Total Winnings',
+      fullName: 'Full Name',
+      phoneNumber: 'Phone Number',
+      required: '*',
+      namePlaceholder: 'Your full name',
+      phonePlaceholder: 'Phone number',
+      nameError: 'Please enter your full name',
+      phoneError: 'Please enter a valid phone number',
+      convertError: 'Error converting credits',
+      requestError: 'Error sending request',
+      connectionError: 'Connection error',
+      completeInfo: 'Complete your information to continue.',
+      sending: 'Sending...',
+      processing: 'Processing...',
+      requestPayout: 'Request Payout',
+      convertToCredits: 'Convert to Credits',
+      cancel: 'Cancel',
+      letsPlay: 'Let\'s Play!',
+      close: 'Close',
+    },
   },
   es: {
     rechargeCard: {
@@ -746,6 +810,37 @@ export const translations: Record<Language, Translations> = {
       noCredits: 'Sin créditos',
       enterCode: 'Ingresar Código',
     },
+    claimModal: {
+      requestSent: '¡SOLICITUD ENVIADA!',
+      amountRequested: 'Monto Solicitado',
+      payoutInfo1: 'Tu solicitud de pago ha sido enviada.',
+      payoutInfo2: 'Te contactaremos al número proporcionado.',
+      codeRef: 'Código',
+      creditsAdded: '¡CRÉDITOS AGREGADOS!',
+      creditsAddedAmount: 'Créditos Agregados',
+      creditsInfo1: 'Tus ganancias se han convertido en créditos.',
+      creditsInfo2: '¡Sigue jugando y buena suerte!',
+      whatToDo: '¿QUÉ DESEAS HACER?',
+      totalWinnings: 'Ganancias Totales',
+      fullName: 'Nombre Completo',
+      phoneNumber: 'Número de Teléfono',
+      required: '*',
+      namePlaceholder: 'Tu nombre completo',
+      phonePlaceholder: 'Número de teléfono',
+      nameError: 'Por favor ingresa tu nombre completo',
+      phoneError: 'Por favor ingresa un número de teléfono válido',
+      convertError: 'Error al convertir créditos',
+      requestError: 'Error al enviar solicitud',
+      connectionError: 'Error de conexión',
+      completeInfo: 'Completa tus datos para continuar.',
+      sending: 'Enviando...',
+      processing: 'Procesando...',
+      requestPayout: 'Solicitar Pago',
+      convertToCredits: 'Convertir a Créditos',
+      cancel: 'Cancelar',
+      letsPlay: '¡A Jugar!',
+      close: 'Cerrar',
+    },
   },
   ar: {
     rechargeCard: {
@@ -985,6 +1080,37 @@ export const translations: Record<Language, Translations> = {
       balance: 'الرصيد',
       noCredits: 'لا يوجد رصيد',
       enterCode: 'أدخل الرمز',
+    },
+    claimModal: {
+      requestSent: 'تم إرسال الطلب!',
+      amountRequested: 'المبلغ المطلوب',
+      payoutInfo1: 'تم إرسال طلب الدفع الخاص بك.',
+      payoutInfo2: 'سنتواصل معك على الرقم المقدم.',
+      codeRef: 'الرمز',
+      creditsAdded: 'تمت إضافة الرصيد!',
+      creditsAddedAmount: 'الرصيد المضاف',
+      creditsInfo1: 'تم تحويل أرباحك إلى رصيد.',
+      creditsInfo2: 'استمر في اللعب وحظاً موفقاً!',
+      whatToDo: 'ماذا تريد أن تفعل؟',
+      totalWinnings: 'إجمالي الأرباح',
+      fullName: 'الاسم الكامل',
+      phoneNumber: 'رقم الهاتف',
+      required: '*',
+      namePlaceholder: 'اسمك الكامل',
+      phonePlaceholder: 'رقم الهاتف',
+      nameError: 'الرجاء إدخال اسمك الكامل',
+      phoneError: 'الرجاء إدخال رقم هاتف صحيح',
+      convertError: 'خطأ في تحويل الرصيد',
+      requestError: 'خطأ في إرسال الطلب',
+      connectionError: 'خطأ في الاتصال',
+      completeInfo: 'أكمل بياناتك للمتابعة.',
+      sending: 'جاري الإرسال...',
+      processing: 'جاري المعالجة...',
+      requestPayout: 'طلب الدفع',
+      convertToCredits: 'تحويل إلى رصيد',
+      cancel: 'إلغاء',
+      letsPlay: 'هيا نلعب!',
+      close: 'إغلاق',
     },
   },
 };
