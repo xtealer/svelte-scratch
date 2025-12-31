@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronDown, UserPlus, Mail, User, Lock, Globe, Languages } from 'lucide-svelte';
+  import { ChevronDown, UserPlus, Mail, User, Lock, Globe, Languages, Eye, EyeOff } from 'lucide-svelte';
   import { t, currentLanguage } from '$lib/i18n';
   import { playerAuth } from '$lib/stores/playerAuth';
   import type { SupportedLanguage } from '$lib/server/db/types';
@@ -55,6 +55,8 @@
   let submitting = $state(false);
   let error = $state('');
   let success = $state(false);
+  let showPassword = $state(false);
+  let showConfirmPassword = $state(false);
 
   function close(): void {
     show = false;
@@ -64,6 +66,8 @@
     confirmPassword = '';
     error = '';
     success = false;
+    showPassword = false;
+    showConfirmPassword = false;
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -238,13 +242,28 @@
             <Lock size={16} />
             <span>{$t.authModal.password} <span class="required">*</span></span>
           </label>
-          <input
-            type="password"
-            bind:value={password}
-            placeholder={$t.authModal.passwordPlaceholder}
-            onkeydown={handleKeydown}
-            disabled={submitting}
-          />
+          <div class="password-input-wrapper">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              bind:value={password}
+              placeholder={$t.authModal.passwordPlaceholder}
+              onkeydown={handleKeydown}
+              disabled={submitting}
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              onclick={() => showPassword = !showPassword}
+              disabled={submitting}
+              tabindex={-1}
+            >
+              {#if showPassword}
+                <EyeOff size={18} />
+              {:else}
+                <Eye size={18} />
+              {/if}
+            </button>
+          </div>
         </div>
 
         <div class="form-group">
@@ -252,13 +271,28 @@
             <Lock size={16} />
             <span>{$t.authModal.confirmPassword} <span class="required">*</span></span>
           </label>
-          <input
-            type="password"
-            bind:value={confirmPassword}
-            placeholder={$t.authModal.confirmPasswordPlaceholder}
-            onkeydown={handleKeydown}
-            disabled={submitting}
-          />
+          <div class="password-input-wrapper">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              bind:value={confirmPassword}
+              placeholder={$t.authModal.confirmPasswordPlaceholder}
+              onkeydown={handleKeydown}
+              disabled={submitting}
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              onclick={() => showConfirmPassword = !showConfirmPassword}
+              disabled={submitting}
+              tabindex={-1}
+            >
+              {#if showConfirmPassword}
+                <EyeOff size={18} />
+              {:else}
+                <Eye size={18} />
+              {/if}
+            </button>
+          </div>
         </div>
 
         {#if error}
@@ -383,6 +417,39 @@
 
   input:disabled, select:disabled {
     opacity: 0.6;
+  }
+
+  .password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .password-input-wrapper input {
+    padding-right: 44px;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+
+  .password-toggle:hover:not(:disabled) {
+    color: #00e701;
+  }
+
+  .password-toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .select-wrapper {

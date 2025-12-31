@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LogIn, Mail, Lock, Wallet, Link } from 'lucide-svelte';
+  import { LogIn, Mail, Lock, Wallet, Link, Eye, EyeOff } from 'lucide-svelte';
   import { t } from '$lib/i18n';
   import { playerAuth, isPlayerLoggedIn } from '$lib/stores/playerAuth';
 
@@ -22,6 +22,8 @@
   let metamaskAddress = $state('');
   let linkPassword = $state('');
   let linkEmail = $state('');
+  let showPassword = $state(false);
+  let showLinkPassword = $state(false);
 
   // Check if metamask is available
   let hasMetamask = $state(false);
@@ -41,6 +43,8 @@
     linkPassword = '';
     error = '';
     metamaskAddress = '';
+    showPassword = false;
+    showLinkPassword = false;
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -303,13 +307,28 @@
             <Lock size={16} />
             <span>{$t.authModal.password}</span>
           </label>
-          <input
-            type="password"
-            bind:value={password}
-            placeholder={$t.authModal.passwordPlaceholder}
-            onkeydown={handleKeydown}
-            disabled={submitting}
-          />
+          <div class="password-input-wrapper">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              bind:value={password}
+              placeholder={$t.authModal.passwordPlaceholder}
+              onkeydown={handleKeydown}
+              disabled={submitting}
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              onclick={() => showPassword = !showPassword}
+              disabled={submitting}
+              tabindex={-1}
+            >
+              {#if showPassword}
+                <EyeOff size={18} />
+              {:else}
+                <Eye size={18} />
+              {/if}
+            </button>
+          </div>
         </div>
 
         {#if error}
@@ -358,13 +377,28 @@
             <Lock size={16} />
             <span>{$t.authModal.password}</span>
           </label>
-          <input
-            type="password"
-            bind:value={linkPassword}
-            placeholder={$t.authModal.passwordPlaceholder}
-            onkeydown={handleKeydown}
-            disabled={submitting}
-          />
+          <div class="password-input-wrapper">
+            <input
+              type={showLinkPassword ? 'text' : 'password'}
+              bind:value={linkPassword}
+              placeholder={$t.authModal.passwordPlaceholder}
+              onkeydown={handleKeydown}
+              disabled={submitting}
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              onclick={() => showLinkPassword = !showLinkPassword}
+              disabled={submitting}
+              tabindex={-1}
+            >
+              {#if showLinkPassword}
+                <EyeOff size={18} />
+              {:else}
+                <Eye size={18} />
+              {/if}
+            </button>
+          </div>
         </div>
 
         {#if error}
@@ -537,6 +571,39 @@
 
   input:disabled {
     opacity: 0.6;
+  }
+
+  .password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .password-input-wrapper input {
+    padding-right: 44px;
+  }
+
+  .password-toggle {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+
+  .password-toggle:hover:not(:disabled) {
+    color: #00e701;
+  }
+
+  .password-toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .link-info {
