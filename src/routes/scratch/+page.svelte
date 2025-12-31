@@ -6,8 +6,10 @@
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
   import Footer from "$lib/Footer.svelte";
+  import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
+  import { playerWallet, hasActiveSession as walletHasSession } from "$lib/stores/playerWallet";
 
   interface PrizeConfig {
     amount: number;
@@ -74,11 +76,11 @@
   let muted = $state(false);
   let revealed = $state(false);
 
-  // Session state (from scratch code)
-  let currentCode = $state("");
-  let playsLeft = $state(0);
-  let sessionWinnings = $state(0);
-  let hasActiveSession = $derived(currentCode !== "" && playsLeft >= 0);
+  // Session state - derived from unified wallet
+  let currentCode = $derived($playerWallet.code);
+  let playsLeft = $derived($playerWallet.credits);
+  let sessionWinnings = $derived($playerWallet.winnings);
+  let hasActiveSession = $derived($walletHasSession);
   let canPlay = $derived(playsLeft > 0 && revealed);
   let canStartNewPlay = $derived(playsLeft > 0);
 
@@ -98,28 +100,6 @@
 
   // Sounds
   let sounds: Sounds | null = null;
-
-  // LocalStorage key
-  const STORAGE_KEY = "goldRush_session";
-
-  function saveSession() {
-    if (browser && currentCode) {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          code: currentCode,
-          playsLeft,
-          sessionWinnings,
-        })
-      );
-    }
-  }
-
-  function clearSession() {
-    if (browser) {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }
 
   onMount(() => {
     initLanguage();
@@ -145,24 +125,12 @@
     };
     Object.values(sounds).forEach((s) => s.load());
 
-    // Restore session from localStorage
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const session = JSON.parse(saved);
-        // Only restore if there are plays or winnings
-        if (session.playsLeft > 0 || session.sessionWinnings > 0) {
-          currentCode = session.code || "";
-          playsLeft = session.playsLeft || 0;
-          sessionWinnings = session.sessionWinnings || 0;
-          if (playsLeft > 0) {
-            startNewPlay();
-          }
-        } else {
-          localStorage.removeItem(STORAGE_KEY);
-        }
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
+    // Mark this as the last game played if session exists
+    if ($walletHasSession) {
+      playerWallet.setLastGame('scratch');
+      // Start a play if we have credits
+      if ($playerWallet.credits > 0) {
+        startNewPlay();
       }
     }
 
@@ -174,7 +142,7 @@
     // Initialize canvas with "Enter Code" message
     setTimeout(() => {
       resizeCanvas();
-      if (!currentCode) {
+      if (!$playerWallet.code) {
         showWelcomeMessage();
       }
     }, 0);
@@ -316,7 +284,8 @@
   let pendingPlayResult: { prize: number; symbol: string } | null = null;
 
   async function startNewPlay(): Promise<void> {
-    if (playsLeft <= 0) return;
+    const currentCredits = $playerWallet.credits;
+    if (currentCredits <= 0) return;
 
     // Hide result first
     prizeText = "-";
@@ -330,20 +299,18 @@
       const response = await fetch("/api/game/play", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: currentCode, gameId: 'scratch', bet: 1 }),
+        body: JSON.stringify({ code: $playerWallet.code, gameId: 'scratch', bet: 1 }),
       });
       const result = await response.json();
 
       if (result.success) {
-        playsLeft = result.playsLeft;
+        // Update unified wallet
+        playerWallet.updateCredits(result.playsLeft, result.totalWinnings);
         pendingPlayResult = { prize: result.prize, symbol: result.symbol };
 
         // Generate symbols based on server result
         currentPrize = result.prize;
         symbols = generateSymbols(currentPrize);
-
-        // Update session winnings from server (cumulative)
-        sessionWinnings = result.totalWinnings;
 
         // Near-miss on losers
         if (currentPrize === 0) {
@@ -381,9 +348,6 @@
     } else {
       playSound("noWin", 0.6);
     }
-
-    // Save session after each reveal
-    saveSession();
   }
 
   function revealAll(): void {
@@ -480,20 +444,14 @@
 
   // Convert winnings to plays ($1 = 1 play)
   function convertWinningsToPlays(): void {
-    if (sessionWinnings > 0) {
-      const additionalPlays = Math.floor(sessionWinnings);
-      playsLeft += additionalPlays;
-      sessionWinnings = 0;
-      saveSession();
+    if ($playerWallet.winnings > 0) {
+      playerWallet.convertWinningsToCredits();
     }
   }
 
   function resetSession(): void {
-    currentCode = "";
-    playsLeft = 0;
-    sessionWinnings = 0;
+    playerWallet.clear();
     revealed = false;
-    clearSession();
     showWelcomeMessage();
     setTimeout(resizeCanvas, 0);
   }
@@ -511,21 +469,20 @@
       throw new Error(data.error || "Código inválido");
     }
 
-    // Load the session
-    currentCode = data.code;
-    playsLeft = data.plays;
-    sessionWinnings = data.totalWinnings || 0;
+    // Load the session using unified wallet
+    playerWallet.loadCode(data.code, data.plays, data.totalWinnings || 0, 'scratch');
 
     // Start first play automatically if we have plays
-    if (playsLeft > 0) {
+    if (data.plays > 0) {
       startNewPlay();
     }
-    saveSession();
   }
 </script>
 
+<GameNavbar onEndSession={resetSession} />
+
 {#if hasActiveSession}
-  <div class="session-info">
+  <div class="session-info" class:has-navbar={hasActiveSession}>
     <div class="info-item">
       <span class="label">{$t.gameUI.code}:</span>
       <span class="value">{currentCode}</span>
@@ -541,7 +498,7 @@
   </div>
 {/if}
 
-<div class="container" dir={$direction}>
+<div class="container" class:has-navbar={hasActiveSession} dir={$direction}>
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
@@ -657,6 +614,15 @@
     margin: 10px auto;
     max-width: 500px;
     width: calc(100% - 30px);
+    transition: margin-top 0.2s ease;
+  }
+
+  .session-info.has-navbar {
+    margin-top: 55px;
+  }
+
+  .container.has-navbar {
+    margin-top: 0;
   }
 
   .info-item {

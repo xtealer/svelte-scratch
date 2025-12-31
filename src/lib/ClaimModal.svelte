@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ChevronDown, Coins, DollarSign } from 'lucide-svelte';
+  import { playerWallet } from '$lib/stores/playerWallet';
 
   let {
     show = $bindable(false),
@@ -151,7 +152,6 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: scratchCode,
-          gameId,
           amount: totalWinnings,
           playerName: playerName.trim(),
           playerPhone: fullPhone,
@@ -170,6 +170,9 @@
       submitted = true;
       submittedAction = 'payout';
       submitting = false;
+
+      // Clear the wallet after payout request is submitted
+      playerWallet.clear();
 
       if (onRequestSubmitted) {
         onRequestSubmitted();

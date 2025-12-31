@@ -76,7 +76,7 @@ export interface GamePlay {
   playedAt: Date;
 }
 
-// Game session / play record
+// Game session / play record (per-game for stats)
 export interface GameSession {
   _id?: ObjectId;
   code: string;
@@ -88,6 +88,20 @@ export interface GameSession {
   totalWinnings: number;
   claimed: boolean;
   claimedAt?: Date;
+}
+
+// Unified player session (cross-game wallet)
+export interface PlayerSession {
+  _id?: ObjectId;
+  code: string;
+  startedAt: Date;
+  endedAt?: Date;
+  initialCredits: number;   // Credits from the recharge card
+  creditsUsed: number;      // Total credits consumed
+  totalWinnings: number;    // Accumulated winnings across all games
+  claimed: boolean;         // Whether winnings have been claimed
+  claimedAt?: Date;
+  lastGameId?: string;      // Last game played
 }
 
 // Payout request status

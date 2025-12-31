@@ -239,6 +239,15 @@ export interface GameUITranslations {
   viewPrizes: string;
 }
 
+export interface NavbarTranslations {
+  code: string;
+  credits: string;
+  winnings: string;
+  endSession: string;
+  confirmEndSession: string;
+  balance: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
@@ -252,6 +261,7 @@ export interface Translations {
   footer: FooterTranslations;
   gameMenu: GameMenuTranslations;
   gameUI: GameUITranslations;
+  navbar: NavbarTranslations;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -484,6 +494,14 @@ export const translations: Record<Language, Translations> = {
       prize: 'Prize',
       viewPrizes: 'View Prizes',
     },
+    navbar: {
+      code: 'Code',
+      credits: 'Credits',
+      winnings: 'Winnings',
+      endSession: 'End Session',
+      confirmEndSession: 'Are you sure you want to end your session? You will lose any unclaimed winnings.',
+      balance: 'Balance',
+    },
   },
   es: {
     rechargeCard: {
@@ -714,6 +732,14 @@ export const translations: Record<Language, Translations> = {
       prize: 'Premio',
       viewPrizes: 'Ver Premios',
     },
+    navbar: {
+      code: 'Código',
+      credits: 'Créditos',
+      winnings: 'Ganancias',
+      endSession: 'Terminar Sesión',
+      confirmEndSession: '¿Estás seguro de terminar tu sesión? Perderás las ganancias no reclamadas.',
+      balance: 'Saldo',
+    },
   },
   ar: {
     rechargeCard: {
@@ -943,6 +969,14 @@ export const translations: Record<Language, Translations> = {
       youLost: 'خسرت!',
       prize: 'الجائزة',
       viewPrizes: 'عرض الجوائز',
+    },
+    navbar: {
+      code: 'الرمز',
+      credits: 'الرصيد',
+      winnings: 'الأرباح',
+      endSession: 'إنهاء الجلسة',
+      confirmEndSession: 'هل أنت متأكد من إنهاء جلستك؟ ستفقد أي أرباح لم يتم صرفها.',
+      balance: 'الرصيد',
     },
   },
 };

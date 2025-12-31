@@ -1,8 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { recordCreditConversion, getSessionStatus } from '$lib/server/db/gameSessions';
+import { recordCreditConversion, getPlayerSessionStatus, addCreditsToPlayerSession } from '$lib/server/db/gameSessions';
 
-// POST - Record a credit conversion (winnings to credits)
+// POST - Record a credit conversion (winnings to credits) - unified cross-game
 export const POST: RequestHandler = async ({ request }) => {
   try {
     const { code, gameId, amount, playerName, playerPhone, playerCountry } = await request.json();
@@ -10,10 +10,6 @@ export const POST: RequestHandler = async ({ request }) => {
     // Validate inputs
     if (!code || typeof code !== 'string') {
       return json({ error: 'Invalid code' }, { status: 400 });
-    }
-
-    if (!gameId || !['slots', 'scratch'].includes(gameId)) {
-      return json({ error: 'Invalid game' }, { status: 400 });
     }
 
     if (typeof amount !== 'number' || amount <= 0) {
@@ -34,8 +30,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const upperCode = code.toUpperCase().trim();
 
-    // Verify session exists and has winnings
-    const session = await getSessionStatus(upperCode, gameId);
+    // Verify unified player session exists and has winnings
+    const session = await getPlayerSessionStatus(upperCode);
     if (!session) {
       return json({ error: 'Session not found' }, { status: 404 });
     }
@@ -44,10 +40,16 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Amount does not match session winnings' }, { status: 400 });
     }
 
-    // Record the credit conversion
+    // Add credits to the unified player session (converts winnings to credits)
+    const updatedSession = await addCreditsToPlayerSession(upperCode, Math.floor(amount));
+    if (!updatedSession) {
+      return json({ error: 'Failed to add credits' }, { status: 500 });
+    }
+
+    // Record the credit conversion for audit trail
     const conversion = await recordCreditConversion(
       upperCode,
-      gameId,
+      gameId || session.lastGameId || 'unknown',
       amount,
       playerName.trim(),
       playerPhone.trim(),
@@ -61,7 +63,8 @@ export const POST: RequestHandler = async ({ request }) => {
         code: conversion.code,
         amount: conversion.amount,
         convertedAt: conversion.convertedAt
-      }
+      },
+      newCredits: updatedSession.initialCredits - updatedSession.creditsUsed
     });
   } catch (error) {
     console.error('Credit conversion error:', error);

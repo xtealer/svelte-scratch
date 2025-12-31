@@ -1,23 +1,19 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import {
-  createPayoutRequest,
+  createUnifiedPayoutRequest,
   getPayoutRequestByCode,
-  getSessionStatus
+  getPlayerSessionStatus
 } from '$lib/server/db/gameSessions';
 
-// POST - Create a payout request
+// POST - Create a payout request (unified cross-game)
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { code, gameId, amount, playerName, playerPhone, playerCountry } = await request.json();
+    const { code, amount, playerName, playerPhone, playerCountry } = await request.json();
 
     // Validate inputs
     if (!code || typeof code !== 'string') {
       return json({ error: 'Invalid code' }, { status: 400 });
-    }
-
-    if (!gameId || !['slots', 'scratch'].includes(gameId)) {
-      return json({ error: 'Invalid game' }, { status: 400 });
     }
 
     if (typeof amount !== 'number' || amount <= 0) {
@@ -51,8 +47,8 @@ export const POST: RequestHandler = async ({ request }) => {
       }, { status: 400 });
     }
 
-    // Verify session exists and has winnings
-    const session = await getSessionStatus(upperCode, gameId);
+    // Verify unified player session exists and has winnings
+    const session = await getPlayerSessionStatus(upperCode);
     if (!session) {
       return json({ error: 'Session not found' }, { status: 404 });
     }
@@ -61,10 +57,9 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Amount does not match session winnings' }, { status: 400 });
     }
 
-    // Create the payout request
-    const payoutRequest = await createPayoutRequest(
+    // Create the unified payout request (cross-game)
+    const payoutRequest = await createUnifiedPayoutRequest(
       upperCode,
-      gameId,
       amount,
       playerName.trim(),
       playerPhone.trim(),

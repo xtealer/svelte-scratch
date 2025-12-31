@@ -1,9 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getRechargeCard } from '$lib/server/db/rechargeCards';
-import { getOrCreateSession, recordPlay, getSessionStatus, getPrizeSymbol } from '$lib/server/db/gameSessions';
+import { recordPlayerPlay, getPlayerSessionStatus } from '$lib/server/db/gameSessions';
 
-// POST - Play a game (spin/scratch)
+// POST - Play a game (spin/scratch) using unified player session
 export const POST: RequestHandler = async ({ request }) => {
   try {
     const { code, gameId, bet = 1 } = await request.json();
@@ -22,8 +21,8 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const upperCode = code.toUpperCase().trim();
 
-    // Record the play and get result
-    const result = await recordPlay(upperCode, gameId, bet);
+    // Record the play using unified player session (cross-game)
+    const result = await recordPlayerPlay(upperCode, gameId, bet);
 
     if (!result.success) {
       return json({ error: result.error }, { status: 400 });
@@ -33,7 +32,7 @@ export const POST: RequestHandler = async ({ request }) => {
       success: true,
       prize: result.prize,
       symbol: result.symbol,
-      playsLeft: result.playsLeft,
+      playsLeft: result.creditsLeft,  // Use creditsLeft instead of playsLeft
       totalWinnings: result.totalWinnings
     });
   } catch (error) {
@@ -42,27 +41,29 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 };
 
-// GET - Get session status
+// GET - Get unified player session status
 export const GET: RequestHandler = async ({ url }) => {
   try {
     const code = url.searchParams.get('code');
-    const gameId = url.searchParams.get('gameId');
 
     if (!code) {
       return json({ error: 'Code required' }, { status: 400 });
     }
 
-    if (!gameId || !['slots', 'scratch'].includes(gameId)) {
-      return json({ error: 'Valid gameId required' }, { status: 400 });
-    }
-
-    const status = await getSessionStatus(code, gameId);
+    const status = await getPlayerSessionStatus(code);
 
     if (!status) {
       return json({ exists: false });
     }
 
-    return json(status);
+    return json({
+      exists: status.exists,
+      playsLeft: status.creditsLeft,  // Alias for compatibility
+      creditsLeft: status.creditsLeft,
+      totalWinnings: status.totalWinnings,
+      claimed: status.claimed,
+      lastGameId: status.lastGameId
+    });
   } catch (error) {
     console.error('Session status error:', error);
     return json({ error: 'Server error' }, { status: 500 });

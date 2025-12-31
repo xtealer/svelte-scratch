@@ -1,11 +1,12 @@
 import { getDB } from './index';
-import type { GameSession, GamePlay, PayoutRequest, PrizeStats, RechargeCard, CreditConversion } from './types';
+import type { GameSession, GamePlay, PayoutRequest, PrizeStats, RechargeCard, CreditConversion, PlayerSession } from './types';
 import { ObjectId } from 'mongodb';
 
 const SESSIONS_COLLECTION = 'gameSessions';
 const PLAYS_COLLECTION = 'gamePlays';
 const PAYOUT_REQUESTS_COLLECTION = 'payoutRequests';
 const CREDIT_CONVERSIONS_COLLECTION = 'creditConversions';
+const PLAYER_SESSIONS_COLLECTION = 'playerSessions';
 
 // Prize configuration (~50% RTP, ~18% win rate)
 export const PRIZE_CONFIG = [
@@ -498,4 +499,224 @@ export async function getCreditConversionStats() {
     total: conversions.length,
     totalAmount: conversions.reduce((sum, c) => sum + c.amount, 0)
   };
+}
+
+// ==================== UNIFIED PLAYER SESSION (CROSS-GAME WALLET) ====================
+
+// Get or create a unified player session for a code
+export async function getOrCreatePlayerSession(
+  code: string,
+  initialCredits: number
+): Promise<PlayerSession> {
+  const db = await getDB();
+  const upperCode = code.toUpperCase().trim();
+
+  // Check for existing session
+  let session = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).findOne({
+    code: upperCode,
+    claimed: false
+  });
+
+  if (session) {
+    return session;
+  }
+
+  // Create new session
+  const newSession: PlayerSession = {
+    code: upperCode,
+    startedAt: new Date(),
+    initialCredits,
+    creditsUsed: 0,
+    totalWinnings: 0,
+    claimed: false,
+  };
+
+  const result = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).insertOne(newSession);
+  newSession._id = result.insertedId;
+
+  return newSession;
+}
+
+// Get player session by code
+export async function getPlayerSession(code: string): Promise<PlayerSession | null> {
+  const db = await getDB();
+  return db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).findOne({
+    code: code.toUpperCase().trim(),
+    claimed: false
+  });
+}
+
+// Get player session status
+export async function getPlayerSessionStatus(code: string): Promise<{
+  exists: boolean;
+  creditsLeft: number;
+  totalWinnings: number;
+  claimed: boolean;
+  lastGameId?: string;
+} | null> {
+  const session = await getPlayerSession(code);
+
+  if (!session) {
+    return null;
+  }
+
+  return {
+    exists: true,
+    creditsLeft: session.initialCredits - session.creditsUsed,
+    totalWinnings: session.totalWinnings,
+    claimed: session.claimed,
+    lastGameId: session.lastGameId
+  };
+}
+
+// Record a play using the unified player session
+export async function recordPlayerPlay(
+  code: string,
+  gameId: string,
+  betAmount: number = 1
+): Promise<{
+  success: boolean;
+  prize: number;
+  symbol: string;
+  creditsLeft: number;
+  totalWinnings: number;
+  error?: string;
+}> {
+  const db = await getDB();
+  const upperCode = code.toUpperCase().trim();
+
+  // Get player session
+  const session = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).findOne({
+    code: upperCode,
+    claimed: false
+  });
+
+  if (!session) {
+    return { success: false, prize: 0, symbol: '', creditsLeft: 0, totalWinnings: 0, error: 'Session not found' };
+  }
+
+  const creditsLeft = session.initialCredits - session.creditsUsed;
+
+  if (creditsLeft < betAmount) {
+    return { success: false, prize: 0, symbol: '', creditsLeft, totalWinnings: session.totalWinnings, error: 'Not enough credits' };
+  }
+
+  // Calculate prize server-side
+  const prize = calculatePrize(betAmount);
+  const symbol = prize > 0 ? getPrizeSymbol(prize) : '';
+
+  // Record individual play for stats
+  const play: GamePlay = {
+    sessionId: session._id!,
+    code: upperCode,
+    gameId,
+    betAmount,
+    prizeAmount: prize,
+    symbol,
+    playedAt: new Date()
+  };
+  await db.collection<GamePlay>(PLAYS_COLLECTION).insertOne(play);
+
+  // Update player session
+  const updatedSession = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).findOneAndUpdate(
+    { _id: session._id },
+    {
+      $inc: {
+        creditsUsed: betAmount,
+        totalWinnings: prize
+      },
+      $set: {
+        lastGameId: gameId
+      }
+    },
+    { returnDocument: 'after' }
+  );
+
+  if (!updatedSession) {
+    return { success: false, prize: 0, symbol: '', creditsLeft, totalWinnings: session.totalWinnings, error: 'Failed to update session' };
+  }
+
+  return {
+    success: true,
+    prize,
+    symbol,
+    creditsLeft: updatedSession.initialCredits - updatedSession.creditsUsed,
+    totalWinnings: updatedSession.totalWinnings
+  };
+}
+
+// Add credits to player session (from winnings conversion)
+export async function addCreditsToPlayerSession(code: string, creditsToAdd: number): Promise<PlayerSession | null> {
+  const db = await getDB();
+  const upperCode = code.toUpperCase().trim();
+
+  const updatedSession = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).findOneAndUpdate(
+    { code: upperCode, claimed: false },
+    {
+      $inc: {
+        initialCredits: creditsToAdd
+      },
+      $set: {
+        totalWinnings: 0  // Reset winnings after conversion
+      }
+    },
+    { returnDocument: 'after' }
+  );
+
+  return updatedSession;
+}
+
+// Mark player session as claimed (for payout)
+export async function claimPlayerSession(code: string): Promise<boolean> {
+  const db = await getDB();
+
+  const result = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).updateOne(
+    { code: code.toUpperCase().trim(), claimed: false },
+    {
+      $set: {
+        claimed: true,
+        claimedAt: new Date(),
+        endedAt: new Date()
+      }
+    }
+  );
+
+  return result.modifiedCount > 0;
+}
+
+// Create a unified payout request (cross-game)
+export async function createUnifiedPayoutRequest(
+  code: string,
+  amount: number,
+  playerName: string,
+  playerPhone: string,
+  playerCountry: string
+): Promise<PayoutRequest> {
+  const db = await getDB();
+  const upperCode = code.toUpperCase().trim();
+
+  // Get the seller who sold this code and the last game played
+  const card = await db.collection<RechargeCard>('rechargeCards').findOne({ code: upperCode });
+  const session = await getPlayerSession(upperCode);
+
+  const request: PayoutRequest = {
+    code: upperCode,
+    gameId: session?.lastGameId || 'unknown',
+    amount,
+    playerName,
+    playerPhone,
+    playerCountry,
+    status: 'pending',
+    createdAt: new Date(),
+    sellerId: card?.soldBy,
+    sellerName: card?.soldByName
+  };
+
+  const result = await db.collection<PayoutRequest>(PAYOUT_REQUESTS_COLLECTION).insertOne(request);
+  request._id = result.insertedId;
+
+  // Mark the player session as claimed
+  await claimPlayerSession(code);
+
+  return request;
 }

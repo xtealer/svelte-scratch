@@ -1,9 +1,9 @@
 import { json } from "@sveltejs/kit";
 import type { RequestHandler } from "./$types";
 import { getRechargeCard, useRechargeCard } from "$lib/server/db/rechargeCards";
-import { getOrCreateSession, getSessionStatus } from "$lib/server/db/gameSessions";
+import { getOrCreatePlayerSession, getPlayerSessionStatus } from "$lib/server/db/gameSessions";
 
-// POST - Validate and use a scratch code
+// POST - Validate and use a scratch code (unified player session)
 export const POST: RequestHandler = async ({ request }) => {
   try {
     const { code, gameId = 'scratch' } = await request.json();
@@ -24,17 +24,17 @@ export const POST: RequestHandler = async ({ request }) => {
     }
 
     if (ticket.used) {
-      // Check if there's an existing session with plays left or winnings
-      const status = await getSessionStatus(upperCode, gameId);
+      // Check if there's an existing unified player session with credits or winnings
+      const status = await getPlayerSessionStatus(upperCode);
 
-      if (status && (status.playsLeft > 0 || status.totalWinnings > 0)) {
-        // Return existing session data
+      if (status && (status.creditsLeft > 0 || status.totalWinnings > 0)) {
+        // Return existing session data (works across all games)
         return json({
           success: true,
           code: upperCode,
-          plays: status.playsLeft,
+          plays: status.creditsLeft,
           totalWinnings: status.totalWinnings,
-          message: `Session restored with ${status.playsLeft} play${status.playsLeft !== 1 ? "s" : ""} remaining`,
+          message: `Session restored with ${status.creditsLeft} credit${status.creditsLeft !== 1 ? "s" : ""} remaining`,
         });
       }
 
@@ -47,15 +47,15 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: "Failed to use code" }, { status: 500 });
     }
 
-    // Create game session
-    const session = await getOrCreateSession(upperCode, gameId, usedTicket.plays);
+    // Create unified player session (works across all games)
+    const session = await getOrCreatePlayerSession(upperCode, usedTicket.plays);
 
     return json({
       success: true,
       code: upperCode,
       plays: usedTicket.plays,
       totalWinnings: session.totalWinnings,
-      message: `Loaded ${usedTicket.plays} play${usedTicket.plays > 1 ? "s" : ""}!`,
+      message: `Loaded ${usedTicket.plays} credit${usedTicket.plays > 1 ? "s" : ""}!`,
     });
   } catch (error) {
     console.error('Scratch code error:', error);
