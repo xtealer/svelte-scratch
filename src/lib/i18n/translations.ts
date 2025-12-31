@@ -207,6 +207,16 @@ export interface GameMenuTranslations {
   slotsTitle: string;
   slotsDesc: string;
   prizeText: string;
+  ourGames: string;
+  allBets: string;
+  game: string;
+  user: string;
+  time: string;
+  betAmount: string;
+  multiplier: string;
+  payout: string;
+  playNow: string;
+  noBetsYet: string;
 }
 
 export interface GameUITranslations {
@@ -494,11 +504,21 @@ export const translations: Record<Language, Translations> = {
     gameMenu: {
       title: 'GOLD GAMES',
       subtitle: 'Choose Your Game',
-      scratchTitle: 'SCRATCH & WIN',
+      scratchTitle: 'Scratch',
       scratchDesc: 'Scratch and Win!',
-      slotsTitle: 'SLOTS',
+      slotsTitle: 'Slots',
       slotsDesc: 'Spin and Win!',
       prizeText: 'Win up to $500',
+      ourGames: 'Our Games',
+      allBets: 'All Bets',
+      game: 'Game',
+      user: 'User',
+      time: 'Time',
+      betAmount: 'Bet',
+      multiplier: 'Multiplier',
+      payout: 'Payout',
+      playNow: 'Play Now',
+      noBetsYet: 'No bets yet',
     },
     gameUI: {
       backToMenu: 'Back to Menu',
@@ -765,11 +785,21 @@ export const translations: Record<Language, Translations> = {
     gameMenu: {
       title: 'GOLD GAMES',
       subtitle: 'Elige Tu Juego',
-      scratchTitle: 'RASCA Y GANA',
+      scratchTitle: 'Rasca',
       scratchDesc: '¡Rasca y Gana!',
-      slotsTitle: 'TRAGAMONEDAS',
+      slotsTitle: 'Tragamonedas',
       slotsDesc: '¡Gira y Gana!',
       prizeText: 'Gana hasta $500',
+      ourGames: 'Nuestros Juegos',
+      allBets: 'Todas las Apuestas',
+      game: 'Juego',
+      user: 'Usuario',
+      time: 'Hora',
+      betAmount: 'Apuesta',
+      multiplier: 'Multiplicador',
+      payout: 'Premio',
+      playNow: 'Jugar Ahora',
+      noBetsYet: 'Sin apuestas aún',
     },
     gameUI: {
       backToMenu: 'Volver al Menú',
@@ -1036,11 +1066,21 @@ export const translations: Record<Language, Translations> = {
     gameMenu: {
       title: 'GOLD GAMES',
       subtitle: 'اختر لعبتك',
-      scratchTitle: 'اخدش واربح',
+      scratchTitle: 'اخدش',
       scratchDesc: 'اخدش واربح!',
       slotsTitle: 'سلوتس',
       slotsDesc: 'دوّر واربح!',
       prizeText: 'اربح حتى $500',
+      ourGames: 'ألعابنا',
+      allBets: 'جميع الرهانات',
+      game: 'اللعبة',
+      user: 'المستخدم',
+      time: 'الوقت',
+      betAmount: 'الرهان',
+      multiplier: 'المضاعف',
+      payout: 'الجائزة',
+      playNow: 'العب الآن',
+      noBetsYet: 'لا توجد رهانات بعد',
     },
     gameUI: {
       backToMenu: 'العودة للقائمة',

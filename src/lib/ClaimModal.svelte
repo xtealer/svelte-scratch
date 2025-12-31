@@ -54,6 +54,7 @@
   let submitting = $state(false);
   let submitted = $state(false);
   let submittedAction = $state<ActionType>('payout');
+  let submittedAmount = $state(0);  // Store amount at time of submission
   let error = $state('');
 
   // Get selected country info
@@ -66,12 +67,12 @@
 
   function close(): void {
     show = false;
-    // Reset form when closing
-    if (!submitted) {
-      playerName = '';
-      phoneNumber = '';
-      error = '';
-    }
+    // Always reset form state when closing
+    playerName = '';
+    phoneNumber = '';
+    error = '';
+    submitted = false;
+    submittedAmount = 0;
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -126,6 +127,8 @@
         return;
       }
 
+      // Store the amount before conversion (since totalWinnings will become 0)
+      submittedAmount = totalWinnings;
       submitted = true;
       submittedAction = 'credits';
       submitting = false;
@@ -168,6 +171,8 @@
         return;
       }
 
+      // Store the amount before clearing (since totalWinnings will become 0)
+      submittedAmount = totalWinnings;
       submitted = true;
       submittedAction = 'payout';
       submitting = false;
@@ -197,7 +202,7 @@
             <div class="modal-header">{$t.claimModal.requestSent}</div>
             <div class="winnings">
               <span class="label">{$t.claimModal.amountRequested}</span>
-              <span class="amount">${totalWinnings.toFixed(2)}</span>
+              <span class="amount">${submittedAmount.toFixed(2)}</span>
             </div>
             <div class="info">
               <p>{$t.claimModal.payoutInfo1}</p>
@@ -208,7 +213,7 @@
             <div class="modal-header">{$t.claimModal.creditsAdded}</div>
             <div class="winnings credits-added">
               <span class="label">{$t.claimModal.creditsAddedAmount}</span>
-              <span class="amount">${totalWinnings.toFixed(2)}</span>
+              <span class="amount">${submittedAmount.toFixed(2)}</span>
             </div>
             <div class="info">
               <p>{$t.claimModal.creditsInfo1}</p>

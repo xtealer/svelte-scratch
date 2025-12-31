@@ -8,7 +8,7 @@
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
-  import { ArrowLeft, Trophy, X, Volume2, VolumeX } from "lucide-svelte";
+  import { Trophy, Volume2, VolumeX } from "lucide-svelte";
   import { playerWallet, hasActiveSession as walletHasSession } from "$lib/stores/playerWallet";
 
   interface PrizeConfig {
@@ -483,23 +483,11 @@
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
-        <a href="/" class="control-btn back-btn" title={$t.gameUI.backToMenu}>
-          <ArrowLeft size={20} />
-        </a>
         <button class="control-btn" onclick={openPrizeList} title={$t.gameUI.viewPrizes}>
           <Trophy size={20} />
         </button>
       </div>
       <div class="control-right">
-        {#if hasActiveSession}
-          <button
-            class="control-btn end-btn"
-            onclick={resetSession}
-            title={$t.gameUI.endSession}
-          >
-            <X size={20} />
-          </button>
-        {/if}
         <button
           class="control-btn"
           class:muted
@@ -660,10 +648,6 @@
     color: #ffd700;
   }
 
-  .control-btn.end-btn :global(svg) {
-    color: #ff6666;
-  }
-
   .control-left {
     display: flex;
     gap: 8px;
@@ -672,14 +656,6 @@
   .control-right {
     display: flex;
     gap: 8px;
-  }
-
-  .control-btn.end-btn {
-    border-color: #ff6666;
-  }
-
-  .control-btn.end-btn:hover {
-    background: rgba(255, 100, 100, 0.3);
   }
 
   .ticket-title {
