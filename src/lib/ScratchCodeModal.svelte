@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
+
   let {
     show = $bindable(false),
     onCodeSubmit,
@@ -25,7 +27,7 @@
 
   async function handleSubmit(): Promise<void> {
     if (!code.trim()) {
-      error = "Por favor ingresa un código";
+      error = $t.codeModal.enterCodeError;
       return;
     }
 
@@ -54,13 +56,13 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">INGRESAR CÓDIGO</div>
+      <div class="modal-header">{$t.codeModal.title}</div>
 
       <div class="input-group">
         <input
           type="text"
           bind:value={code}
-          placeholder="Ingresa código (ej: ABC123)"
+          placeholder={$t.codeModal.placeholder}
           onkeydown={handleKeydown}
           disabled={loading}
           maxlength="20"
@@ -72,16 +74,16 @@
       {/if}
 
       <div class="info">
-        <p>Ingresa el código de tu boleto para cargar tus jugadas.</p>
-        <p>Cada código puede tener varias jugadas.</p>
+        <p>{$t.codeModal.info1}</p>
+        <p>{$t.codeModal.info2}</p>
       </div>
 
       <div class="buttons">
         <button class="submit-btn" onclick={handleSubmit} disabled={loading}>
-          {loading ? "Cargando..." : "Cargar Jugadas"}
+          {loading ? $t.codeModal.loading : $t.codeModal.loadPlays}
         </button>
         <button class="cancel-btn" onclick={close} disabled={loading}>
-          Cancelar
+          {$t.codeModal.cancel}
         </button>
       </div>
     </div>
