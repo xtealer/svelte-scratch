@@ -5,8 +5,7 @@ import {
   createRechargeCard,
   getAllCards,
   getCardsByCreator,
-  getCardStats,
-  markCardAsSold
+  getCardStats
 } from '$lib/server/db/rechargeCards';
 import { ObjectId } from 'mongodb';
 
@@ -55,7 +54,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
 
     const userId = new ObjectId(user.userId);
-    const card = await createRechargeCard(amount, userId);
+    const card = await createRechargeCard(amount, userId, user.name);
 
     return json({
       success: true,
@@ -63,41 +62,6 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         _id: card._id?.toString(),
         code: card.code,
         amount: card.price
-      }
-    });
-  } catch (error) {
-    return handleAuthError(error);
-  }
-};
-
-// PATCH - Mark card as sold
-export const PATCH: RequestHandler = async ({ request, cookies }) => {
-  try {
-    const user = requireAuth(cookies);
-
-    const { code } = await request.json();
-
-    if (!code) {
-      return json({ error: 'Code required' }, { status: 400 });
-    }
-
-    const card = await markCardAsSold(
-      code,
-      new ObjectId(user.userId),
-      user.name
-    );
-
-    if (!card) {
-      return json({ error: 'Card not found' }, { status: 404 });
-    }
-
-    return json({
-      success: true,
-      card: {
-        code: card.code,
-        plays: card.plays,
-        price: card.price,
-        soldAt: card.soldAt
       }
     });
   } catch (error) {

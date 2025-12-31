@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { requireAuth, isAdminOrSuper, handleAuthError } from '$lib/server/auth';
 import { getAllSales, getSalesByUser, getSalesStats, getTopSellers } from '$lib/server/db/sales';
-import { syncUsedCardsToSales } from '$lib/server/db/rechargeCards';
+import { syncCardsToSales } from '$lib/server/db/rechargeCards';
 import { ObjectId } from 'mongodb';
 
 // GET - List sales (admin sees all, seller sees own)
@@ -66,11 +66,11 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
       return json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const result = await syncUsedCardsToSales();
+    const result = await syncCardsToSales();
 
     return json({
       success: true,
-      message: `Synced ${result.synced} used cards to sales`,
+      message: `Synced ${result.synced} cards to sales`,
       synced: result.synced,
       skipped: result.skipped
     });

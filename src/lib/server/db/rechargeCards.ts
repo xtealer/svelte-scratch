@@ -28,7 +28,8 @@ async function generateCode(): Promise<string> {
 
 export async function createRechargeCard(
   amount: number,
-  createdBy: ObjectId
+  createdBy: ObjectId,
+  sellerName: string
 ): Promise<RechargeCard> {
   const db = await getDB();
 
@@ -37,19 +38,36 @@ export async function createRechargeCard(
   }
 
   const code = await generateCode();
+  const now = new Date();
 
   // amount = plays = price (all the same value)
+  // Card is automatically sold when generated
   const card: RechargeCard = {
     code,
     plays: amount,
     price: amount,
     used: false,
-    createdAt: new Date(),
+    createdAt: now,
     createdBy,
+    soldAt: now,  // Automatically sold on creation
+    soldBy: createdBy
   };
 
   const result = await db.collection<RechargeCard>(CARDS_COLLECTION).insertOne(card);
   card._id = result.insertedId;
+
+  // Create the sale record automatically
+  const sale: Sale = {
+    rechargeCardId: card._id,
+    code: card.code,
+    plays: card.plays,
+    price: card.price,
+    sellerId: createdBy,
+    sellerName,
+    soldAt: now
+  };
+
+  await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
 
   return card;
 }
@@ -65,92 +83,19 @@ export async function useRechargeCard(code: string, sessionId?: string): Promise
   const db = await getDB();
   const upperCode = code.toUpperCase().trim();
 
-  const now = new Date();
-
   const result = await db.collection<RechargeCard>(CARDS_COLLECTION).findOneAndUpdate(
     { code: upperCode, used: false },
     {
       $set: {
         used: true,
-        usedAt: now,
-        usedBySession: sessionId,
-        // Also mark as sold when used (if not already sold)
-        soldAt: now
+        usedAt: new Date(),
+        usedBySession: sessionId
       }
     },
     { returnDocument: 'after' }
   );
-
-  // Create a Sale record if the card was successfully used and doesn't already have a sale
-  if (result) {
-    // Check if a sale record already exists for this card
-    const existingSale = await db.collection<Sale>(SALES_COLLECTION).findOne({
-      rechargeCardId: result._id
-    });
-
-    if (!existingSale) {
-      // Get the creator info for the sale record
-      const creator = await db.collection('users').findOne({ _id: result.createdBy });
-
-      const sale: Sale = {
-        rechargeCardId: result._id!,
-        code: result.code,
-        plays: result.plays,
-        price: result.price,
-        sellerId: result.createdBy,
-        sellerName: creator?.username || 'Unknown',
-        soldAt: now
-      };
-
-      await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
-    }
-  }
 
   return result;
-}
-
-export async function markCardAsSold(
-  code: string,
-  sellerId: ObjectId,
-  sellerName: string
-): Promise<RechargeCard | null> {
-  const db = await getDB();
-  const upperCode = code.toUpperCase().trim();
-
-  const card = await db.collection<RechargeCard>(CARDS_COLLECTION).findOneAndUpdate(
-    { code: upperCode },
-    {
-      $set: {
-        soldAt: new Date(),
-        soldBy: sellerId
-      }
-    },
-    { returnDocument: 'after' }
-  );
-
-  if (card) {
-    // Check if a sale record already exists (e.g., from useRechargeCard)
-    const existingSale = await db.collection<Sale>(SALES_COLLECTION).findOne({
-      rechargeCardId: card._id
-    });
-
-    if (!existingSale) {
-      // Record the sale only if it doesn't exist
-      const sale: Sale = {
-        rechargeCardId: card._id!,
-        code: card.code,
-        plays: card.plays,
-        price: card.price,
-        sellerId,
-        sellerName,
-        soldAt: new Date()
-      };
-
-      await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
-    }
-  }
-
-  return card;
 }
 
 export async function getCardsByCreator(creatorId: ObjectId): Promise<RechargeCard[]> {
@@ -192,19 +137,20 @@ export async function getCardStats() {
   };
 }
 
-// Sync historical used cards to sales - creates Sale records for used cards that don't have them
-export async function syncUsedCardsToSales(): Promise<{ synced: number; skipped: number }> {
+// Sync historical cards to sales - creates Sale records for all cards that don't have them
+// Since card generation = sale, all cards should have a corresponding Sale record
+export async function syncCardsToSales(): Promise<{ synced: number; skipped: number }> {
   const db = await getDB();
 
-  // Find all used cards
-  const usedCards = await db.collection<RechargeCard>(CARDS_COLLECTION)
-    .find({ used: true })
+  // Find ALL cards (since generation = sale)
+  const allCards = await db.collection<RechargeCard>(CARDS_COLLECTION)
+    .find({})
     .toArray();
 
   let synced = 0;
   let skipped = 0;
 
-  for (const card of usedCards) {
+  for (const card of allCards) {
     // Check if a sale record already exists for this card
     const existingSale = await db.collection<Sale>(SALES_COLLECTION).findOne({
       rechargeCardId: card._id
@@ -218,7 +164,7 @@ export async function syncUsedCardsToSales(): Promise<{ synced: number; skipped:
     // Get the creator info
     const creator = await db.collection('users').findOne({ _id: card.createdBy });
 
-    // Create the sale record
+    // Create the sale record - use createdAt since generation = sale
     const sale: Sale = {
       rechargeCardId: card._id!,
       code: card.code,
@@ -226,7 +172,7 @@ export async function syncUsedCardsToSales(): Promise<{ synced: number; skipped:
       price: card.price,
       sellerId: card.createdBy,
       sellerName: creator?.username || 'Unknown',
-      soldAt: card.usedAt || card.createdAt // Use usedAt if available, otherwise createdAt
+      soldAt: card.createdAt
     };
 
     await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
@@ -235,7 +181,7 @@ export async function syncUsedCardsToSales(): Promise<{ synced: number; skipped:
     if (!card.soldAt) {
       await db.collection<RechargeCard>(CARDS_COLLECTION).updateOne(
         { _id: card._id },
-        { $set: { soldAt: card.usedAt || new Date() } }
+        { $set: { soldAt: card.createdAt } }
       );
     }
 
