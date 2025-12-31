@@ -126,11 +126,15 @@ export interface PayoutRequest {
   notes?: string;
 }
 
+// Payout type
+export type PayoutType = 'cash' | 'credits';
+
 // Payout record (completed payout)
 export interface Payout {
   _id?: ObjectId;
   code: string;
   amount: number;
+  payoutType: PayoutType;
   playerName: string;
   playerPhone: string;
   playerCountry: string;

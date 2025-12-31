@@ -19,10 +19,10 @@ export interface CardsAdminTranslations {
   amountLabel: string;
   cancel: string;
   generating: string;
-  downloadText: string;
+  copyText: string;
   downloadImage: string;
   close: string;
-  copyWithMessage: string;
+  copyCode: string;
   total: string;
   unused: string;
   used: string;
@@ -287,10 +287,10 @@ export const translations: Record<Language, Translations> = {
       amountLabel: 'Amount ($)',
       cancel: 'Cancel',
       generating: 'Generating...',
-      downloadText: 'Download as Text',
+      copyText: 'Copy Text',
       downloadImage: 'Download as Image',
       close: 'Close',
-      copyWithMessage: 'Copy with message',
+      copyCode: 'Copy Code',
       total: 'Total',
       unused: 'Unused',
       used: 'Used',
@@ -527,10 +527,10 @@ export const translations: Record<Language, Translations> = {
       amountLabel: 'Monto ($)',
       cancel: 'Cancelar',
       generating: 'Generando...',
-      downloadText: 'Descargar como Texto',
+      copyText: 'Copiar Texto',
       downloadImage: 'Descargar como Imagen',
       close: 'Cerrar',
-      copyWithMessage: 'Copiar con mensaje',
+      copyCode: 'Copiar Código',
       total: 'Total',
       unused: 'Sin Usar',
       used: 'Usadas',
@@ -767,10 +767,10 @@ export const translations: Record<Language, Translations> = {
       amountLabel: 'المبلغ ($)',
       cancel: 'إلغاء',
       generating: 'جاري الإنشاء...',
-      downloadText: 'تحميل كنص',
+      copyText: 'نسخ النص',
       downloadImage: 'تحميل كصورة',
       close: 'إغلاق',
-      copyWithMessage: 'نسخ مع الرسالة',
+      copyCode: 'نسخ الرمز',
       total: 'الإجمالي',
       unused: 'غير مستخدمة',
       used: 'مستخدمة',

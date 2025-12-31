@@ -58,6 +58,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
         _id: p._id?.toString(),
         code: p.code,
         amount: p.amount,
+        payoutType: p.payoutType || 'cash',
         playerName: p.playerName,
         playerPhone: p.playerPhone,
         paidByName: p.paidByName,
@@ -92,7 +93,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
   try {
     const user = requireAuth(cookies);
 
-    const { code, amount, notes, requestId, playerName, playerPhone, playerCountry } = await request.json();
+    const { code, amount, notes, requestId, playerName, playerPhone, playerCountry, payoutType = 'cash' } = await request.json();
 
     if (!code) {
       return json({ error: 'Code required' }, { status: 400 });
@@ -100,6 +101,10 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 
     if (amount === undefined || amount <= 0) {
       return json({ error: 'Valid amount required' }, { status: 400 });
+    }
+
+    if (payoutType !== 'cash' && payoutType !== 'credits') {
+      return json({ error: 'Invalid payout type' }, { status: 400 });
     }
 
     // Check if already paid
@@ -113,6 +118,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
       amount,
       new ObjectId(user.userId),
       user.name,
+      payoutType,
       notes,
       playerName,
       playerPhone,
@@ -137,6 +143,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
         _id: payout._id?.toString(),
         code: payout.code,
         amount: payout.amount,
+        payoutType: payout.payoutType,
         paidAt: payout.paidAt
       }
     });
@@ -189,12 +196,13 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
         return json({ error: 'This code was already paid' }, { status: 400 });
       }
 
-      // Record the payout
+      // Record the payout (payout requests are always cash type)
       await recordPayout(
         payoutRequest.code,
         payoutRequest.amount,
         new ObjectId(user.userId),
         user.name,
+        'cash',
         notes,
         payoutRequest.playerName,
         payoutRequest.playerPhone,
