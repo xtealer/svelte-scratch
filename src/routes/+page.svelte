@@ -48,19 +48,30 @@
     }
   }
 
+  function closeAllModals() {
+    showCodeModal = false;
+    showLoginModal = false;
+    showRegisterModal = false;
+    showProfileModal = false;
+  }
+
   function openCodeModal() {
+    closeAllModals();
     showCodeModal = true;
   }
 
   function openLoginModal() {
+    closeAllModals();
     showLoginModal = true;
   }
 
   function openRegisterModal() {
+    closeAllModals();
     showRegisterModal = true;
   }
 
   function openProfileModal() {
+    closeAllModals();
     showProfileModal = true;
   }
 

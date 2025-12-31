@@ -449,29 +449,44 @@
     ctx.fill();
   }
 
+  function closeAllModals(): void {
+    showCodeModal = false;
+    showPrizeModal = false;
+    showClaimModal = false;
+    showLoginModal = false;
+    showRegisterModal = false;
+    showProfileModal = false;
+  }
+
   function openCodeModal(): void {
+    closeAllModals();
     showCodeModal = true;
   }
 
   function openPrizeList(): void {
+    closeAllModals();
     showPrizeModal = true;
   }
 
   function openClaimModal(): void {
     if (sessionWinnings > 0) {
+      closeAllModals();
       showClaimModal = true;
     }
   }
 
   function openLoginModal(): void {
+    closeAllModals();
     showLoginModal = true;
   }
 
   function openRegisterModal(): void {
+    closeAllModals();
     showRegisterModal = true;
   }
 
   function openProfileModal(): void {
+    closeAllModals();
     showProfileModal = true;
   }
 

@@ -163,27 +163,42 @@
     muted = !muted;
   }
 
+  function closeAllModals() {
+    showPrizeModal = false;
+    showCodeModal = false;
+    showClaimModal = false;
+    showLoginModal = false;
+    showRegisterModal = false;
+    showProfileModal = false;
+  }
+
   function openPrizeList() {
+    closeAllModals();
     showPrizeModal = true;
   }
 
   function openCodeModal() {
+    closeAllModals();
     showCodeModal = true;
   }
 
   function openClaimModal() {
+    closeAllModals();
     showClaimModal = true;
   }
 
   function openLoginModal() {
+    closeAllModals();
     showLoginModal = true;
   }
 
   function openRegisterModal() {
+    closeAllModals();
     showRegisterModal = true;
   }
 
   function openProfileModal() {
+    closeAllModals();
     showProfileModal = true;
   }
 
