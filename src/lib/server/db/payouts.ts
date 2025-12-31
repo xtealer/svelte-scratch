@@ -1,5 +1,5 @@
 import { getDB } from './index';
-import type { Payout, GameSession } from './types';
+import type { Payout, GameSession, PayoutType } from './types';
 import { ObjectId } from 'mongodb';
 
 const PAYOUTS_COLLECTION = 'payouts';
@@ -10,6 +10,7 @@ export async function recordPayout(
   amount: number,
   paidBy: ObjectId,
   paidByName: string,
+  payoutType: PayoutType = 'cash',
   notes?: string,
   playerName?: string,
   playerPhone?: string,
@@ -21,6 +22,7 @@ export async function recordPayout(
   const payout: Payout = {
     code: code.toUpperCase().trim(),
     amount,
+    payoutType,
     playerName: playerName || '',
     playerPhone: playerPhone || '',
     playerCountry: playerCountry || '',

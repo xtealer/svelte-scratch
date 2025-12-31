@@ -110,15 +110,13 @@
     generating = false;
   }
 
-  async function copyCode(code: string, amount: number) {
-    const translations = get(t);
-    const message = translations.rechargeCard.copyMessage(code, amount);
-    await navigator.clipboard.writeText(message);
+  async function copyCodeOnly(code: string) {
+    await navigator.clipboard.writeText(code);
     copiedCode = code;
     setTimeout(() => copiedCode = null, 2000);
   }
 
-  function downloadAsText() {
+  async function copyAsText() {
     if (!generatedCard) return;
     const translations = get(t);
     const rc = translations.rechargeCard;
@@ -130,13 +128,9 @@ ${rc.amount}: $${generatedCard.amount}
 ${rc.instructions}
 ${rc.goodLuck}`;
 
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `recharge-card-${generatedCard.code}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    await navigator.clipboard.writeText(text);
+    copiedCode = generatedCard.code + '-text';
+    setTimeout(() => copiedCode = null, 2000);
   }
 
   async function downloadAsImage() {
@@ -352,8 +346,8 @@ ${rc.goodLuck}`;
                 <span class="gen-info">${generatedCard.amount}</span>
                 <button
                   class="copy-btn"
-                  onclick={() => copyCode(generatedCard!.code, generatedCard!.amount)}
-                  title={$t.cardsAdmin.copyWithMessage}
+                  onclick={() => copyCodeOnly(generatedCard!.code)}
+                  title={$t.cardsAdmin.copyCode}
                 >
                   {#if copiedCode === generatedCard.code}
                     <Check size={16} />
@@ -364,9 +358,9 @@ ${rc.goodLuck}`;
               </div>
             </div>
             <div class="download-actions">
-              <button class="download-btn" onclick={downloadAsText}>
+              <button class="download-btn" onclick={copyAsText}>
                 <FileText size={18} />
-                <span>{$t.cardsAdmin.downloadText}</span>
+                <span>{copiedCode === generatedCard.code + '-text' ? '✓' : $t.cardsAdmin.copyText}</span>
               </button>
               <button class="download-btn image" onclick={downloadAsImage}>
                 <Image size={18} />
@@ -415,7 +409,20 @@ ${rc.goodLuck}`;
           <tbody>
             {#each cards as card}
               <tr class:used={card.used}>
-                <td class="code">{card.code}</td>
+                <td class="code">
+                  <span>{card.code}</span>
+                  <button
+                    class="copy-btn-small"
+                    onclick={() => copyCodeOnly(card.code)}
+                    title={$t.cardsAdmin.copyCode}
+                  >
+                    {#if copiedCode === card.code}
+                      <Check size={12} />
+                    {:else}
+                      <Copy size={12} />
+                    {/if}
+                  </button>
+                </td>
                 <td class="amount">${card.amount}</td>
                 <td>
                   {#if card.used}
@@ -801,6 +808,33 @@ ${rc.goodLuck}`;
     font-family: monospace;
     color: #ffd700;
     direction: ltr;
+  }
+
+  .code span {
+    margin-right: 8px;
+  }
+
+  .copy-btn-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s;
+    vertical-align: middle;
+  }
+
+  .copy-btn-small:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+
+  tr.used .copy-btn-small {
+    opacity: 1;
   }
 
   .amount {
