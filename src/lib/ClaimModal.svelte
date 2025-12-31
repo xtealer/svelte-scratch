@@ -320,8 +320,8 @@
   }
 
   .modal-content {
-    background: linear-gradient(#222, #333);
-    border: 3px solid #ffd700;
+    background: linear-gradient(#1a2c38, #213743);
+    border: 3px solid #00e701;
     border-radius: 16px;
     padding: 20px 16px;
     width: 100%;
@@ -329,20 +329,20 @@
     max-height: calc(100vh - 24px);
     max-height: calc(100dvh - 24px);
     overflow-y: auto;
-    box-shadow: 0 0 30px #ff0;
+    box-shadow: 0 0 30px rgba(0, 231, 1, 0.3);
     text-align: center;
   }
 
   .modal-header {
     font-size: 1.4em;
     margin-bottom: 12px;
-    text-shadow: 0 0 10px #ff0;
-    color: #ffd700;
+    text-shadow: 0 0 10px rgba(0, 231, 1, 0.5);
+    color: #00e701;
   }
 
   .winnings {
-    background: linear-gradient(#1a1a1a, #0d0d0d);
-    border: 2px solid #ffd700;
+    background: linear-gradient(#0f1923, #1a2c38);
+    border: 2px solid #00e701;
     border-radius: 12px;
     padding: 12px;
     margin-bottom: 16px;
@@ -395,8 +395,8 @@
   .form-group input {
     width: 100%;
     padding: 12px;
-    background: #1a1a1a;
-    border: 2px solid #444;
+    background: #0f1923;
+    border: 2px solid #2d4a5e;
     border-radius: 8px;
     color: #fff;
     font-size: 1em;
@@ -405,7 +405,7 @@
 
   .form-group input:focus {
     outline: none;
-    border-color: #ffd700;
+    border-color: #00e701;
   }
 
   .form-group input::placeholder {
@@ -425,8 +425,8 @@
   .country-select select {
     appearance: none;
     padding: 12px 32px 12px 12px;
-    background: #1a1a1a;
-    border: 2px solid #444;
+    background: #0f1923;
+    border: 2px solid #2d4a5e;
     border-radius: 8px;
     color: #fff;
     font-size: 0.9em;
@@ -436,7 +436,7 @@
 
   .country-select select:focus {
     outline: none;
-    border-color: #ffd700;
+    border-color: #00e701;
   }
 
   .country-select :global(svg) {
@@ -476,7 +476,7 @@
 
   .code-ref {
     margin-top: 8px;
-    color: #ffd700;
+    color: #00e701;
   }
 
   .button-group {
@@ -502,7 +502,7 @@
   }
 
   .submit-btn.payout-btn {
-    background: linear-gradient(#ffd700, #b8860b);
+    background: linear-gradient(#00e701, #00b301);
     color: #000;
   }
 
@@ -530,8 +530,8 @@
     font-size: 1em;
     width: 100%;
     background: transparent;
-    color: #888;
-    border: 1px solid #444;
+    color: #b1bad3;
+    border: 1px solid #2d4a5e;
     border-radius: 10px;
     cursor: pointer;
   }
@@ -550,7 +550,7 @@
     padding: 14px;
     font-size: 1.2em;
     width: 100%;
-    background: linear-gradient(#ffd700, #b8860b);
+    background: linear-gradient(#00e701, #00b301);
     color: #000;
     border: none;
     border-radius: 10px;
