@@ -85,6 +85,38 @@ export async function loginWithMetamask(metamaskAddress: string): Promise<Player
   return user;
 }
 
+export async function createMetamaskUser(metamaskAddress: string): Promise<PlayerUser> {
+  const db = await getDB();
+  const normalizedAddress = metamaskAddress.toLowerCase();
+
+  // Check if metamask address already exists
+  const existing = await db.collection<PlayerUser>(COLLECTION).findOne({
+    metamaskAddress: normalizedAddress
+  });
+  if (existing) {
+    throw new Error('Wallet already registered');
+  }
+
+  // Create user with MetaMask address only (no email/password required)
+  // Use shortened wallet address as display name
+  const shortAddress = `${metamaskAddress.slice(0, 6)}...${metamaskAddress.slice(-4)}`;
+
+  const user: PlayerUser = {
+    fullName: shortAddress,
+    country: 'Unknown',
+    preferredLanguage: 'en',
+    metamaskAddress: normalizedAddress,
+    active: true,
+    createdAt: new Date(),
+    lastLogin: new Date()
+  };
+
+  const result = await db.collection<PlayerUser>(COLLECTION).insertOne(user);
+  user._id = result.insertedId;
+
+  return user;
+}
+
 export async function linkMetamaskToAccount(
   userId: string | ObjectId,
   metamaskAddress: string
@@ -139,7 +171,7 @@ export function generatePlayerToken(user: PlayerUser): string {
 
 export interface PlayerTokenPayload {
   odSI: string;
-  email: string;
+  email?: string; // Optional for MetaMask-only accounts
   fullName: string;
   country: string;
   preferredLanguage: SupportedLanguage;

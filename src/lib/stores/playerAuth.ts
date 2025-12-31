@@ -7,7 +7,7 @@ const USER_KEY = 'goldGames_playerUser';
 
 export interface PlayerAuthUser {
   odSI: string;
-  email: string;
+  email?: string; // Optional for MetaMask-only accounts
   fullName: string;
   country: string;
   preferredLanguage: SupportedLanguage;
