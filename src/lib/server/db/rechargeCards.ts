@@ -65,17 +65,46 @@ export async function useRechargeCard(code: string, sessionId?: string): Promise
   const db = await getDB();
   const upperCode = code.toUpperCase().trim();
 
+  const now = new Date();
+
   const result = await db.collection<RechargeCard>(CARDS_COLLECTION).findOneAndUpdate(
     { code: upperCode, used: false },
     {
       $set: {
         used: true,
-        usedAt: new Date(),
-        usedBySession: sessionId
+        usedAt: now,
+        usedBySession: sessionId,
+        // Also mark as sold when used (if not already sold)
+        soldAt: now
       }
     },
     { returnDocument: 'after' }
   );
+
+  // Create a Sale record if the card was successfully used and doesn't already have a sale
+  if (result) {
+    // Check if a sale record already exists for this card
+    const existingSale = await db.collection<Sale>(SALES_COLLECTION).findOne({
+      rechargeCardId: result._id
+    });
+
+    if (!existingSale) {
+      // Get the creator info for the sale record
+      const creator = await db.collection('users').findOne({ _id: result.createdBy });
+
+      const sale: Sale = {
+        rechargeCardId: result._id!,
+        code: result.code,
+        plays: result.plays,
+        price: result.price,
+        sellerId: result.createdBy,
+        sellerName: creator?.username || 'Unknown',
+        soldAt: now
+      };
+
+      await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
+    }
+  }
 
   return result;
 }
@@ -100,18 +129,25 @@ export async function markCardAsSold(
   );
 
   if (card) {
-    // Record the sale
-    const sale: Sale = {
-      rechargeCardId: card._id!,
-      code: card.code,
-      plays: card.plays,
-      price: card.price,
-      sellerId,
-      sellerName,
-      soldAt: new Date()
-    };
+    // Check if a sale record already exists (e.g., from useRechargeCard)
+    const existingSale = await db.collection<Sale>(SALES_COLLECTION).findOne({
+      rechargeCardId: card._id
+    });
 
-    await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
+    if (!existingSale) {
+      // Record the sale only if it doesn't exist
+      const sale: Sale = {
+        rechargeCardId: card._id!,
+        code: card.code,
+        plays: card.plays,
+        price: card.price,
+        sellerId,
+        sellerName,
+        soldAt: new Date()
+      };
+
+      await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
+    }
   }
 
   return card;
@@ -154,4 +190,57 @@ export async function getCardStats() {
     totalValue: cards.reduce((sum, c) => sum + c.price, 0),
     soldValue: cards.filter(c => c.soldAt).reduce((sum, c) => sum + c.price, 0),
   };
+}
+
+// Sync historical used cards to sales - creates Sale records for used cards that don't have them
+export async function syncUsedCardsToSales(): Promise<{ synced: number; skipped: number }> {
+  const db = await getDB();
+
+  // Find all used cards
+  const usedCards = await db.collection<RechargeCard>(CARDS_COLLECTION)
+    .find({ used: true })
+    .toArray();
+
+  let synced = 0;
+  let skipped = 0;
+
+  for (const card of usedCards) {
+    // Check if a sale record already exists for this card
+    const existingSale = await db.collection<Sale>(SALES_COLLECTION).findOne({
+      rechargeCardId: card._id
+    });
+
+    if (existingSale) {
+      skipped++;
+      continue;
+    }
+
+    // Get the creator info
+    const creator = await db.collection('users').findOne({ _id: card.createdBy });
+
+    // Create the sale record
+    const sale: Sale = {
+      rechargeCardId: card._id!,
+      code: card.code,
+      plays: card.plays,
+      price: card.price,
+      sellerId: card.createdBy,
+      sellerName: creator?.username || 'Unknown',
+      soldAt: card.usedAt || card.createdAt // Use usedAt if available, otherwise createdAt
+    };
+
+    await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
+
+    // Also update the card to have soldAt if it doesn't
+    if (!card.soldAt) {
+      await db.collection<RechargeCard>(CARDS_COLLECTION).updateOne(
+        { _id: card._id },
+        { $set: { soldAt: card.usedAt || new Date() } }
+      );
+    }
+
+    synced++;
+  }
+
+  return { synced, skipped };
 }

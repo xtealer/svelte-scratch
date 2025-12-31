@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { requireAuth, isAdminOrSuper, handleAuthError } from '$lib/server/auth';
 import { getAllSales, getSalesByUser, getSalesStats, getTopSellers } from '$lib/server/db/sales';
+import { syncUsedCardsToSales } from '$lib/server/db/rechargeCards';
 import { ObjectId } from 'mongodb';
 
 // GET - List sales (admin sees all, seller sees own)
@@ -49,6 +50,29 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
         totalSales: t.totalSales,
         totalRevenue: t.totalRevenue
       }))
+    });
+  } catch (error) {
+    return handleAuthError(error);
+  }
+};
+
+// POST - Sync used cards to sales (admin only)
+// This creates Sale records for cards that were used but never recorded as sales
+export const POST: RequestHandler = async ({ cookies, request }) => {
+  try {
+    const user = requireAuth(cookies);
+
+    if (!isAdminOrSuper(user)) {
+      return json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    const result = await syncUsedCardsToSales();
+
+    return json({
+      success: true,
+      message: `Synced ${result.synced} used cards to sales`,
+      synced: result.synced,
+      skipped: result.skipped
     });
   } catch (error) {
     return handleAuthError(error);
