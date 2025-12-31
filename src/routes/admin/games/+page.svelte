@@ -1,16 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { get } from 'svelte/store';
   import { goto } from '$app/navigation';
   import { Gamepad2, ArrowLeft, ToggleLeft, ToggleRight, Save } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
+  import { initLanguage, t, direction, currentLanguage, type Language } from '$lib/i18n';
+
+  type TranslatedText = Record<Language, string>;
 
   interface Game {
     gameId: string;
-    name: string;
+    name: TranslatedText;
     enabled: boolean;
-    description?: string;
+    description?: TranslatedText;
     updatedAt: string;
   }
 
@@ -18,14 +19,14 @@
   let loading = $state(true);
   let saving = $state<string | null>(null);
 
-  // i18n
-  let i18n = $state<Translations | null>(null);
-  let dir = $state<'ltr' | 'rtl'>('ltr');
+  // Helper to get translated text for current language
+  function getTranslated(text: TranslatedText | undefined, fallback: string = ''): string {
+    if (!text) return fallback;
+    return text[$currentLanguage] || text.en || fallback;
+  }
 
   onMount(async () => {
     initLanguage();
-    i18n = get(t);
-    dir = getDirection();
     await checkAuth();
     await loadGames();
   });
@@ -79,18 +80,17 @@
   }
 </script>
 
-{#if i18n}
-<div class="admin-container" dir={dir}>
+<div class="admin-container" dir={$direction}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>{i18n.common.casinoAdmin}</h2>
+      <h2>{$t.common.casinoAdmin}</h2>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>{i18n.common.backToDashboard}</span>
+          <span>{$t.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -100,18 +100,18 @@
     <header class="top-bar">
       <h1>
         <Gamepad2 size={28} />
-        <span>{i18n.games.title}</span>
+        <span>{$t.games.title}</span>
       </h1>
     </header>
 
     {#if loading}
-      <div class="loading">{i18n.games.loading}</div>
+      <div class="loading">{$t.games.loading}</div>
     {:else}
       <div class="games-grid">
         {#each games as game}
           <div class="game-card" class:disabled={!game.enabled}>
             <div class="game-header">
-              <h3>{game.name}</h3>
+              <h3>{getTranslated(game.name, game.gameId)}</h3>
               <button
                 class="toggle-btn"
                 class:enabled={game.enabled}
@@ -131,26 +131,26 @@
             <p class="game-id">ID: {game.gameId}</p>
 
             {#if game.description}
-              <p class="game-desc">{game.description}</p>
+              <p class="game-desc">{getTranslated(game.description)}</p>
             {/if}
 
             <div class="game-footer">
               <span class="status" class:active={game.enabled}>
-                {game.enabled ? i18n.games.active : i18n.games.disabled}
+                {game.enabled ? $t.games.active : $t.games.disabled}
               </span>
-              <span class="updated">{i18n.games.updated}: {formatDate(game.updatedAt)}</span>
+              <span class="updated">{$t.games.updated}: {formatDate(game.updatedAt)}</span>
             </div>
           </div>
         {/each}
       </div>
 
       <div class="info-box">
-        <h4>{i18n.games.gameStatusInfo}</h4>
-        <p>{i18n.games.whenDisabled}</p>
+        <h4>{$t.games.gameStatusInfo}</h4>
+        <p>{$t.games.whenDisabled}</p>
         <ul>
-          <li>{i18n.games.cannotAccess}</li>
-          <li>{i18n.games.existingSessions}</li>
-          <li>{i18n.games.showMaintenance}</li>
+          <li>{$t.games.cannotAccess}</li>
+          <li>{$t.games.existingSessions}</li>
+          <li>{$t.games.showMaintenance}</li>
         </ul>
       </div>
     {/if}
@@ -158,7 +158,6 @@
     <Footer />
   </main>
 </div>
-{/if}
 
 <style>
   .admin-container {

@@ -15,7 +15,7 @@
     ShoppingCart
   } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage, t, getLanguage, getDirection } from '$lib/i18n';
+  import { initLanguage, t, getLanguage, direction } from '$lib/i18n';
 
   interface Card {
     _id: string;
@@ -40,8 +40,6 @@
   let cards = $state<Card[]>([]);
   let stats = $state<Stats | null>(null);
   let loading = $state(true);
-  let i18n = $state<ReturnType<typeof get<typeof t>> | null>(null);
-  let dir = $state<'ltr' | 'rtl'>('ltr');
 
   // Generate form
   let showGenerate = $state(false);
@@ -57,8 +55,6 @@
 
   onMount(async () => {
     initLanguage();
-    i18n = get(t);
-    dir = getDirection();
     await checkAuth();
     await loadCards();
   });
@@ -115,7 +111,8 @@
   }
 
   async function copyCode(code: string, amount: number) {
-    const message = i18n.rechargeCard.copyMessage(code, amount);
+    const translations = get(t);
+    const message = translations.rechargeCard.copyMessage(code, amount);
     await navigator.clipboard.writeText(message);
     copiedCode = code;
     setTimeout(() => copiedCode = null, 2000);
@@ -123,7 +120,8 @@
 
   function downloadAsText() {
     if (!generatedCard) return;
-    const rc = i18n.rechargeCard;
+    const translations = get(t);
+    const rc = translations.rechargeCard;
     const text = `🎰 ${rc.title} 🎰
 
 ${rc.code}: ${generatedCard.code}
@@ -144,7 +142,8 @@ ${rc.goodLuck}`;
   async function downloadAsImage() {
     if (!generatedCard) return;
     const card = generatedCard; // Capture for closure
-    const rc = i18n.rechargeCard;
+    const translations = get(t);
+    const rc = translations.rechargeCard;
     const isRtl = getLanguage() === 'ar';
 
     // Generate QR code as data URL
@@ -285,18 +284,17 @@ ${rc.goodLuck}`;
   }
 </script>
 
-{#if i18n}
-<div class="admin-container" dir={dir}>
+<div class="admin-container" dir={$direction}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>{i18n.common.casinoAdmin}</h2>
+      <h2>{$t.common.casinoAdmin}</h2>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>{i18n.common.backToDashboard}</span>
+          <span>{$t.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -306,38 +304,38 @@ ${rc.goodLuck}`;
     <header class="top-bar">
       <h1>
         <CreditCard size={28} />
-        <span>{i18n.cardsAdmin.title}</span>
+        <span>{$t.cardsAdmin.title}</span>
       </h1>
       <button class="add-btn" onclick={() => { showGenerate = true; generatedCard = null; }}>
         <Plus size={20} />
-        <span>{i18n.cardsAdmin.generateCard}</span>
+        <span>{$t.cardsAdmin.generateCard}</span>
       </button>
     </header>
 
     {#if stats}
       <div class="stats-row">
         <div class="stat">
-          <span class="label">{i18n.cardsAdmin.total}</span>
+          <span class="label">{$t.cardsAdmin.total}</span>
           <span class="value">{stats.total}</span>
         </div>
         <div class="stat">
-          <span class="label">{i18n.cardsAdmin.unused}</span>
+          <span class="label">{$t.cardsAdmin.unused}</span>
           <span class="value green">{stats.unused}</span>
         </div>
         <div class="stat">
-          <span class="label">{i18n.cardsAdmin.used}</span>
+          <span class="label">{$t.cardsAdmin.used}</span>
           <span class="value">{stats.used}</span>
         </div>
         <div class="stat">
-          <span class="label">{i18n.cardsAdmin.sold}</span>
+          <span class="label">{$t.cardsAdmin.sold}</span>
           <span class="value gold">{stats.sold}</span>
         </div>
         <div class="stat">
-          <span class="label">{i18n.cardsAdmin.totalValue}</span>
+          <span class="label">{$t.cardsAdmin.totalValue}</span>
           <span class="value">${stats.totalValue.toFixed(2)}</span>
         </div>
         <div class="stat">
-          <span class="label">{i18n.cardsAdmin.soldValue}</span>
+          <span class="label">{$t.cardsAdmin.soldValue}</span>
           <span class="value green">${stats.soldValue.toFixed(2)}</span>
         </div>
       </div>
@@ -347,7 +345,7 @@ ${rc.goodLuck}`;
       <div class="generate-panel">
         {#if generatedCard}
           <div class="generated-cards">
-            <h3>{i18n.cardsAdmin.cardGenerated}</h3>
+            <h3>{$t.cardsAdmin.cardGenerated}</h3>
             <div class="cards-list">
               <div class="gen-card">
                 <span class="gen-code">{generatedCard.code}</span>
@@ -355,7 +353,7 @@ ${rc.goodLuck}`;
                 <button
                   class="copy-btn"
                   onclick={() => copyCode(generatedCard!.code, generatedCard!.amount)}
-                  title={i18n.cardsAdmin.copyWithMessage}
+                  title={$t.cardsAdmin.copyWithMessage}
                 >
                   {#if copiedCode === generatedCard.code}
                     <Check size={16} />
@@ -368,30 +366,30 @@ ${rc.goodLuck}`;
             <div class="download-actions">
               <button class="download-btn" onclick={downloadAsText}>
                 <FileText size={18} />
-                <span>{i18n.cardsAdmin.downloadText}</span>
+                <span>{$t.cardsAdmin.downloadText}</span>
               </button>
               <button class="download-btn image" onclick={downloadAsImage}>
                 <Image size={18} />
-                <span>{i18n.cardsAdmin.downloadImage}</span>
+                <span>{$t.cardsAdmin.downloadImage}</span>
               </button>
             </div>
-            <button class="close-btn" onclick={closeGenerated}>{i18n.cardsAdmin.close}</button>
+            <button class="close-btn" onclick={closeGenerated}>{$t.cardsAdmin.close}</button>
           </div>
         {:else}
-          <h3>{i18n.cardsAdmin.generateRechargeCard}</h3>
+          <h3>{$t.cardsAdmin.generateRechargeCard}</h3>
           <form onsubmit={generateCard}>
             <div class="form-grid single">
               <label>
-                <span>{i18n.cardsAdmin.amountLabel}</span>
+                <span>{$t.cardsAdmin.amountLabel}</span>
                 <input type="number" bind:value={genAmount} min="1" max="1000" step="1" required />
               </label>
             </div>
             <div class="form-actions">
               <button type="button" class="cancel-btn" onclick={() => showGenerate = false}>
-                {i18n.cardsAdmin.cancel}
+                {$t.cardsAdmin.cancel}
               </button>
               <button type="submit" class="submit-btn" disabled={generating}>
-                {generating ? i18n.cardsAdmin.generating : i18n.cardsAdmin.generateCard}
+                {generating ? $t.cardsAdmin.generating : $t.cardsAdmin.generateCard}
               </button>
             </div>
           </form>
@@ -400,18 +398,18 @@ ${rc.goodLuck}`;
     {/if}
 
     {#if loading}
-      <div class="loading">{i18n.cardsAdmin.loading}</div>
+      <div class="loading">{$t.cardsAdmin.loading}</div>
     {:else}
       <div class="cards-table">
         <table>
           <thead>
             <tr>
-              <th>{i18n.rechargeCard.code}</th>
-              <th>{i18n.rechargeCard.amount}</th>
-              <th>{i18n.cardsAdmin.status}</th>
-              <th>{i18n.cardsAdmin.created}</th>
-              <th>{i18n.cardsAdmin.usedAt}</th>
-              <th>{i18n.cardsAdmin.actions}</th>
+              <th>{$t.rechargeCard.code}</th>
+              <th>{$t.rechargeCard.amount}</th>
+              <th>{$t.cardsAdmin.status}</th>
+              <th>{$t.cardsAdmin.created}</th>
+              <th>{$t.cardsAdmin.usedAt}</th>
+              <th>{$t.cardsAdmin.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -421,11 +419,11 @@ ${rc.goodLuck}`;
                 <td class="amount">${card.amount}</td>
                 <td>
                   {#if card.used}
-                    <span class="status">{i18n.cardsAdmin.used}</span>
+                    <span class="status">{$t.cardsAdmin.used}</span>
                   {:else if card.soldAt}
-                    <span class="status sold">{i18n.cardsAdmin.sold}</span>
+                    <span class="status sold">{$t.cardsAdmin.sold}</span>
                   {:else}
-                    <span class="status active">{i18n.cardsAdmin.available}</span>
+                    <span class="status active">{$t.cardsAdmin.available}</span>
                   {/if}
                 </td>
                 <td class="date">{formatDate(card.createdAt)}</td>
@@ -438,10 +436,10 @@ ${rc.goodLuck}`;
                       disabled={markingAsSold === card.code}
                     >
                       <ShoppingCart size={14} />
-                      <span>{markingAsSold === card.code ? '...' : i18n.cardsAdmin.markAsSold}</span>
+                      <span>{markingAsSold === card.code ? '...' : $t.cardsAdmin.markAsSold}</span>
                     </button>
                   {:else if card.soldAt && !card.used}
-                    <span class="sold-label">{i18n.cardsAdmin.sold}</span>
+                    <span class="sold-label">{$t.cardsAdmin.sold}</span>
                   {:else}
                     -
                   {/if}
@@ -456,7 +454,6 @@ ${rc.goodLuck}`;
     <Footer />
   </main>
 </div>
-{/if}
 
 <style>
   .admin-container {

@@ -1,5 +1,11 @@
 import type { ObjectId } from 'mongodb';
 
+// Supported languages for translations
+export type SupportedLanguage = 'en' | 'es' | 'ar';
+
+// Translated text object
+export type TranslatedText = Record<SupportedLanguage, string>;
+
 // User roles
 // super: can create admin and seller users
 // admin: can only create seller users
@@ -39,9 +45,9 @@ export interface RechargeCard {
 export interface GameConfig {
   _id?: ObjectId;
   gameId: string; // 'slots', 'scratch', etc.
-  name: string;
+  name: TranslatedText; // Translated game name
   enabled: boolean;
-  description?: string;
+  description?: TranslatedText; // Translated description
   updatedAt: Date;
   updatedBy?: ObjectId;
 }

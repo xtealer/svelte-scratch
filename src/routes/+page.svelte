@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { Ticket, Dices } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
-  import { initLanguage, direction } from "$lib/i18n";
+  import { initLanguage, direction, t } from "$lib/i18n";
 
   onMount(() => {
     initLanguage();
@@ -10,26 +10,26 @@
 </script>
 
 <div class="menu" dir={$direction}>
-  <h1>JUEGOS DE ORO</h1>
-  <p class="subtitle">Elige Tu Juego</p>
+  <h1>{$t.gameMenu.title}</h1>
+  <p class="subtitle">{$t.gameMenu.subtitle}</p>
 
   <div class="games">
     <a href="/scratch" class="game-card">
       <div class="game-icon">
         <Ticket size={48} />
       </div>
-      <div class="game-title">RASCA Y GANA</div>
-      <div class="game-desc">¡Rasca y Gana!</div>
-      <div class="game-prize">Gana hasta $500</div>
+      <div class="game-title">{$t.gameMenu.scratchTitle}</div>
+      <div class="game-desc">{$t.gameMenu.scratchDesc}</div>
+      <div class="game-prize">{$t.gameMenu.prizeText}</div>
     </a>
 
     <a href="/slots" class="game-card">
       <div class="game-icon">
         <Dices size={48} />
       </div>
-      <div class="game-title">TRAGAMONEDAS</div>
-      <div class="game-desc">¡Gira y Gana!</div>
-      <div class="game-prize">Gana hasta $500</div>
+      <div class="game-title">{$t.gameMenu.slotsTitle}</div>
+      <div class="game-desc">{$t.gameMenu.slotsDesc}</div>
+      <div class="game-prize">{$t.gameMenu.prizeText}</div>
     </a>
   </div>
 

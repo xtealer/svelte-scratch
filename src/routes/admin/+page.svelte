@@ -78,7 +78,7 @@
           <input
             type="text"
             bind:value={username}
-            placeholder="Username"
+            placeholder={$t.common.username}
             required
             disabled={loading}
           />
@@ -89,7 +89,7 @@
           <input
             type={showPassword ? 'text' : 'password'}
             bind:value={password}
-            placeholder="Password"
+            placeholder={$t.common.password}
             required
             disabled={loading}
           />
@@ -108,11 +108,11 @@
         </div>
 
         <button type="submit" class="login-btn" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? $t.common.loggingIn : $t.common.login}
         </button>
       </form>
 
-      <a href="/" class="back-link">Back to Games</a>
+      <a href="/" class="back-link">{$t.common.backToGames}</a>
     </div>
   {/if}
   <Footer />

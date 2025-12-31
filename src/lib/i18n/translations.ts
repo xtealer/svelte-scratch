@@ -52,6 +52,11 @@ export interface CommonTranslations {
   thisMonth: string;
   date: string;
   notes: string;
+  login: string;
+  loggingIn: string;
+  username: string;
+  password: string;
+  backToGames: string;
 }
 
 export interface DashboardTranslations {
@@ -194,6 +199,16 @@ export interface FooterTranslations {
   copyright: string;
 }
 
+export interface GameMenuTranslations {
+  title: string;
+  subtitle: string;
+  scratchTitle: string;
+  scratchDesc: string;
+  slotsTitle: string;
+  slotsDesc: string;
+  prizeText: string;
+}
+
 export interface GameUITranslations {
   backToMenu: string;
   endSession: string;
@@ -235,6 +250,7 @@ export interface Translations {
   users: UsersTranslations;
   nav: NavTranslations;
   footer: FooterTranslations;
+  gameMenu: GameMenuTranslations;
   gameUI: GameUITranslations;
 }
 
@@ -291,6 +307,11 @@ export const translations: Record<Language, Translations> = {
       thisMonth: 'This Month',
       date: 'Date',
       notes: 'Notes',
+      login: 'Login',
+      loggingIn: 'Logging in...',
+      username: 'Username',
+      password: 'Password',
+      backToGames: 'Back to Games',
     },
     dashboard: {
       title: 'Dashboard',
@@ -425,6 +446,15 @@ export const translations: Record<Language, Translations> = {
     footer: {
       copyright: '© Gold Games',
     },
+    gameMenu: {
+      title: 'GOLD GAMES',
+      subtitle: 'Choose Your Game',
+      scratchTitle: 'SCRATCH & WIN',
+      scratchDesc: 'Scratch and Win!',
+      slotsTitle: 'SLOTS',
+      slotsDesc: 'Spin and Win!',
+      prizeText: 'Win up to $500',
+    },
     gameUI: {
       backToMenu: 'Back to Menu',
       endSession: 'End Session',
@@ -507,6 +537,11 @@ export const translations: Record<Language, Translations> = {
       thisMonth: 'Este Mes',
       date: 'Fecha',
       notes: 'Notas',
+      login: 'Iniciar Sesión',
+      loggingIn: 'Iniciando sesión...',
+      username: 'Usuario',
+      password: 'Contraseña',
+      backToGames: 'Volver a Juegos',
     },
     dashboard: {
       title: 'Panel',
@@ -641,6 +676,15 @@ export const translations: Record<Language, Translations> = {
     footer: {
       copyright: '© Gold Games',
     },
+    gameMenu: {
+      title: 'GOLD GAMES',
+      subtitle: 'Elige Tu Juego',
+      scratchTitle: 'RASCA Y GANA',
+      scratchDesc: '¡Rasca y Gana!',
+      slotsTitle: 'TRAGAMONEDAS',
+      slotsDesc: '¡Gira y Gana!',
+      prizeText: 'Gana hasta $500',
+    },
     gameUI: {
       backToMenu: 'Volver al Menú',
       endSession: 'Terminar Sesión',
@@ -723,6 +767,11 @@ export const translations: Record<Language, Translations> = {
       thisMonth: 'هذا الشهر',
       date: 'التاريخ',
       notes: 'ملاحظات',
+      login: 'تسجيل الدخول',
+      loggingIn: 'جاري تسجيل الدخول...',
+      username: 'اسم المستخدم',
+      password: 'كلمة المرور',
+      backToGames: 'العودة للألعاب',
     },
     dashboard: {
       title: 'لوحة التحكم',
@@ -856,6 +905,15 @@ export const translations: Record<Language, Translations> = {
     },
     footer: {
       copyright: '© Gold Games',
+    },
+    gameMenu: {
+      title: 'GOLD GAMES',
+      subtitle: 'اختر لعبتك',
+      scratchTitle: 'اخدش واربح',
+      scratchDesc: 'اخدش واربح!',
+      slotsTitle: 'سلوتس',
+      slotsDesc: 'دوّر واربح!',
+      prizeText: 'اربح حتى $500',
     },
     gameUI: {
       backToMenu: 'العودة للقائمة',

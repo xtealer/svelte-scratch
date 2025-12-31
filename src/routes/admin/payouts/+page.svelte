@@ -21,7 +21,7 @@
     Ban
   } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
-  import { initLanguage, t, getDirection, type Translations } from '$lib/i18n';
+  import { initLanguage, t, direction } from '$lib/i18n';
 
   interface Payout {
     _id: string;
@@ -91,14 +91,8 @@
   // Processing state
   let processingId = $state<string | null>(null);
 
-  // i18n
-  let i18n = $state<Translations | null>(null);
-  let dir = $state<'ltr' | 'rtl'>('ltr');
-
   onMount(async () => {
     initLanguage();
-    i18n = get(t);
-    dir = getDirection();
     await checkAuth();
     await loadPayouts();
   });
@@ -241,11 +235,12 @@
   }
 
   function getStatusLabel(status: string): string {
+    const translations = get(t);
     switch (status) {
-      case 'pending': return i18n.payouts.pending;
-      case 'approved': return i18n.payouts.approved;
-      case 'paid': return i18n.payouts.paid;
-      case 'rejected': return i18n.payouts.rejected;
+      case 'pending': return translations.payouts.pending;
+      case 'approved': return translations.payouts.approved;
+      case 'paid': return translations.payouts.paid;
+      case 'rejected': return translations.payouts.rejected;
       default: return status;
     }
   }
@@ -257,18 +252,17 @@
   );
 </script>
 
-{#if i18n}
-<div class="admin-container" dir={dir}>
+<div class="admin-container" dir={$direction}>
   <nav class="sidebar">
     <div class="sidebar-header">
-      <h2>{i18n.common.casinoAdmin}</h2>
+      <h2>{$t.common.casinoAdmin}</h2>
     </div>
 
     <ul class="nav-menu">
       <li>
         <a href="/admin/dashboard">
           <ArrowLeft size={20} />
-          <span>{i18n.common.backToDashboard}</span>
+          <span>{$t.common.backToDashboard}</span>
         </a>
       </li>
     </ul>
@@ -278,11 +272,11 @@
     <header class="top-bar">
       <h1>
         <Receipt size={28} />
-        <span>{i18n.payouts.title}</span>
+        <span>{$t.payouts.title}</span>
       </h1>
       <button class="add-btn" onclick={() => showForm = true}>
         <Plus size={20} />
-        <span>{i18n.payouts.registerPayout}</span>
+        <span>{$t.payouts.registerPayout}</span>
       </button>
     </header>
 
@@ -292,28 +286,28 @@
         <div class="stat-card pending">
           <Clock size={24} />
           <div class="stat-info">
-            <span class="label">{i18n.payouts.pendingRequests}</span>
+            <span class="label">{$t.payouts.pendingRequests}</span>
             <span class="value">{requestStats.pending} - ${requestStats.pendingAmount.toFixed(2)}</span>
           </div>
         </div>
         <div class="stat-card">
           <Wallet size={24} />
           <div class="stat-info">
-            <span class="label">{i18n.payouts.totalPaidOut}</span>
+            <span class="label">{$t.payouts.totalPaidOut}</span>
             <span class="value">${stats?.totalAmount.toFixed(2) || '0.00'}</span>
           </div>
         </div>
         <div class="stat-card today">
           <Calendar size={24} />
           <div class="stat-info">
-            <span class="label">{i18n.common.today}</span>
+            <span class="label">{$t.common.today}</span>
             <span class="value">{stats?.todayPayouts || 0} - ${stats?.todayAmount.toFixed(2) || '0.00'}</span>
           </div>
         </div>
         <div class="stat-card month">
           <Calendar size={24} />
           <div class="stat-info">
-            <span class="label">{i18n.common.thisMonth}</span>
+            <span class="label">{$t.common.thisMonth}</span>
             <span class="value">{stats?.monthPayouts || 0} - ${stats?.monthAmount.toFixed(2) || '0.00'}</span>
           </div>
         </div>
@@ -328,7 +322,7 @@
         onclick={() => activeTab = 'requests'}
       >
         <Clock size={18} />
-        {i18n.payouts.requests}
+        {$t.payouts.requests}
         {#if requestStats && requestStats.pending > 0}
           <span class="badge">{requestStats.pending}</span>
         {/if}
@@ -339,13 +333,13 @@
         onclick={() => activeTab = 'payouts'}
       >
         <Check size={18} />
-        {i18n.payouts.completedPayouts}
+        {$t.payouts.completedPayouts}
       </button>
     </div>
 
     {#if showForm}
       <div class="form-panel">
-        <h3>{i18n.payouts.registerPrizePayment}</h3>
+        <h3>{$t.payouts.registerPrizePayment}</h3>
 
         {#if formError}
           <div class="form-error">
@@ -364,7 +358,7 @@
         <form onsubmit={submitPayout}>
           <div class="form-grid">
             <label>
-              <span>{i18n.payouts.code}</span>
+              <span>{$t.payouts.code}</span>
               <input
                 type="text"
                 bind:value={payoutCode}
@@ -374,7 +368,7 @@
               />
             </label>
             <label>
-              <span>{i18n.payouts.amount}</span>
+              <span>{$t.payouts.amount}</span>
               <input
                 type="number"
                 bind:value={payoutAmount}
@@ -387,7 +381,7 @@
           </div>
 
           <label class="notes-label">
-            <span>{i18n.payouts.notesOptional}</span>
+            <span>{$t.payouts.notesOptional}</span>
             <textarea
               bind:value={payoutNotes}
               placeholder=""
@@ -397,10 +391,10 @@
 
           <div class="form-actions">
             <button type="button" class="cancel-btn" onclick={() => showForm = false}>
-              {i18n.cardsAdmin.cancel}
+              {$t.cardsAdmin.cancel}
             </button>
             <button type="submit" class="submit-btn" disabled={submitting}>
-              {submitting ? i18n.payouts.processing : i18n.payouts.registerPayout}
+              {submitting ? $t.payouts.processing : $t.payouts.registerPayout}
             </button>
           </div>
         </form>
@@ -408,53 +402,53 @@
     {/if}
 
     {#if loading}
-      <div class="loading">{i18n.common.loading}</div>
+      <div class="loading">{$t.common.loading}</div>
     {:else if activeTab === 'requests'}
       <!-- Payout Requests -->
       <div class="requests-section">
         <div class="section-header">
-          <h3>{i18n.payouts.payoutRequests}</h3>
+          <h3>{$t.payouts.payoutRequests}</h3>
           <div class="status-filters">
             <button
               class="filter-btn"
               class:active={statusFilter === 'pending'}
               onclick={() => statusFilter = 'pending'}
             >
-              {i18n.payouts.pending}
+              {$t.payouts.pending}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'approved'}
               onclick={() => statusFilter = 'approved'}
             >
-              {i18n.payouts.approved}
+              {$t.payouts.approved}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'paid'}
               onclick={() => statusFilter = 'paid'}
             >
-              {i18n.payouts.paid}
+              {$t.payouts.paid}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'rejected'}
               onclick={() => statusFilter = 'rejected'}
             >
-              {i18n.payouts.rejected}
+              {$t.payouts.rejected}
             </button>
             <button
               class="filter-btn"
               class:active={statusFilter === 'all'}
               onclick={() => statusFilter = 'all'}
             >
-              {i18n.payouts.all}
+              {$t.payouts.all}
             </button>
           </div>
         </div>
 
         {#if filteredRequests.length === 0}
-          <p class="empty">{i18n.payouts.noRequests}</p>
+          <p class="empty">{$t.payouts.noRequests}</p>
         {:else}
           <div class="requests-list">
             {#each filteredRequests as request}
@@ -487,15 +481,15 @@
                   <span class="game-badge">{request.gameId}</span>
                   <span class="request-date">{formatDate(request.createdAt)}</span>
                   {#if request.sellerName}
-                    <span class="seller-info">{i18n.dashboard.seller}: {request.sellerName}</span>
+                    <span class="seller-info">{$t.dashboard.seller}: {request.sellerName}</span>
                   {/if}
                 </div>
 
                 {#if request.processedAt}
                   <div class="processed-info">
-                    {i18n.payouts.processed} {formatDate(request.processedAt)}
+                    {$t.payouts.processed} {formatDate(request.processedAt)}
                     {#if request.processedByName}
-                      {i18n.payouts.by} {request.processedByName}
+                      {$t.payouts.by} {request.processedByName}
                     {/if}
                   </div>
                 {/if}
@@ -513,7 +507,7 @@
                       disabled={processingId === request._id}
                     >
                       <CheckCircle size={16} />
-                      {i18n.payouts.approve}
+                      {$t.payouts.approve}
                     </button>
                     <button
                       class="action-btn reject"
@@ -521,7 +515,7 @@
                       disabled={processingId === request._id}
                     >
                       <XCircle size={16} />
-                      {i18n.payouts.reject}
+                      {$t.payouts.reject}
                     </button>
                   </div>
                 {:else if request.status === 'approved'}
@@ -532,7 +526,7 @@
                       disabled={processingId === request._id}
                     >
                       <DollarSign size={16} />
-                      {i18n.payouts.markAsPaid}
+                      {$t.payouts.markAsPaid}
                     </button>
                   </div>
                 {/if}
@@ -544,18 +538,18 @@
     {:else}
       <!-- Completed Payouts -->
       <div class="payouts-table">
-        <h3>{i18n.payouts.recentPayouts}</h3>
+        <h3>{$t.payouts.recentPayouts}</h3>
         <table>
           <thead>
             <tr>
-              <th>{i18n.payouts.code}</th>
-              <th>{i18n.payouts.amount}</th>
-              <th>{i18n.payouts.player}</th>
+              <th>{$t.payouts.code}</th>
+              <th>{$t.payouts.amount}</th>
+              <th>{$t.payouts.player}</th>
               {#if isAdmin}
-                <th>{i18n.payouts.paidBy}</th>
+                <th>{$t.payouts.paidBy}</th>
               {/if}
-              <th>{i18n.common.date}</th>
-              <th>{i18n.common.notes}</th>
+              <th>{$t.common.date}</th>
+              <th>{$t.common.notes}</th>
             </tr>
           </thead>
           <tbody>
@@ -584,7 +578,7 @@
         </table>
 
         {#if payouts.length === 0}
-          <p class="empty">{i18n.payouts.noPayoutsYet}</p>
+          <p class="empty">{$t.payouts.noPayoutsYet}</p>
         {/if}
       </div>
     {/if}
@@ -592,7 +586,6 @@
     <Footer />
   </main>
 </div>
-{/if}
 
 <style>
   .admin-container {
