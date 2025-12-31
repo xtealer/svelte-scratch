@@ -617,8 +617,8 @@
   }
 
   .form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 16px;
   }
@@ -627,6 +627,8 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    flex: 1 1 180px;
+    min-width: 180px;
   }
 
   .form-row label span {
@@ -923,8 +925,8 @@
   }
 
   .stats-modal .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 24px;
   }
@@ -937,6 +939,8 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     border: 1px solid #333;
+    flex: 1 1 calc(50% - 8px);
+    min-width: 180px;
   }
 
   .stat-item :global(svg) {

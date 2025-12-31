@@ -613,8 +613,8 @@ ${rc.goodLuck}`;
   }
 
   .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 20px;
   }
@@ -627,6 +627,8 @@ ${rc.goodLuck}`;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    flex: 1 1 140px;
+    min-width: 140px;
   }
 
   .form-grid label span {
