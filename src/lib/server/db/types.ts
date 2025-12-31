@@ -12,6 +12,20 @@ export type TranslatedText = Record<SupportedLanguage, string>;
 // seller: cannot create any users
 export type UserRole = 'super' | 'admin' | 'seller';
 
+// Player user (customer account)
+export interface PlayerUser {
+  _id?: ObjectId;
+  email: string;
+  password: string; // hashed
+  fullName: string;
+  country: string;
+  preferredLanguage: SupportedLanguage;
+  metamaskAddress?: string; // linked Metamask wallet address
+  active: boolean;
+  createdAt: Date;
+  lastLogin?: Date;
+}
+
 // User account
 export interface User {
   _id?: ObjectId;
