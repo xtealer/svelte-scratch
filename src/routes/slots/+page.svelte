@@ -3,6 +3,7 @@
   import { browser } from "$app/environment";
   import PrizeModal from "$lib/PrizeModal.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
+  import DepositModal from "$lib/DepositModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
@@ -121,6 +122,7 @@
   // Modals
   let showPrizeModal = $state(false);
   let showCodeModal = $state(false);
+  let showDepositModal = $state(false);
   let showClaimModal = $state(false);
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
@@ -166,6 +168,7 @@
   function closeAllModals() {
     showPrizeModal = false;
     showCodeModal = false;
+    showDepositModal = false;
     showClaimModal = false;
     showLoginModal = false;
     showRegisterModal = false;
@@ -180,6 +183,11 @@
   function openCodeModal() {
     closeAllModals();
     showCodeModal = true;
+  }
+
+  function openDepositModal() {
+    closeAllModals();
+    showDepositModal = true;
   }
 
   function openClaimModal() {
@@ -450,7 +458,7 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
+<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onDeposit={openDepositModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
 
 <div class="container" dir={$direction}>
   <!-- Top controls -->
@@ -590,6 +598,7 @@
 
 <PrizeModal bind:show={showPrizeModal} />
 <ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
+<DepositModal bind:show={showDepositModal} onCodeSubmit={handleCodeSubmit} />
 <ClaimModal
   bind:show={showClaimModal}
   scratchCode={currentCode}
