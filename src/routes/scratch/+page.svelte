@@ -268,11 +268,9 @@
       const sym = symbolMap[prize] || "🪙";
       return [sym, sym, sym];
     } else {
-      let shuffled = [...loseSymbols];
-      do {
-        shuffled = shuffled.sort(() => Math.random() - 0.5).slice(0, 3);
-      } while (shuffled[0] === shuffled[1] && shuffled[1] === shuffled[2]);
-      return shuffled;
+      // For losses, ensure all 3 symbols are different
+      const shuffled = [...loseSymbols].sort(() => Math.random() - 0.5);
+      return [shuffled[0], shuffled[1], shuffled[2]];
     }
   }
 
@@ -361,7 +359,7 @@
 
   function checkRevealProgress(): void {
     scratchedPixels += Math.PI * 50 * 50;
-    if (scratchedPixels > totalPixels * 0.35) {
+    if (!revealed && scratchedPixels > totalPixels * 0.35) {
       revealResult();
     }
   }
@@ -378,7 +376,7 @@
   }
 
   function startScratch(e: MouseEvent | TouchEvent): void {
-    if (!hasActiveSession || revealed) return;
+    if (!hasActiveSession) return;
 
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
