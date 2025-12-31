@@ -57,9 +57,9 @@
   .app-footer {
     width: 100%;
     margin-top: auto;
-    padding: 12px 16px;
-    background: rgba(20, 20, 35, 0.95);
-    border-top: 1px solid #333;
+    padding: 16px;
+    background: #1a2c38;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
   }
 
@@ -68,13 +68,12 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 8px;
   }
 
   .copyright {
-    color: #666;
+    color: #7f8c8d;
     font-size: 0.8em;
   }
 
@@ -87,17 +86,17 @@
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid #444;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
-    color: #ccc;
+    color: #b1bad3;
     cursor: pointer;
     font-size: 0.85em;
     transition: all 0.2s;
   }
 
   .lang-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
   }
 
@@ -106,8 +105,8 @@
     bottom: 100%;
     right: 0;
     margin-bottom: 4px;
-    background: #1a1a2e;
-    border: 1px solid #444;
+    background: #213743;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     overflow: hidden;
     z-index: 1000;
@@ -123,19 +122,19 @@
     padding: 10px 14px;
     background: none;
     border: none;
-    color: #ccc;
+    color: #b1bad3;
     cursor: pointer;
     text-align: left;
     transition: background 0.2s;
   }
 
   .lang-option:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .lang-option.active {
-    background: rgba(255, 215, 0, 0.1);
-    color: #ffd700;
+    background: rgba(0, 231, 1, 0.1);
+    color: #00e701;
   }
 
   .native {
@@ -145,20 +144,16 @@
 
   .english {
     font-size: 0.75em;
-    color: #888;
+    color: #7f8c8d;
   }
 
   .lang-option.active .english {
-    color: #b8860b;
+    color: #00c700;
   }
 
   @media (max-width: 480px) {
     .app-footer {
-      padding: 10px 12px;
-    }
-
-    .footer-content {
-      padding: 0 4px;
+      padding: 12px;
     }
 
     .copyright {

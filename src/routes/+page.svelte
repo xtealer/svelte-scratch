@@ -1,17 +1,46 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Ticket, Dices } from "lucide-svelte";
+  import { Ticket, Dices, Gamepad2 } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { playerWallet } from "$lib/stores/playerWallet";
 
+  interface RecentPlay {
+    id: string;
+    game: string;
+    time: string;
+    betAmount: number;
+    payout: number;
+    multiplier: string;
+    isWin: boolean;
+    user: string;
+  }
+
   let showCodeModal = $state(false);
+  let recentPlays = $state<RecentPlay[]>([]);
+  let loadingPlays = $state(true);
 
   onMount(() => {
     initLanguage();
+    fetchRecentPlays();
+    // Refresh plays every 10 seconds
+    const interval = setInterval(fetchRecentPlays, 10000);
+    return () => clearInterval(interval);
   });
+
+  async function fetchRecentPlays() {
+    try {
+      const response = await fetch('/api/plays/recent?limit=10');
+      const data = await response.json();
+      recentPlays = data.plays || [];
+    } catch (error) {
+      console.error('Failed to fetch recent plays:', error);
+    } finally {
+      loadingPlays = false;
+    }
+  }
 
   function openCodeModal() {
     showCodeModal = true;
@@ -32,33 +61,124 @@
 
     playerWallet.loadCode(data.code, data.plays, data.totalWinnings || 0);
   }
+
+  function formatTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function getGameIcon(gameId: string): string {
+    const icons: Record<string, string> = {
+      scratch: '🎫',
+      slots: '🎰'
+    };
+    return icons[gameId] || '🎮';
+  }
+
+  function getGameName(gameId: string): string {
+    const names: Record<string, string> = {
+      scratch: $t.gameMenu.scratchTitle,
+      slots: $t.gameMenu.slotsTitle
+    };
+    return names[gameId] || gameId;
+  }
 </script>
 
 <GameNavbar onEnterCode={openCodeModal} />
 
-<div class="menu" dir={$direction}>
-  <h1>{$t.gameMenu.title}</h1>
-  <p class="subtitle">{$t.gameMenu.subtitle}</p>
-
-  <div class="games">
-    <a href="/scratch" class="game-card">
-      <div class="game-icon">
-        <Ticket size={48} />
+<div class="page" dir={$direction}>
+  <main class="container">
+    <!-- Games Section -->
+    <section class="section">
+      <div class="section-header">
+        <Gamepad2 size={20} />
+        <h2>{$t.gameMenu.ourGames}</h2>
       </div>
-      <div class="game-title">{$t.gameMenu.scratchTitle}</div>
-      <div class="game-desc">{$t.gameMenu.scratchDesc}</div>
-      <div class="game-prize">{$t.gameMenu.prizeText}</div>
-    </a>
 
-    <a href="/slots" class="game-card">
-      <div class="game-icon">
-        <Dices size={48} />
+      <div class="games-grid">
+        <!-- Scratch Card -->
+        <a href="/scratch" class="game-card">
+          <div class="game-image scratch-bg">
+            <Ticket size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">{$t.gameMenu.scratchTitle}</div>
+            <div class="game-desc">{$t.gameMenu.scratchDesc}</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Slots -->
+        <a href="/slots" class="game-card">
+          <div class="game-image slots-bg">
+            <Dices size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">{$t.gameMenu.slotsTitle}</div>
+            <div class="game-desc">{$t.gameMenu.slotsDesc}</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
       </div>
-      <div class="game-title">{$t.gameMenu.slotsTitle}</div>
-      <div class="game-desc">{$t.gameMenu.slotsDesc}</div>
-      <div class="game-prize">{$t.gameMenu.prizeText}</div>
-    </a>
-  </div>
+    </section>
+
+    <!-- All Bets Section -->
+    <section class="section">
+      <div class="section-header">
+        <span class="bets-icon">📊</span>
+        <h2>{$t.gameMenu.allBets}</h2>
+      </div>
+
+      <div class="bets-table-container">
+        <table class="bets-table">
+          <thead>
+            <tr>
+              <th>{$t.gameMenu.game}</th>
+              <th>{$t.gameMenu.user}</th>
+              <th>{$t.gameMenu.time}</th>
+              <th>{$t.gameMenu.betAmount}</th>
+              <th>{$t.gameMenu.multiplier}</th>
+              <th>{$t.gameMenu.payout}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#if loadingPlays}
+              <tr>
+                <td colspan="6" class="loading-cell">{$t.common.loading}</td>
+              </tr>
+            {:else if recentPlays.length === 0}
+              <tr>
+                <td colspan="6" class="empty-cell">{$t.gameMenu.noBetsYet}</td>
+              </tr>
+            {:else}
+              {#each recentPlays as play}
+                <tr class:win-row={play.isWin}>
+                  <td class="game-cell">
+                    <span class="game-icon">{getGameIcon(play.game)}</span>
+                    <span class="game-label">{getGameName(play.game)}</span>
+                  </td>
+                  <td class="user-cell">{play.user}</td>
+                  <td class="time-cell">{formatTime(play.time)}</td>
+                  <td class="bet-cell">${play.betAmount.toFixed(2)}</td>
+                  <td class="multiplier-cell" class:win-multiplier={play.isWin}>
+                    {#if play.isWin && parseFloat(play.multiplier) >= 10}
+                      <span class="fire">🔥</span>
+                    {/if}
+                    {play.multiplier}x
+                  </td>
+                  <td class="payout-cell" class:win-payout={play.isWin} class:loss-payout={!play.isWin}>
+                    {play.isWin ? '+' : '-'}${play.isWin ? play.payout.toFixed(2) : play.betAmount.toFixed(2)}
+                  </td>
+                </tr>
+              {/each}
+            {/if}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
   <Footer />
 </div>
@@ -66,139 +186,327 @@
 <ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
 
 <style>
-  .menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
+  .page {
     min-height: 100vh;
     min-height: 100dvh;
-    padding: 16px;
-    padding-top: 60px;
-    width: 100%;
-  }
-
-  h1 {
-    font-size: 2.2em;
-    color: #ffd700;
-    text-shadow:
-      0 0 20px #ff0,
-      3px 3px 10px #000;
-    margin: 0 0 8px 0;
-    text-align: center;
-  }
-
-  .subtitle {
-    font-size: 1.1em;
-    color: #aaa;
-    margin: 0 0 24px 0;
-  }
-
-  .games {
+    background: #0f1923;
     display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+  }
+
+  .container {
+    flex: 1;
     width: 100%;
-    max-width: 700px;
-    padding: 0 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-top: max(70px, calc(env(safe-area-inset-top) + 60px));
+  }
+
+  .section {
+    margin-bottom: 32px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: #fff;
+  }
+
+  .section-header h2 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .section-header :global(svg) {
+    color: #00e701;
+  }
+
+  .bets-icon {
+    font-size: 1.2em;
+  }
+
+  /* Games Grid */
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    max-width: 600px;
   }
 
   .game-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 24px;
-    background: linear-gradient(135deg, #222, #333);
-    border: 3px solid #ffd700;
-    border-radius: 16px;
+    background: #1a2c38;
+    border-radius: 12px;
+    overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: transform 0.15s, box-shadow 0.15s;
-    box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.8),
-      inset 0 0 20px rgba(255, 215, 0, 0.1);
-    flex: 1;
-    min-width: 140px;
-    max-width: 180px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .game-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 231, 1, 0.15);
   }
 
   .game-card:active {
-    transform: scale(0.97);
-    box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.9),
-      inset 0 0 30px rgba(255, 215, 0, 0.2);
+    transform: scale(0.98);
   }
 
-  .game-icon {
-    margin-bottom: 10px;
-    color: #ffd700;
+  .game-image {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
   }
 
-  .game-icon :global(svg) {
-    stroke-width: 1.5;
+  .game-image :global(svg) {
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 1;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   }
 
-  .game-title {
+  .scratch-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .slots-bg {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .game-info {
+    padding: 12px;
+    flex: 1;
+  }
+
+  .game-name {
     font-size: 1.1em;
-    font-weight: bold;
-    color: #ffd700;
-    text-shadow: 2px 2px 5px #000;
-    margin-bottom: 6px;
-    text-align: center;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
   }
 
   .game-desc {
-    font-size: 0.9em;
-    color: #ccc;
-    margin-bottom: 10px;
+    font-size: 0.85em;
+    color: #7f8c8d;
+    margin-bottom: 8px;
   }
 
   .game-prize {
-    font-size: 0.85em;
-    color: #00ff00;
-    background: rgba(0, 255, 0, 0.1);
-    padding: 6px 12px;
-    border-radius: 16px;
-    border: 1px solid #00ff00;
-    white-space: nowrap;
+    font-size: 0.75em;
+    color: #00e701;
+    background: rgba(0, 231, 1, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
   }
 
-  @media (min-width: 400px) {
-    h1 {
-      font-size: 2.6em;
+  .play-btn {
+    width: 100%;
+    padding: 12px;
+    background: #00e701;
+    color: #0f1923;
+    border: none;
+    font-weight: 700;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .play-btn:hover {
+    background: #00c700;
+  }
+
+  /* Bets Table */
+  .bets-table-container {
+    background: #1a2c38;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .bets-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+  }
+
+  .bets-table th {
+    background: #213743;
+    color: #7f8c8d;
+    font-weight: 500;
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .bets-table td {
+    padding: 12px 16px;
+    color: #b1bad3;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .bets-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .bets-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .win-row {
+    background: rgba(0, 231, 1, 0.05);
+  }
+
+  .game-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .game-icon {
+    font-size: 1.1em;
+  }
+
+  .game-label {
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .user-cell {
+    color: #7f8c8d;
+  }
+
+  .time-cell {
+    color: #7f8c8d;
+  }
+
+  .bet-cell {
+    color: #fff;
+  }
+
+  .multiplier-cell {
+    color: #7f8c8d;
+  }
+
+  .win-multiplier {
+    color: #ffc107;
+  }
+
+  .fire {
+    margin-right: 4px;
+  }
+
+  .payout-cell {
+    font-weight: 600;
+  }
+
+  .win-payout {
+    color: #00e701;
+  }
+
+  .loss-payout {
+    color: #ed6300;
+  }
+
+  .loading-cell,
+  .empty-cell {
+    text-align: center;
+    padding: 32px !important;
+    color: #7f8c8d;
+  }
+
+  /* Mobile Styles */
+  @media (max-width: 600px) {
+    .container {
+      padding: 12px;
+      padding-top: max(60px, calc(env(safe-area-inset-top) + 52px));
     }
-    .subtitle {
-      font-size: 1.2em;
-      margin-bottom: 32px;
+
+    .games-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
-    .games {
-      gap: 24px;
+
+    .game-image :global(svg) {
+      width: 48px;
+      height: 48px;
     }
-    .game-card {
-      padding: 28px 36px;
-      min-width: 180px;
-      max-width: 220px;
+
+    .game-info {
+      padding: 10px;
     }
-    .game-icon {
-      margin-bottom: 14px;
-    }
-    .game-icon :global(svg) {
-      width: 56px;
-      height: 56px;
-    }
-    .game-title {
-      font-size: 1.4em;
-      margin-bottom: 8px;
-    }
-    .game-desc {
+
+    .game-name {
       font-size: 1em;
-      margin-bottom: 14px;
     }
+
+    .game-desc {
+      font-size: 0.8em;
+    }
+
+    .play-btn {
+      padding: 10px;
+      font-size: 0.85em;
+    }
+
+    /* Responsive table */
+    .bets-table {
+      font-size: 0.8em;
+    }
+
+    .bets-table th,
+    .bets-table td {
+      padding: 10px 8px;
+    }
+
+    /* Hide some columns on mobile */
+    .bets-table th:nth-child(2),
+    .bets-table td:nth-child(2),
+    .bets-table th:nth-child(3),
+    .bets-table td:nth-child(3) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .games-grid {
+      gap: 8px;
+    }
+
+    .game-image :global(svg) {
+      width: 40px;
+      height: 40px;
+    }
+
+    .game-info {
+      padding: 8px;
+    }
+
+    .game-name {
+      font-size: 0.9em;
+    }
+
     .game-prize {
-      font-size: 0.95em;
-      padding: 8px 16px;
+      font-size: 0.7em;
+      padding: 3px 6px;
+    }
+
+    .play-btn {
+      padding: 8px;
+      font-size: 0.8em;
+    }
+
+    .bets-table th:nth-child(5),
+    .bets-table td:nth-child(5) {
+      display: none;
     }
   }
 </style>
