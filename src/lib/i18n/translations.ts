@@ -246,6 +246,8 @@ export interface NavbarTranslations {
   endSession: string;
   confirmEndSession: string;
   balance: string;
+  noCredits: string;
+  enterCode: string;
 }
 
 export interface Translations {
@@ -501,6 +503,8 @@ export const translations: Record<Language, Translations> = {
       endSession: 'End Session',
       confirmEndSession: 'Are you sure you want to end your session? You will lose any unclaimed winnings.',
       balance: 'Balance',
+      noCredits: 'No credits',
+      enterCode: 'Enter Code',
     },
   },
   es: {
@@ -739,6 +743,8 @@ export const translations: Record<Language, Translations> = {
       endSession: 'Terminar Sesión',
       confirmEndSession: '¿Estás seguro de terminar tu sesión? Perderás las ganancias no reclamadas.',
       balance: 'Saldo',
+      noCredits: 'Sin créditos',
+      enterCode: 'Ingresar Código',
     },
   },
   ar: {
@@ -977,6 +983,8 @@ export const translations: Record<Language, Translations> = {
       endSession: 'إنهاء الجلسة',
       confirmEndSession: 'هل أنت متأكد من إنهاء جلستك؟ ستفقد أي أرباح لم يتم صرفها.',
       balance: 'الرصيد',
+      noCredits: 'لا يوجد رصيد',
+      enterCode: 'أدخل الرمز',
     },
   },
 };
