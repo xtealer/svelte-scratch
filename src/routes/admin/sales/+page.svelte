@@ -376,8 +376,8 @@
   }
 
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 24px;
   }
@@ -390,6 +390,8 @@
     background: rgba(30, 30, 50, 0.8);
     border-radius: 12px;
     border: 1px solid #333;
+    flex: 1 1 180px;
+    min-width: 180px;
   }
 
   .stat-card :global(svg) {
@@ -568,8 +570,9 @@
       flex: 1;
     }
 
-    .stats-grid {
-      grid-template-columns: 1fr 1fr;
+    .stat-card {
+      flex: 1 1 calc(50% - 8px);
+      min-width: 140px;
     }
 
     .sales-table {
@@ -579,19 +582,23 @@
 
   @media (min-width: 1200px) {
     .stats-grid {
-      grid-template-columns: repeat(4, 1fr);
       gap: 24px;
     }
 
-    .top-sellers {
-      display: grid;
-      grid-template-columns: 1fr;
+    .stat-card {
+      flex: 1 1 calc(25% - 18px);
+      min-width: 180px;
     }
 
     .sellers-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 12px;
+    }
+
+    .seller-item {
+      flex: 1 1 280px;
+      min-width: 280px;
     }
   }
 </style>

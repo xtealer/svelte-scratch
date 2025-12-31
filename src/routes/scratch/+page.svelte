@@ -268,11 +268,9 @@
       const sym = symbolMap[prize] || "🪙";
       return [sym, sym, sym];
     } else {
-      let shuffled = [...loseSymbols];
-      do {
-        shuffled = shuffled.sort(() => Math.random() - 0.5).slice(0, 3);
-      } while (shuffled[0] === shuffled[1] && shuffled[1] === shuffled[2]);
-      return shuffled;
+      // For losses, ensure all 3 symbols are different
+      const shuffled = [...loseSymbols].sort(() => Math.random() - 0.5);
+      return [shuffled[0], shuffled[1], shuffled[2]];
     }
   }
 
@@ -361,7 +359,7 @@
 
   function checkRevealProgress(): void {
     scratchedPixels += Math.PI * 50 * 50;
-    if (scratchedPixels > totalPixels * 0.35) {
+    if (!revealed && scratchedPixels > totalPixels * 0.35) {
       revealResult();
     }
   }
@@ -378,7 +376,7 @@
   }
 
   function startScratch(e: MouseEvent | TouchEvent): void {
-    if (!hasActiveSession || revealed) return;
+    if (!hasActiveSession) return;
 
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
@@ -481,24 +479,7 @@
 
 <GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} />
 
-{#if hasActiveSession}
-  <div class="session-info">
-    <div class="info-item">
-      <span class="label">{$t.gameUI.code}:</span>
-      <span class="value">{currentCode}</span>
-    </div>
-    <div class="info-item">
-      <span class="label">{$t.gameUI.plays}:</span>
-      <span class="value plays">{playsLeft}</span>
-    </div>
-    <div class="info-item">
-      <span class="label">{$t.gameUI.winnings}:</span>
-      <span class="value winnings">${sessionWinnings.toFixed(2)}</span>
-    </div>
-  </div>
-{/if}
-
-<div class="container" class:no-session={!hasActiveSession} dir={$direction}>
+<div class="container" dir={$direction}>
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
@@ -589,7 +570,9 @@
     </div>
   </div>
 
-  <Footer />
+  <div class="footer-wrapper">
+    <Footer />
+  </div>
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
@@ -603,60 +586,28 @@
 />
 
 <style>
-  .session-info {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 12px 20px;
-    border-radius: 10px;
-    margin: 10px auto;
-    margin-top: 55px;
-    max-width: 500px;
-    width: calc(100% - 30px);
-  }
-
-  .info-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .info-item .label {
-    font-size: 0.8em;
-    color: #aaa;
-  }
-
-  .info-item .value {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #ffd700;
-  }
-
-  .info-item .value.plays {
-    color: #00bfff;
-  }
-
-  .info-item .value.winnings {
-    color: #00ff00;
+  .footer-wrapper {
+    flex-shrink: 0;
+    padding: 8px 0;
   }
 
   .container {
     width: 100%;
     max-width: 500px;
-    margin: 10px auto;
-    padding: 0 15px;
-  }
-
-  .container.no-session {
-    margin-top: 55px;
+    margin: 0 auto;
+    padding: 8px 15px;
+    padding-top: max(55px, calc(env(safe-area-inset-top) + 48px));
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
   }
 
   .ticket {
     position: relative;
     width: 100%;
-    padding-bottom: 150%;
+    flex: 1;
+    min-height: 0;
     background: linear-gradient(135deg, #1a1a2e, #16213e);
     border-radius: 20px;
     box-shadow:
@@ -965,22 +916,49 @@
   }
 
   @media (max-width: 480px) {
+    .footer-wrapper {
+      display: none;
+    }
+    .container {
+      padding: 4px 10px;
+      padding-top: max(50px, calc(env(safe-area-inset-top) + 42px));
+      padding-bottom: max(4px, env(safe-area-inset-bottom));
+    }
     .control-btn {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
     }
     .control-btn :global(svg) {
       width: 16px;
       height: 16px;
     }
+    .ticket {
+      border-radius: 14px;
+      border-width: 2px;
+    }
+    .ticket-controls {
+      top: 1.5%;
+    }
     .ticket-title {
-      font-size: 1.8em;
+      font-size: 1.5em;
+      top: 6%;
     }
     .ticket-subtitle {
-      font-size: 1em;
+      font-size: 0.9em;
+      top: 11%;
     }
     .ticket-header {
-      font-size: 1.2em;
+      font-size: 1em;
+      top: 15%;
+    }
+    .scratch-area {
+      top: 20%;
+      height: 52%;
+      border-radius: 14px;
+    }
+    .ticket-footer {
+      bottom: 1%;
+      min-height: 50px;
     }
     .next-play-btn {
       padding: 10px 18px;
@@ -999,26 +977,46 @@
       font-size: 0.9em;
     }
     .plays-label {
-      font-size: 0.8em;
+      font-size: 0.75em;
     }
     .plays-value {
-      font-size: 1.3em;
+      font-size: 1.2em;
     }
     .near-miss {
-      font-size: 1.5em;
+      font-size: 1.2em;
+      margin-bottom: 10px;
     }
     .symbols {
-      gap: 20px;
+      gap: 15px;
+      margin-bottom: 15px;
     }
     .symbols span {
-      font-size: 3.2em;
+      font-size: 2.8em;
     }
     .prize-text {
-      font-size: 1.8em;
+      font-size: 1.4em;
     }
-    .session-info {
-      gap: 15px;
-      padding: 10px 15px;
+  }
+
+  /* Very small phones */
+  @media (max-width: 380px) {
+    .ticket-title {
+      font-size: 1.3em;
+    }
+    .ticket-subtitle {
+      font-size: 0.8em;
+    }
+    .ticket-header {
+      font-size: 0.9em;
+    }
+    .symbols span {
+      font-size: 2.4em;
+    }
+    .prize-text {
+      font-size: 1.2em;
+    }
+    .near-miss {
+      font-size: 1em;
     }
   }
 </style>

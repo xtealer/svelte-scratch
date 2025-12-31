@@ -685,8 +685,8 @@
   }
 
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 24px;
   }
@@ -699,6 +699,8 @@
     background: rgba(30, 30, 50, 0.8);
     border-radius: 12px;
     border: 1px solid #333;
+    flex: 1 1 180px;
+    min-width: 180px;
   }
 
   .stat-card :global(svg) {
@@ -1205,23 +1207,48 @@
       align-items: flex-start;
     }
 
-    .stats-grid {
-      grid-template-columns: 1fr 1fr;
+    .stat-card {
+      flex: 1 1 calc(50% - 8px);
+      min-width: 140px;
     }
 
     .payouts-table {
       overflow-x: auto;
     }
+
+    .tabs {
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
   }
 
   @media (min-width: 1200px) {
     .stats-grid {
-      grid-template-columns: repeat(4, 1fr);
       gap: 24px;
+    }
+
+    .stat-card {
+      flex: 1 1 calc(25% - 12px);
+      min-width: 180px;
     }
 
     .form-panel {
       max-width: 800px;
+    }
+
+    .requests-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .request-card {
+      flex: 1 1 calc(50% - 8px);
+      min-width: 350px;
     }
   }
 </style>

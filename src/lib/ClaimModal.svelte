@@ -1,6 +1,7 @@
 <script lang="ts">
   import { ChevronDown, Coins, DollarSign } from 'lucide-svelte';
   import { playerWallet } from '$lib/stores/playerWallet';
+  import { t } from '$lib/i18n';
 
   let {
     show = $bindable(false),
@@ -83,12 +84,12 @@
     error = '';
 
     if (!playerName.trim() || playerName.trim().length < 2) {
-      error = 'Por favor ingresa tu nombre completo';
+      error = $t.claimModal.nameError;
       return false;
     }
 
     if (!phoneNumber.trim() || phoneNumber.trim().length < 6) {
-      error = 'Por favor ingresa un número de teléfono válido';
+      error = $t.claimModal.phoneError;
       return false;
     }
 
@@ -120,7 +121,7 @@
       const data = await response.json();
 
       if (!response.ok) {
-        error = data.error || 'Error al convertir créditos';
+        error = data.error || $t.claimModal.convertError;
         submitting = false;
         return;
       }
@@ -134,7 +135,7 @@
         onPlayMore();
       }
     } catch {
-      error = 'Error de conexión';
+      error = $t.claimModal.connectionError;
       submitting = false;
     }
   }
@@ -162,7 +163,7 @@
       const data = await response.json();
 
       if (!response.ok) {
-        error = data.error || 'Error al enviar solicitud';
+        error = data.error || $t.claimModal.requestError;
         submitting = false;
         return;
       }
@@ -178,7 +179,7 @@
         onRequestSubmitted();
       }
     } catch {
-      error = 'Error de conexión';
+      error = $t.claimModal.connectionError;
       submitting = false;
     }
   }
@@ -193,53 +194,53 @@
         <div class="success-view">
           <div class="success-icon">✓</div>
           {#if submittedAction === 'payout'}
-            <div class="modal-header">¡SOLICITUD ENVIADA!</div>
+            <div class="modal-header">{$t.claimModal.requestSent}</div>
             <div class="winnings">
-              <span class="label">Monto Solicitado</span>
+              <span class="label">{$t.claimModal.amountRequested}</span>
               <span class="amount">${totalWinnings.toFixed(2)}</span>
             </div>
             <div class="info">
-              <p>Tu solicitud de pago ha sido enviada.</p>
-              <p>Te contactaremos al número proporcionado.</p>
-              <p class="code-ref">Código: <strong>{scratchCode}</strong></p>
+              <p>{$t.claimModal.payoutInfo1}</p>
+              <p>{$t.claimModal.payoutInfo2}</p>
+              <p class="code-ref">{$t.claimModal.codeRef}: <strong>{scratchCode}</strong></p>
             </div>
           {:else}
-            <div class="modal-header">¡CRÉDITOS AGREGADOS!</div>
+            <div class="modal-header">{$t.claimModal.creditsAdded}</div>
             <div class="winnings credits-added">
-              <span class="label">Créditos Agregados</span>
+              <span class="label">{$t.claimModal.creditsAddedAmount}</span>
               <span class="amount">${totalWinnings.toFixed(2)}</span>
             </div>
             <div class="info">
-              <p>Tus ganancias se han convertido en créditos.</p>
-              <p>¡Sigue jugando y buena suerte!</p>
+              <p>{$t.claimModal.creditsInfo1}</p>
+              <p>{$t.claimModal.creditsInfo2}</p>
             </div>
           {/if}
           <button class="close-btn" onclick={close}>
-            {submittedAction === 'credits' ? '¡A Jugar!' : 'Cerrar'}
+            {submittedAction === 'credits' ? $t.claimModal.letsPlay : $t.claimModal.close}
           </button>
         </div>
       {:else}
-        <div class="modal-header">¿QUÉ DESEAS HACER?</div>
+        <div class="modal-header">{$t.claimModal.whatToDo}</div>
 
         <div class="winnings">
-          <span class="label">Ganancias Totales</span>
+          <span class="label">{$t.claimModal.totalWinnings}</span>
           <span class="amount">${totalWinnings.toFixed(2)}</span>
         </div>
 
         <div class="form-section">
           <div class="form-group">
-            <label for="playerName">Nombre Completo <span class="required">*</span></label>
+            <label for="playerName">{$t.claimModal.fullName} <span class="required">{$t.claimModal.required}</span></label>
             <input
               type="text"
               id="playerName"
               bind:value={playerName}
-              placeholder="Tu nombre completo"
+              placeholder={$t.claimModal.namePlaceholder}
               disabled={submitting}
             />
           </div>
 
           <div class="form-group">
-            <label for="phone">Número de Teléfono <span class="required">*</span></label>
+            <label for="phone">{$t.claimModal.phoneNumber} <span class="required">{$t.claimModal.required}</span></label>
             <div class="phone-input">
               <div class="country-select">
                 <select bind:value={selectedCountry} disabled={submitting}>
@@ -253,7 +254,7 @@
                 type="tel"
                 id="phone"
                 bind:value={phoneNumber}
-                placeholder="Número de teléfono"
+                placeholder={$t.claimModal.phonePlaceholder}
                 disabled={submitting}
               />
             </div>
@@ -265,7 +266,7 @@
         {/if}
 
         <div class="info">
-          <p>Completa tus datos para continuar.</p>
+          <p>{$t.claimModal.completeInfo}</p>
         </div>
 
         <div class="button-group">
@@ -275,7 +276,7 @@
             disabled={submitting || !isFormValid}
           >
             <DollarSign size={20} />
-            {submitting ? 'Enviando...' : 'Solicitar Pago'}
+            {submitting ? $t.claimModal.sending : $t.claimModal.requestPayout}
           </button>
 
           {#if onPlayMore}
@@ -285,11 +286,11 @@
               disabled={submitting || !isFormValid}
             >
               <Coins size={20} />
-              {submitting ? 'Procesando...' : 'Convertir a Créditos'}
+              {submitting ? $t.claimModal.processing : $t.claimModal.convertToCredits}
             </button>
           {/if}
 
-          <button class="cancel-btn" onclick={close} disabled={submitting}>Cancelar</button>
+          <button class="cancel-btn" onclick={close} disabled={submitting}>{$t.claimModal.cancel}</button>
         </div>
       {/if}
     </div>

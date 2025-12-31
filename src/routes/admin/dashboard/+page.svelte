@@ -585,17 +585,10 @@
   }
 
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     margin-bottom: 30px;
-  }
-
-  @media (min-width: 1200px) {
-    .stats-grid {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-    }
   }
 
   .stat-card {
@@ -606,6 +599,18 @@
     background: rgba(30, 30, 50, 0.8);
     border-radius: 12px;
     border: 1px solid #333;
+    flex: 1 1 220px;
+    min-width: 220px;
+  }
+
+  @media (min-width: 1200px) {
+    .stats-grid {
+      gap: 24px;
+    }
+    .stat-card {
+      flex: 1 1 calc(25% - 18px);
+      min-width: 200px;
+    }
   }
 
   .stat-icon {
@@ -699,17 +704,10 @@
   }
 
   .recent-section {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-wrap: wrap;
     gap: 20px;
     flex: 1;
-  }
-
-  @media (min-width: 1024px) {
-    .recent-section {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-    }
   }
 
   .recent-panel {
@@ -717,6 +715,17 @@
     border-radius: 12px;
     border: 1px solid #333;
     padding: 20px;
+    flex: 1 1 300px;
+    min-width: 300px;
+  }
+
+  @media (min-width: 1024px) {
+    .recent-section {
+      gap: 24px;
+    }
+    .recent-panel {
+      flex: 1 1 calc(50% - 12px);
+    }
   }
 
   .recent-panel h3 {
