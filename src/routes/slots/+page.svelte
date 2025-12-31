@@ -647,7 +647,6 @@
 
   .symbol-cell.spinning {
     opacity: 0.85;
-    filter: blur(3px);
     transform: scale(0.95);
   }
 
