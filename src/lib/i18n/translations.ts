@@ -301,6 +301,15 @@ export interface CodeModalTranslations {
   loadPlays: string;
   loading: string;
   cancel: string;
+  // Session warning translations
+  activeSessionTitle: string;
+  activeSessionWarning: string;
+  currentCode: string;
+  creditsLeft: string;
+  unclaimedWinnings: string;
+  loseBalanceWarning: string;
+  continueAnyway: string;
+  keepSession: string;
 }
 
 export interface PrizeModalTranslations {
@@ -618,6 +627,14 @@ export const translations: Record<Language, Translations> = {
       loadPlays: 'Load Plays',
       loading: 'Loading...',
       cancel: 'Cancel',
+      activeSessionTitle: 'ACTIVE SESSION',
+      activeSessionWarning: 'You already have an active session with remaining balance.',
+      currentCode: 'Current Code',
+      creditsLeft: 'Credits Left',
+      unclaimedWinnings: 'Unclaimed Winnings',
+      loseBalanceWarning: 'Loading a new code will replace your current session and you will lose any remaining balance!',
+      continueAnyway: 'Continue Anyway',
+      keepSession: 'Keep Current Session',
     },
     prizeModal: {
       title: 'PRIZE LIST',
@@ -914,6 +931,14 @@ export const translations: Record<Language, Translations> = {
       loadPlays: 'Cargar Jugadas',
       loading: 'Cargando...',
       cancel: 'Cancelar',
+      activeSessionTitle: 'SESIÓN ACTIVA',
+      activeSessionWarning: 'Ya tienes una sesión activa con saldo restante.',
+      currentCode: 'Código Actual',
+      creditsLeft: 'Créditos Restantes',
+      unclaimedWinnings: 'Ganancias Sin Reclamar',
+      loseBalanceWarning: '¡Cargar un nuevo código reemplazará tu sesión actual y perderás cualquier saldo restante!',
+      continueAnyway: 'Continuar de Todos Modos',
+      keepSession: 'Mantener Sesión Actual',
     },
     prizeModal: {
       title: 'LISTA DE PREMIOS',
@@ -1210,6 +1235,14 @@ export const translations: Record<Language, Translations> = {
       loadPlays: 'تحميل اللعبات',
       loading: 'جاري التحميل...',
       cancel: 'إلغاء',
+      activeSessionTitle: 'جلسة نشطة',
+      activeSessionWarning: 'لديك بالفعل جلسة نشطة برصيد متبقي.',
+      currentCode: 'الرمز الحالي',
+      creditsLeft: 'الرصيد المتبقي',
+      unclaimedWinnings: 'أرباح غير مصروفة',
+      loseBalanceWarning: 'تحميل رمز جديد سيستبدل جلستك الحالية وستفقد أي رصيد متبقي!',
+      continueAnyway: 'المتابعة على أي حال',
+      keepSession: 'الاحتفاظ بالجلسة الحالية',
     },
     prizeModal: {
       title: 'قائمة الجوائز',

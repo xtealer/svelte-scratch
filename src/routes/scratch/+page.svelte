@@ -10,6 +10,8 @@
   import { initLanguage, direction, t } from "$lib/i18n";
   import { Trophy, Volume2, VolumeX } from "lucide-svelte";
   import { playerWallet, hasActiveSession as walletHasSession } from "$lib/stores/playerWallet";
+  import { WinCelebration, LowBalanceIndicator, MiniPrizeTable } from "$lib/components";
+  import { hapticWin } from "$lib/utils/haptics";
 
   interface PrizeConfig {
     amount: number;
@@ -88,6 +90,11 @@
   let showPrizeModal = $state(false);
   let showCodeModal = $state(false);
   let showClaimModal = $state(false);
+
+  // Win celebration state
+  let showWinCelebration = $state(false);
+  let celebrationAmount = $state(0);
+  let celebrationLevel = $state<'normal' | 'big' | 'mega'>('normal');
 
   // Canvas state
   let canvas: HTMLCanvasElement;
@@ -343,6 +350,16 @@
     if (currentPrize > 0) {
       playSound("coins", currentPrize >= 100 ? 1 : 0.7);
       if (currentPrize >= 100) playSound("bigWin", 0.8);
+
+      // Trigger haptic feedback
+      hapticWin(currentPrize);
+
+      // Show win celebration for bigger wins
+      if (currentPrize >= 20) {
+        celebrationAmount = currentPrize;
+        celebrationLevel = currentPrize >= 100 ? 'mega' : currentPrize >= 50 ? 'big' : 'normal';
+        showWinCelebration = true;
+      }
     } else {
       playSound("noWin", 0.6);
     }
@@ -530,6 +547,7 @@
           <div class="plays-counter">
             <span class="plays-label">{$t.gameUI.plays}:</span>
             <span class="plays-value">{playsLeft}</span>
+            <LowBalanceIndicator credits={playsLeft} threshold={3} showAllIn={false} />
           </div>
           {#if sessionWinnings > 0}
             <button class="claim-btn" onclick={openClaimModal}>
@@ -571,6 +589,13 @@
   totalWinnings={sessionWinnings}
   gameId="scratch"
   onPlayMore={convertWinningsToPlays}
+/>
+
+<WinCelebration
+  bind:show={showWinCelebration}
+  amount={celebrationAmount}
+  level={celebrationLevel}
+  duration={2500}
 />
 
 <style>

@@ -1,5 +1,7 @@
 <script lang="ts">
   import { t } from "$lib/i18n";
+  import { hasActiveSession, playerWallet } from "$lib/stores/playerWallet";
+  import { AlertTriangle } from "lucide-svelte";
 
   let {
     show = $bindable(false),
@@ -12,11 +14,15 @@
   let code = $state("");
   let loading = $state(false);
   let error = $state("");
+  let showSessionWarning = $state(false);
+  let pendingCode = $state("");
 
   function close(): void {
     show = false;
     code = "";
     error = "";
+    showSessionWarning = false;
+    pendingCode = "";
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -31,11 +37,24 @@
       return;
     }
 
+    const trimmedCode = code.trim().toUpperCase();
+
+    // Check if there's an active session with balance
+    if ($hasActiveSession && ($playerWallet.credits > 0 || $playerWallet.winnings > 0)) {
+      pendingCode = trimmedCode;
+      showSessionWarning = true;
+      return;
+    }
+
+    await submitCode(trimmedCode);
+  }
+
+  async function submitCode(codeToSubmit: string): Promise<void> {
     loading = true;
     error = "";
 
     try {
-      await onCodeSubmit(code.trim().toUpperCase());
+      await onCodeSubmit(codeToSubmit);
       close();
     } catch (e) {
       error = e instanceof Error ? e.message : "Invalid code";
@@ -44,9 +63,25 @@
     }
   }
 
+  function confirmReplaceSession(): void {
+    showSessionWarning = false;
+    submitCode(pendingCode);
+  }
+
+  function cancelReplaceSession(): void {
+    showSessionWarning = false;
+    pendingCode = "";
+  }
+
   function handleKeydown(event: KeyboardEvent): void {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !showSessionWarning) {
       handleSubmit();
+    } else if (event.key === "Escape") {
+      if (showSessionWarning) {
+        cancelReplaceSession();
+      } else {
+        close();
+      }
     }
   }
 </script>
@@ -56,36 +91,77 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">{$t.codeModal.title}</div>
+      {#if showSessionWarning}
+        <!-- Session Warning View -->
+        <div class="warning-view">
+          <div class="warning-icon">
+            <AlertTriangle size={40} />
+          </div>
+          <div class="modal-header warning">{$t.codeModal.activeSessionTitle}</div>
+          <div class="warning-info">
+            <p>{$t.codeModal.activeSessionWarning}</p>
+            <div class="session-details">
+              <div class="detail-row">
+                <span class="detail-label">{$t.codeModal.currentCode}:</span>
+                <span class="detail-value code">{$playerWallet.code}</span>
+              </div>
+              {#if $playerWallet.credits > 0}
+                <div class="detail-row">
+                  <span class="detail-label">{$t.codeModal.creditsLeft}:</span>
+                  <span class="detail-value credits">${$playerWallet.credits}</span>
+                </div>
+              {/if}
+              {#if $playerWallet.winnings > 0}
+                <div class="detail-row">
+                  <span class="detail-label">{$t.codeModal.unclaimedWinnings}:</span>
+                  <span class="detail-value winnings">${$playerWallet.winnings.toFixed(2)}</span>
+                </div>
+              {/if}
+            </div>
+            <p class="warning-text">{$t.codeModal.loseBalanceWarning}</p>
+          </div>
+          <div class="buttons">
+            <button class="submit-btn warning-btn" onclick={confirmReplaceSession}>
+              {$t.codeModal.continueAnyway}
+            </button>
+            <button class="cancel-btn" onclick={cancelReplaceSession}>
+              {$t.codeModal.keepSession}
+            </button>
+          </div>
+        </div>
+      {:else}
+        <!-- Normal Code Entry View -->
+        <div class="modal-header">{$t.codeModal.title}</div>
 
-      <div class="input-group">
-        <input
-          type="text"
-          bind:value={code}
-          placeholder={$t.codeModal.placeholder}
-          onkeydown={handleKeydown}
-          disabled={loading}
-          maxlength="20"
-        />
-      </div>
+        <div class="input-group">
+          <input
+            type="text"
+            bind:value={code}
+            placeholder={$t.codeModal.placeholder}
+            onkeydown={handleKeydown}
+            disabled={loading}
+            maxlength="20"
+          />
+        </div>
 
-      {#if error}
-        <div class="error">{error}</div>
+        {#if error}
+          <div class="error">{error}</div>
+        {/if}
+
+        <div class="info">
+          <p>{$t.codeModal.info1}</p>
+          <p>{$t.codeModal.info2}</p>
+        </div>
+
+        <div class="buttons">
+          <button class="submit-btn" onclick={handleSubmit} disabled={loading}>
+            {loading ? $t.codeModal.loading : $t.codeModal.loadPlays}
+          </button>
+          <button class="cancel-btn" onclick={close} disabled={loading}>
+            {$t.codeModal.cancel}
+          </button>
+        </div>
       {/if}
-
-      <div class="info">
-        <p>{$t.codeModal.info1}</p>
-        <p>{$t.codeModal.info2}</p>
-      </div>
-
-      <div class="buttons">
-        <button class="submit-btn" onclick={handleSubmit} disabled={loading}>
-          {loading ? $t.codeModal.loading : $t.codeModal.loadPlays}
-        </button>
-        <button class="cancel-btn" onclick={close} disabled={loading}>
-          {$t.codeModal.cancel}
-        </button>
-      </div>
     </div>
   </div>
 {/if}
@@ -126,6 +202,77 @@
     text-shadow: 0 0 10px #ff0;
     color: #ffd700;
     text-align: center;
+  }
+
+  .modal-header.warning {
+    color: #ffa500;
+    text-shadow: 0 0 10px #ffa500;
+  }
+
+  .warning-view {
+    text-align: center;
+  }
+
+  .warning-icon {
+    color: #ffa500;
+    margin-bottom: 12px;
+  }
+
+  .warning-info {
+    margin-bottom: 16px;
+  }
+
+  .warning-info p {
+    color: #b1bad3;
+    font-size: 0.9em;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+  }
+
+  .session-details {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 12px;
+    margin: 12px 0;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  .detail-row:not(:last-child) {
+    border-bottom: 1px solid #333;
+  }
+
+  .detail-label {
+    color: #888;
+    font-size: 0.85em;
+  }
+
+  .detail-value {
+    font-weight: bold;
+    font-size: 0.95em;
+  }
+
+  .detail-value.code {
+    color: #ffd700;
+  }
+
+  .detail-value.credits {
+    color: #00bfff;
+  }
+
+  .detail-value.winnings {
+    color: #00e701;
+  }
+
+  .warning-text {
+    color: #ff6666 !important;
+    font-weight: bold;
   }
 
   .input-group {
@@ -199,6 +346,10 @@
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     font-weight: bold;
+  }
+
+  .submit-btn.warning-btn {
+    background: linear-gradient(#ffa500, #cc7000);
   }
 
   .submit-btn:active:not(:disabled) {
