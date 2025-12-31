@@ -1,10 +1,10 @@
 import { getDB } from './index';
-import type { GameConfig, TranslatedText } from './types';
+import type { GameConfig } from './types';
 import { ObjectId } from 'mongodb';
 
 const COLLECTION = 'games';
 
-// Default games with translations
+// Default games with translations (used when creating new games)
 const DEFAULT_GAMES: Omit<GameConfig, '_id'>[] = [
   {
     gameId: 'slots',
@@ -38,57 +38,10 @@ const DEFAULT_GAMES: Omit<GameConfig, '_id'>[] = [
   }
 ];
 
-// Migrate old game format (string name) to new format (translated object)
-async function migrateGameToTranslated(db: Awaited<ReturnType<typeof getDB>>, game: GameConfig): Promise<void> {
-  // Check if name is already translated (is an object)
-  if (typeof game.name === 'object' && game.name !== null) {
-    return; // Already migrated
-  }
-
-  // Find the default game to get translations
-  const defaultGame = DEFAULT_GAMES.find(g => g.gameId === game.gameId);
-  if (!defaultGame) {
-    // Create a basic translation from the old string name
-    const oldName = game.name as unknown as string;
-    const oldDesc = game.description as unknown as string | undefined;
-
-    const translatedName: TranslatedText = {
-      en: oldName,
-      es: oldName,
-      ar: oldName
-    };
-
-    const translatedDesc: TranslatedText | undefined = oldDesc ? {
-      en: oldDesc,
-      es: oldDesc,
-      ar: oldDesc
-    } : undefined;
-
-    await db.collection(COLLECTION).updateOne(
-      { gameId: game.gameId },
-      { $set: { name: translatedName, description: translatedDesc } }
-    );
-  } else {
-    // Use the default translations
-    await db.collection(COLLECTION).updateOne(
-      { gameId: game.gameId },
-      { $set: { name: defaultGame.name, description: defaultGame.description } }
-    );
-  }
-
-  console.log(`Migrated game ${game.gameId} to translated format`);
-}
-
 export async function ensureGamesExist(): Promise<void> {
   const db = await getDB();
 
-  // First, check and migrate existing games
-  const existingGames = await db.collection<GameConfig>(COLLECTION).find({}).toArray();
-  for (const game of existingGames) {
-    await migrateGameToTranslated(db, game);
-  }
-
-  // Then, create any missing default games
+  // Create any missing default games
   for (const game of DEFAULT_GAMES) {
     const exists = await db.collection<GameConfig>(COLLECTION).findOne({ gameId: game.gameId });
     if (!exists) {
