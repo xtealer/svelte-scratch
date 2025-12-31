@@ -54,7 +54,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     }
 
     const userId = new ObjectId(user.userId);
-    const card = await createRechargeCard(amount, userId, user.name);
+    const card = await createRechargeCard(amount, userId);
 
     return json({
       success: true,

@@ -1,9 +1,8 @@
 import { getDB } from './index';
-import type { RechargeCard, Sale } from './types';
+import type { RechargeCard } from './types';
 import { ObjectId } from 'mongodb';
 
 const CARDS_COLLECTION = 'rechargeCards';
-const SALES_COLLECTION = 'sales';
 
 // Generate random unique code
 async function generateCode(): Promise<string> {
@@ -28,8 +27,7 @@ async function generateCode(): Promise<string> {
 
 export async function createRechargeCard(
   amount: number,
-  createdBy: ObjectId,
-  sellerName: string
+  createdBy: ObjectId
 ): Promise<RechargeCard> {
   const db = await getDB();
 
@@ -38,36 +36,20 @@ export async function createRechargeCard(
   }
 
   const code = await generateCode();
-  const now = new Date();
 
   // amount = plays = price (all the same value)
-  // Card is automatically sold when generated
+  // Card creation = sale (no separate sales collection needed)
   const card: RechargeCard = {
     code,
     plays: amount,
     price: amount,
     used: false,
-    createdAt: now,
-    createdBy,
-    soldAt: now,  // Automatically sold on creation
-    soldBy: createdBy
+    createdAt: new Date(),
+    createdBy
   };
 
   const result = await db.collection<RechargeCard>(CARDS_COLLECTION).insertOne(card);
   card._id = result.insertedId;
-
-  // Create the sale record automatically
-  const sale: Sale = {
-    rechargeCardId: card._id,
-    code: card.code,
-    plays: card.plays,
-    price: card.price,
-    sellerId: createdBy,
-    sellerName,
-    soldAt: now
-  };
-
-  await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
 
   return card;
 }
@@ -127,66 +109,14 @@ export async function getCardStats() {
   const db = await getDB();
   const cards = await db.collection<RechargeCard>(CARDS_COLLECTION).find({}).toArray();
 
+  const totalValue = cards.reduce((sum, c) => sum + c.price, 0);
+
   return {
     total: cards.length,
     used: cards.filter(c => c.used).length,
     unused: cards.filter(c => !c.used).length,
-    sold: cards.filter(c => c.soldAt).length,
-    totalValue: cards.reduce((sum, c) => sum + c.price, 0),
-    soldValue: cards.filter(c => c.soldAt).reduce((sum, c) => sum + c.price, 0),
+    sold: cards.length,  // All cards are sold (generation = sale)
+    totalValue,
+    soldValue: totalValue,  // All cards are sold
   };
-}
-
-// Sync historical cards to sales - creates Sale records for all cards that don't have them
-// Since card generation = sale, all cards should have a corresponding Sale record
-export async function syncCardsToSales(): Promise<{ synced: number; skipped: number }> {
-  const db = await getDB();
-
-  // Find ALL cards (since generation = sale)
-  const allCards = await db.collection<RechargeCard>(CARDS_COLLECTION)
-    .find({})
-    .toArray();
-
-  let synced = 0;
-  let skipped = 0;
-
-  for (const card of allCards) {
-    // Check if a sale record already exists for this card
-    const existingSale = await db.collection<Sale>(SALES_COLLECTION).findOne({
-      rechargeCardId: card._id
-    });
-
-    if (existingSale) {
-      skipped++;
-      continue;
-    }
-
-    // Get the creator info
-    const creator = await db.collection('users').findOne({ _id: card.createdBy });
-
-    // Create the sale record - use createdAt since generation = sale
-    const sale: Sale = {
-      rechargeCardId: card._id!,
-      code: card.code,
-      plays: card.plays,
-      price: card.price,
-      sellerId: card.createdBy,
-      sellerName: creator?.username || 'Unknown',
-      soldAt: card.createdAt
-    };
-
-    await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
-
-    // Also update the card to have soldAt if it doesn't
-    if (!card.soldAt) {
-      await db.collection<RechargeCard>(CARDS_COLLECTION).updateOne(
-        { _id: card._id },
-        { $set: { soldAt: card.createdAt } }
-      );
-    }
-
-    synced++;
-  }
-
-  return { synced, skipped };
 }
