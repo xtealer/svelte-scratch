@@ -42,25 +42,66 @@ export async function getSalesByDateRange(start: Date, end: Date, userId?: Objec
 export async function getSalesStats(userId?: ObjectId) {
   const db = await getDB();
 
-  const query = userId ? { sellerId: userId } : {};
-  const sales = await db.collection<Sale>(COLLECTION).find(query).toArray();
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  const todaySales = sales.filter(s => s.soldAt >= today);
-  const monthSales = sales.filter(s => s.soldAt >= thisMonth);
+  const matchStage = userId ? { $match: { sellerId: userId } } : { $match: {} };
+
+  const pipeline = [
+    matchStage,
+    {
+      $facet: {
+        total: [
+          {
+            $group: {
+              _id: null,
+              totalSales: { $sum: 1 },
+              totalRevenue: { $sum: '$price' },
+              totalPlays: { $sum: '$plays' }
+            }
+          }
+        ],
+        today: [
+          { $match: { soldAt: { $gte: today } } },
+          {
+            $group: {
+              _id: null,
+              todaySales: { $sum: 1 },
+              todayRevenue: { $sum: '$price' }
+            }
+          }
+        ],
+        month: [
+          { $match: { soldAt: { $gte: thisMonth } } },
+          {
+            $group: {
+              _id: null,
+              monthSales: { $sum: 1 },
+              monthRevenue: { $sum: '$price' }
+            }
+          }
+        ]
+      }
+    }
+  ];
+
+  const result = await db.collection<Sale>(COLLECTION).aggregate(pipeline).toArray();
+  const data = result[0];
+
+  const total = data.total[0] || { totalSales: 0, totalRevenue: 0, totalPlays: 0 };
+  const todayData = data.today[0] || { todaySales: 0, todayRevenue: 0 };
+  const monthData = data.month[0] || { monthSales: 0, monthRevenue: 0 };
 
   return {
-    totalSales: sales.length,
-    totalRevenue: sales.reduce((sum, s) => sum + s.price, 0),
-    totalPlays: sales.reduce((sum, s) => sum + s.plays, 0),
-    todaySales: todaySales.length,
-    todayRevenue: todaySales.reduce((sum, s) => sum + s.price, 0),
-    monthSales: monthSales.length,
-    monthRevenue: monthSales.reduce((sum, s) => sum + s.price, 0),
+    totalSales: total.totalSales,
+    totalRevenue: total.totalRevenue,
+    totalPlays: total.totalPlays,
+    todaySales: todayData.todaySales,
+    todayRevenue: todayData.todayRevenue,
+    monthSales: monthData.monthSales,
+    monthRevenue: monthData.monthRevenue,
   };
 }
 

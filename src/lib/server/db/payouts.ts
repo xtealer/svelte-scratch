@@ -76,21 +76,64 @@ export async function getPayoutsByDateRange(start: Date, end: Date): Promise<Pay
 export async function getPayoutStats(userId?: ObjectId) {
   const db = await getDB();
 
-  const query = userId ? { paidBy: userId } : {};
-  const payouts = await db.collection<Payout>(PAYOUTS_COLLECTION).find(query).toArray();
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
+  const matchStage = userId ? { $match: { paidBy: userId } } : { $match: {} };
+
+  const pipeline = [
+    matchStage,
+    {
+      $facet: {
+        total: [
+          {
+            $group: {
+              _id: null,
+              totalPayouts: { $sum: 1 },
+              totalAmount: { $sum: '$amount' }
+            }
+          }
+        ],
+        today: [
+          { $match: { paidAt: { $gte: today } } },
+          {
+            $group: {
+              _id: null,
+              todayPayouts: { $sum: 1 },
+              todayAmount: { $sum: '$amount' }
+            }
+          }
+        ],
+        month: [
+          { $match: { paidAt: { $gte: thisMonth } } },
+          {
+            $group: {
+              _id: null,
+              monthPayouts: { $sum: 1 },
+              monthAmount: { $sum: '$amount' }
+            }
+          }
+        ]
+      }
+    }
+  ];
+
+  const result = await db.collection<Payout>(PAYOUTS_COLLECTION).aggregate(pipeline).toArray();
+  const data = result[0];
+
+  const total = data.total[0] || { totalPayouts: 0, totalAmount: 0 };
+  const todayData = data.today[0] || { todayPayouts: 0, todayAmount: 0 };
+  const monthData = data.month[0] || { monthPayouts: 0, monthAmount: 0 };
+
   return {
-    totalPayouts: payouts.length,
-    totalAmount: payouts.reduce((sum, p) => sum + p.amount, 0),
-    todayPayouts: payouts.filter(p => p.paidAt >= today).length,
-    todayAmount: payouts.filter(p => p.paidAt >= today).reduce((sum, p) => sum + p.amount, 0),
-    monthPayouts: payouts.filter(p => p.paidAt >= thisMonth).length,
-    monthAmount: payouts.filter(p => p.paidAt >= thisMonth).reduce((sum, p) => sum + p.amount, 0),
+    totalPayouts: total.totalPayouts,
+    totalAmount: total.totalAmount,
+    todayPayouts: todayData.todayPayouts,
+    todayAmount: todayData.todayAmount,
+    monthPayouts: monthData.monthPayouts,
+    monthAmount: monthData.monthAmount,
   };
 }
 
