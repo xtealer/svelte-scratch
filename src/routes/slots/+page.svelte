@@ -6,8 +6,10 @@
   import ClaimModal from "$lib/ClaimModal.svelte";
   import SlotSymbol from "$lib/SlotSymbols.svelte";
   import Footer from "$lib/Footer.svelte";
+  import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play } from "lucide-svelte";
+  import { playerWallet, hasActiveSession as walletHasSession } from "$lib/stores/playerWallet";
 
   const MAX_PRIZE = 500;
   const MIN_BET = 1;
@@ -100,11 +102,11 @@
     winAnimationFrame = requestAnimationFrame(animate);
   }
 
-  // Session state
-  let hasActiveSession = $state(false);
-  let currentCode = $state("");
-  let credits = $state(0);
-  let sessionWinnings = $state(0);
+  // Session state - derived from unified wallet
+  let hasActiveSession = $derived($walletHasSession);
+  let currentCode = $derived($playerWallet.code);
+  let credits = $derived($playerWallet.credits);
+  let sessionWinnings = $derived($playerWallet.winnings);
 
   // Autoplay state
   let autoplayActive = $state(false);
@@ -115,9 +117,6 @@
   let showPrizeModal = $state(false);
   let showCodeModal = $state(false);
   let showClaimModal = $state(false);
-
-  // LocalStorage key
-  const STORAGE_KEY = "goldSlots_session";
 
   // Sounds
   let sounds: { spin: HTMLAudioElement; win: HTMLAudioElement; bigWin: HTMLAudioElement; lose: HTMLAudioElement } | null = null;
@@ -133,40 +132,12 @@
         lose: new Audio("https://assets.mixkit.co/active_storage/sfx/2001/2001-preview.mp3"),
       };
 
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        try {
-          const session = JSON.parse(saved);
-          if (session.credits > 0 || session.sessionWinnings > 0) {
-            currentCode = session.code || "";
-            credits = session.credits || 0;
-            sessionWinnings = session.sessionWinnings || 0;
-            hasActiveSession = true;
-          } else {
-            localStorage.removeItem(STORAGE_KEY);
-          }
-        } catch {
-          localStorage.removeItem(STORAGE_KEY);
-        }
+      // Mark this as the last game played
+      if ($walletHasSession) {
+        playerWallet.setLastGame('slots');
       }
     }
   });
-
-  function saveSession() {
-    if (browser && hasActiveSession) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        code: currentCode,
-        credits,
-        sessionWinnings
-      }));
-    }
-  }
-
-  function clearSession() {
-    if (browser) {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }
 
   function playSound(sound: HTMLAudioElement | undefined) {
     if (sound && !muted) {
@@ -192,19 +163,18 @@
   }
 
   function convertWinningsToCredits() {
-    if (sessionWinnings > 0) {
-      credits += sessionWinnings;
-      sessionWinnings = 0;
+    if ($playerWallet.winnings > 0) {
+      playerWallet.convertWinningsToCredits();
       // Adjust bet size if needed
-      if (betSize > credits) {
+      const newCredits = $playerWallet.credits;
+      if (betSize > newCredits) {
         for (let i = BET_STEPS.length - 1; i >= 0; i--) {
-          if (BET_STEPS[i] <= credits) {
+          if (BET_STEPS[i] <= newCredits) {
             betSize = BET_STEPS[i];
             break;
           }
         }
       }
-      saveSession();
     }
   }
 
@@ -285,24 +255,18 @@
       throw new Error(data.error || "Código inválido");
     }
 
-    currentCode = data.code;
-    credits = data.plays;
-    sessionWinnings = data.totalWinnings || 0;
-    hasActiveSession = true;
-    betSize = Math.min(betSize, credits);
+    // Update unified wallet
+    playerWallet.loadCode(data.code, data.plays, data.totalWinnings || 0, 'slots');
+
+    betSize = Math.min(betSize, data.plays);
     if (betSize < 1) betSize = 1;
     lastWin = 0;
     reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
-    saveSession();
   }
 
   function resetSession() {
     stopAutoplay();
-    clearSession();
-    hasActiveSession = false;
-    currentCode = "";
-    credits = 0;
-    sessionWinnings = 0;
+    playerWallet.clear();
     currentPrize = 0;
     lastWin = 0;
     reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
@@ -329,7 +293,8 @@
   }
 
   async function spin() {
-    if (spinning || credits < betSize || !hasActiveSession) {
+    const currentCredits = $playerWallet.credits;
+    if (spinning || currentCredits < betSize || !$walletHasSession) {
       if (autoplayActive) stopAutoplay();
       return;
     }
@@ -353,11 +318,11 @@
       const response = await fetch("/api/game/play", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: currentCode, gameId: 'slots', bet: betSize }),
+        body: JSON.stringify({ code: $playerWallet.code, gameId: 'slots', bet: betSize }),
       });
       result = await response.json();
     } catch {
-      result = { success: false, prize: 0, symbol: '', playsLeft: credits, totalWinnings: sessionWinnings, error: 'Network error' };
+      result = { success: false, prize: 0, symbol: '', playsLeft: currentCredits, totalWinnings: $playerWallet.winnings, error: 'Network error' };
     }
 
     // Wait for spin animation to complete
@@ -365,8 +330,8 @@
     clearInterval(spinAnimation);
 
     if (result.success) {
-      credits = result.playsLeft;
-      sessionWinnings = result.totalWinnings;
+      // Update unified wallet
+      playerWallet.updateCredits(result.playsLeft, result.totalWinnings);
 
       if (result.prize > 0) {
         currentPrize = result.prize;
@@ -397,20 +362,19 @@
 
     spinning = false;
 
-    if (credits < betSize && credits > 0) {
+    const newCredits = $playerWallet.credits;
+    if (newCredits < betSize && newCredits > 0) {
       for (let i = BET_STEPS.length - 1; i >= 0; i--) {
-        if (BET_STEPS[i] <= credits) {
+        if (BET_STEPS[i] <= newCredits) {
           betSize = BET_STEPS[i];
           break;
         }
       }
     }
 
-    saveSession();
-
     if (autoplayActive) {
       autoplaySpinsLeft--;
-      if (autoplaySpinsLeft <= 0 || credits < betSize) {
+      if (autoplaySpinsLeft <= 0 || newCredits < betSize) {
         stopAutoplay();
       } else {
         setTimeout(() => spin(), 500);
@@ -419,7 +383,9 @@
   }
 </script>
 
-<div class="container" dir={$direction}>
+<GameNavbar onEndSession={resetSession} />
+
+<div class="container" class:has-navbar={hasActiveSession} dir={$direction}>
   <!-- Top controls -->
   <div class="top-controls">
     <a href="/" class="control-btn back-btn" title={$t.gameUI.backToMenu}>
@@ -557,6 +523,11 @@
     padding: 15px;
     width: 100%;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+    transition: padding-top 0.2s ease;
+  }
+
+  .container.has-navbar {
+    padding-top: 60px;
   }
 
   .top-controls {

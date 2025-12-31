@@ -2,14 +2,18 @@
   import { onMount } from "svelte";
   import { Ticket, Dices } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
+  import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
+  import { hasActiveSession } from "$lib/stores/playerWallet";
 
   onMount(() => {
     initLanguage();
   });
 </script>
 
-<div class="menu" dir={$direction}>
+<GameNavbar />
+
+<div class="menu" class:has-navbar={$hasActiveSession} dir={$direction}>
   <h1>{$t.gameMenu.title}</h1>
   <p class="subtitle">{$t.gameMenu.subtitle}</p>
 
@@ -47,6 +51,11 @@
     min-height: 100dvh;
     padding: 16px;
     width: 100%;
+    transition: padding-top 0.2s ease;
+  }
+
+  .menu.has-navbar {
+    padding-top: 60px;
   }
 
   h1 {
