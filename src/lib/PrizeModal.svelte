@@ -72,20 +72,20 @@
 
   .modal-content {
     background: linear-gradient(#222, #333);
-    border: 3px solid #ffd700;
-    border-radius: 16px;
-    padding: 16px;
+    border: 2px solid #ffd700;
+    border-radius: 12px;
+    padding: 12px;
     width: 100%;
-    max-width: 340px;
+    max-width: 280px;
     max-height: calc(100vh - 24px);
     max-height: calc(100dvh - 24px);
     overflow-y: auto;
-    box-shadow: 0 0 30px #ff0;
+    box-shadow: 0 0 20px #ff0;
   }
 
   .modal-header {
-    font-size: 1.4em;
-    margin-bottom: 12px;
+    font-size: 1.1em;
+    margin-bottom: 8px;
     text-shadow: 0 0 10px #ff0;
     color: #ffd700;
     text-align: center;
@@ -95,9 +95,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 8px;
+    padding: 6px 6px;
     border-bottom: 1px solid #444;
-    font-size: 0.95em;
+    font-size: 0.8em;
     color: #ffd700;
   }
 
@@ -108,23 +108,23 @@
   .prize-amount {
     font-weight: bold;
     color: #ffd700;
-    min-width: 50px;
+    min-width: 40px;
     text-align: center;
   }
 
   .prize-symbol {
-    font-size: 1.3em;
+    font-size: 1.1em;
   }
 
   .close-btn {
-    margin-top: 12px;
-    padding: 12px;
-    font-size: 1.2em;
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 1em;
     width: 100%;
     background: linear-gradient(#ffd700, #b8860b);
     color: #000;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     font-weight: bold;
@@ -136,24 +136,24 @@
 
   @media (min-width: 400px) {
     .modal-content {
-      padding: 20px;
-      max-width: 380px;
+      padding: 14px;
+      max-width: 300px;
     }
     .modal-header {
-      font-size: 1.6em;
-      margin-bottom: 16px;
+      font-size: 1.2em;
+      margin-bottom: 10px;
     }
     .prize-row {
-      font-size: 1.1em;
-      padding: 12px 10px;
+      font-size: 0.85em;
+      padding: 7px 8px;
     }
     .prize-symbol {
-      font-size: 1.4em;
+      font-size: 1.15em;
     }
     .close-btn {
-      margin-top: 16px;
-      padding: 14px;
-      font-size: 1.3em;
+      margin-top: 12px;
+      padding: 10px;
+      font-size: 1.05em;
     }
   }
 </style>
