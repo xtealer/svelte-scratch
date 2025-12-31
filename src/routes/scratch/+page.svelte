@@ -7,6 +7,7 @@
   import ClaimModal from "$lib/ClaimModal.svelte";
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
+  import ProfileModal from "$lib/ProfileModal.svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
@@ -94,6 +95,7 @@
   let showClaimModal = $state(false);
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
+  let showProfileModal = $state(false);
 
   // Win celebration state
   let showWinCelebration = $state(false);
@@ -469,6 +471,10 @@
     showRegisterModal = true;
   }
 
+  function openProfileModal(): void {
+    showProfileModal = true;
+  }
+
   function switchToRegister(): void {
     showLoginModal = false;
     showRegisterModal = true;
@@ -516,7 +522,7 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} />
+<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
 
 <div class="container" dir={$direction}>
   <div class="ticket">
@@ -621,6 +627,7 @@
 />
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
+<ProfileModal bind:show={showProfileModal} />
 
 <style>
   .footer-wrapper {

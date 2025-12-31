@@ -4,7 +4,7 @@ import { loginWithMetamask, createMetamaskUser, generatePlayerToken } from '$lib
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { metamaskAddress } = await request.json();
+    const { metamaskAddress, createIfNotExists } = await request.json();
 
     if (!metamaskAddress) {
       return json({ error: 'Metamask address required' }, { status: 400 });
@@ -18,9 +18,16 @@ export const POST: RequestHandler = async ({ request }) => {
     // Try to find existing user with this wallet
     let user = await loginWithMetamask(metamaskAddress);
 
-    // If no user found, auto-create a new MetaMask-only account
+    // If no user found, either create new account or return WALLET_NOT_LINKED
     if (!user) {
-      user = await createMetamaskUser(metamaskAddress);
+      if (createIfNotExists) {
+        user = await createMetamaskUser(metamaskAddress);
+      } else {
+        return json({
+          error: 'Wallet not linked to any account',
+          code: 'WALLET_NOT_LINKED'
+        }, { status: 404 });
+      }
     }
 
     const token = generatePlayerToken(user);

@@ -309,6 +309,7 @@ export interface AuthModalTranslations {
   linkError: string;
   linking: string;
   linkAndLogin: string;
+  skipLinking: string;
 }
 
 export interface DepositModalTranslations {
@@ -383,6 +384,15 @@ export interface PrizeModalTranslations {
   close: string;
 }
 
+export interface ProfileTranslations {
+  title: string;
+  wallet: string;
+  linkEmailTitle: string;
+  linkEmailInfo: string;
+  linkEmail: string;
+  emailLinkedSuccess: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
@@ -402,6 +412,7 @@ export interface Translations {
   prizeModal: PrizeModalTranslations;
   authModal: AuthModalTranslations;
   depositModal: DepositModalTranslations;
+  profile: ProfileTranslations;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -757,6 +768,7 @@ export const translations: Record<Language, Translations> = {
       linkError: 'Error linking wallet',
       linking: 'Linking...',
       linkAndLogin: 'Link & Login',
+      skipLinking: 'Continue without linking',
     },
     depositModal: {
       title: 'DEPOSIT',
@@ -770,6 +782,14 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'Send to this address:',
       cryptoInfo1: 'Your balance will be updated after network confirmation.',
       cryptoInfo2: 'Only send the selected cryptocurrency to this address.',
+    },
+    profile: {
+      title: 'PROFILE',
+      wallet: 'Wallet',
+      linkEmailTitle: 'Link Email & Password',
+      linkEmailInfo: 'Add an email and password to your account for additional login options.',
+      linkEmail: 'Link Email',
+      emailLinkedSuccess: 'Email linked successfully!',
     },
   },
   es: {
@@ -1124,6 +1144,7 @@ export const translations: Record<Language, Translations> = {
       linkError: 'Error al vincular billetera',
       linking: 'Vinculando...',
       linkAndLogin: 'Vincular e Iniciar',
+      skipLinking: 'Continuar sin vincular',
     },
     depositModal: {
       title: 'DEPOSITAR',
@@ -1137,6 +1158,14 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'Enviar a esta dirección:',
       cryptoInfo1: 'Tu saldo se actualizará después de la confirmación de la red.',
       cryptoInfo2: 'Solo envía la criptomoneda seleccionada a esta dirección.',
+    },
+    profile: {
+      title: 'PERFIL',
+      wallet: 'Billetera',
+      linkEmailTitle: 'Vincular Correo y Contraseña',
+      linkEmailInfo: 'Agrega un correo y contraseña a tu cuenta para opciones adicionales de inicio de sesión.',
+      linkEmail: 'Vincular Correo',
+      emailLinkedSuccess: '¡Correo vinculado exitosamente!',
     },
   },
   ar: {
@@ -1491,6 +1520,7 @@ export const translations: Record<Language, Translations> = {
       linkError: 'خطأ في ربط المحفظة',
       linking: 'جاري الربط...',
       linkAndLogin: 'ربط وتسجيل الدخول',
+      skipLinking: 'متابعة بدون ربط',
     },
     depositModal: {
       title: 'إيداع',
@@ -1504,6 +1534,14 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'أرسل إلى هذا العنوان:',
       cryptoInfo1: 'سيتم تحديث رصيدك بعد تأكيد الشبكة.',
       cryptoInfo2: 'أرسل فقط العملة المشفرة المحددة إلى هذا العنوان.',
+    },
+    profile: {
+      title: 'الملف الشخصي',
+      wallet: 'المحفظة',
+      linkEmailTitle: 'ربط البريد الإلكتروني وكلمة المرور',
+      linkEmailInfo: 'أضف بريدًا إلكترونيًا وكلمة مرور إلى حسابك للحصول على خيارات تسجيل دخول إضافية.',
+      linkEmail: 'ربط البريد الإلكتروني',
+      emailLinkedSuccess: 'تم ربط البريد الإلكتروني بنجاح!',
     },
   },
 };

@@ -228,3 +228,56 @@ export async function changePlayerPassword(id: string | ObjectId, newPassword: s
   );
   return result.modifiedCount > 0;
 }
+
+export async function linkEmailToAccount(
+  userId: string | ObjectId,
+  email: string,
+  password: string,
+  fullName?: string
+): Promise<PlayerUser> {
+  const db = await getDB();
+  const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+  const normalizedEmail = email.toLowerCase();
+
+  // Check if email is already used by another account
+  const existingEmail = await db.collection<PlayerUser>(COLLECTION).findOne({
+    email: normalizedEmail,
+    _id: { $ne: objectId }
+  });
+
+  if (existingEmail) {
+    throw new Error('Email already in use');
+  }
+
+  // Get the current user
+  const user = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Check if user already has email linked
+  if (user.email) {
+    throw new Error('Email already linked to this account');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const updates: Partial<PlayerUser> = {
+    email: normalizedEmail,
+    password: hashedPassword
+  };
+
+  // Update fullName if provided
+  if (fullName && fullName.trim()) {
+    updates.fullName = fullName.trim();
+  }
+
+  await db.collection<PlayerUser>(COLLECTION).updateOne(
+    { _id: objectId },
+    { $set: updates }
+  );
+
+  // Return updated user
+  const updatedUser = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+  return updatedUser!;
+}
