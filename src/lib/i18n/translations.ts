@@ -258,6 +258,71 @@ export interface NavbarTranslations {
   balance: string;
   noCredits: string;
   enterCode: string;
+  login: string;
+  register: string;
+  deposit: string;
+  logout: string;
+  confirmLogout: string;
+}
+
+export interface AuthModalTranslations {
+  registerTitle: string;
+  loginTitle: string;
+  email: string;
+  emailPlaceholder: string;
+  fullName: string;
+  namePlaceholder: string;
+  country: string;
+  language: string;
+  password: string;
+  passwordPlaceholder: string;
+  confirmPassword: string;
+  confirmPasswordPlaceholder: string;
+  register: string;
+  registering: string;
+  login: string;
+  loggingIn: string;
+  cancel: string;
+  back: string;
+  emailError: string;
+  nameError: string;
+  passwordError: string;
+  passwordMismatch: string;
+  registerError: string;
+  loginError: string;
+  connectionError: string;
+  fillAllFields: string;
+  registerSuccess: string;
+  welcomeMessage: string;
+  haveAccount: string;
+  loginHere: string;
+  noAccount: string;
+  registerHere: string;
+  loginWithMetamask: string;
+  loginWithEmail: string;
+  or: string;
+  metamaskNotFound: string;
+  metamaskError: string;
+  installMetamask: string;
+  linkWallet: string;
+  linkWalletInfo: string;
+  linkError: string;
+  linking: string;
+  linkAndLogin: string;
+}
+
+export interface DepositModalTranslations {
+  title: string;
+  currentBalance: string;
+  rechargeCard: string;
+  rechargeDesc: string;
+  depositCrypto: string;
+  cryptoDesc: string;
+  cancel: string;
+  invalidCode: string;
+  sendTo: string;
+  cryptoInfo1: string;
+  cryptoInfo2: string;
 }
 
 export interface ClaimModalTranslations {
@@ -335,6 +400,8 @@ export interface Translations {
   claimModal: ClaimModalTranslations;
   codeModal: CodeModalTranslations;
   prizeModal: PrizeModalTranslations;
+  authModal: AuthModalTranslations;
+  depositModal: DepositModalTranslations;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -586,6 +653,11 @@ export const translations: Record<Language, Translations> = {
       balance: 'Balance',
       noCredits: 'No credits',
       enterCode: 'Enter Code',
+      login: 'Login',
+      register: 'Register',
+      deposit: 'Deposit',
+      logout: 'Logout',
+      confirmLogout: 'Are you sure you want to logout?',
     },
     claimModal: {
       requestSent: 'REQUEST SENT!',
@@ -622,7 +694,7 @@ export const translations: Record<Language, Translations> = {
       title: 'ENTER CODE',
       placeholder: 'Enter code (e.g.: ABC123)',
       enterCodeError: 'Please enter a code',
-      info1: 'Enter the code from your ticket to load your plays.',
+      info1: 'Enter your code to claim your recharge.',
       info2: 'Each code can have multiple plays.',
       loadPlays: 'Load Plays',
       loading: 'Loading...',
@@ -640,6 +712,64 @@ export const translations: Record<Language, Translations> = {
       title: 'PRIZE LIST',
       odds: '1 in',
       close: 'Close',
+    },
+    authModal: {
+      registerTitle: 'CREATE ACCOUNT',
+      loginTitle: 'LOGIN',
+      email: 'Email',
+      emailPlaceholder: 'your@email.com',
+      fullName: 'Full Name',
+      namePlaceholder: 'Your full name',
+      country: 'Country',
+      language: 'Preferred Language',
+      password: 'Password',
+      passwordPlaceholder: 'Enter password',
+      confirmPassword: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Confirm password',
+      register: 'Create Account',
+      registering: 'Creating...',
+      login: 'Login',
+      loggingIn: 'Logging in...',
+      cancel: 'Cancel',
+      back: 'Back',
+      emailError: 'Please enter a valid email',
+      nameError: 'Please enter your full name',
+      passwordError: 'Password must be at least 6 characters',
+      passwordMismatch: 'Passwords do not match',
+      registerError: 'Error creating account',
+      loginError: 'Invalid email or password',
+      connectionError: 'Connection error',
+      fillAllFields: 'Please fill all fields',
+      registerSuccess: 'ACCOUNT CREATED!',
+      welcomeMessage: 'Welcome! Your account has been created successfully.',
+      haveAccount: 'Already have an account?',
+      loginHere: 'Login here',
+      noAccount: "Don't have an account?",
+      registerHere: 'Register here',
+      loginWithMetamask: 'Login with Metamask',
+      loginWithEmail: 'Login with Email',
+      or: 'or',
+      metamaskNotFound: 'Metamask not found',
+      metamaskError: 'Error connecting to Metamask',
+      installMetamask: 'Install Metamask to use this feature',
+      linkWallet: 'LINK WALLET',
+      linkWalletInfo: 'This wallet is not linked to any account. Login to your existing account to link it.',
+      linkError: 'Error linking wallet',
+      linking: 'Linking...',
+      linkAndLogin: 'Link & Login',
+    },
+    depositModal: {
+      title: 'DEPOSIT',
+      currentBalance: 'Current Balance',
+      rechargeCard: 'Recharge Card',
+      rechargeDesc: 'Use a recharge card code',
+      depositCrypto: 'Deposit Crypto',
+      cryptoDesc: 'Send BTC, ETH or USDT',
+      cancel: 'Cancel',
+      invalidCode: 'Invalid code',
+      sendTo: 'Send to this address:',
+      cryptoInfo1: 'Your balance will be updated after network confirmation.',
+      cryptoInfo2: 'Only send the selected cryptocurrency to this address.',
     },
   },
   es: {
@@ -890,6 +1020,11 @@ export const translations: Record<Language, Translations> = {
       balance: 'Saldo',
       noCredits: 'Sin créditos',
       enterCode: 'Ingresar Código',
+      login: 'Iniciar Sesión',
+      register: 'Registrarse',
+      deposit: 'Depositar',
+      logout: 'Cerrar Sesión',
+      confirmLogout: '¿Estás seguro de cerrar sesión?',
     },
     claimModal: {
       requestSent: '¡SOLICITUD ENVIADA!',
@@ -944,6 +1079,64 @@ export const translations: Record<Language, Translations> = {
       title: 'LISTA DE PREMIOS',
       odds: '1 en',
       close: 'Cerrar',
+    },
+    authModal: {
+      registerTitle: 'CREAR CUENTA',
+      loginTitle: 'INICIAR SESIÓN',
+      email: 'Correo Electrónico',
+      emailPlaceholder: 'tu@correo.com',
+      fullName: 'Nombre Completo',
+      namePlaceholder: 'Tu nombre completo',
+      country: 'País',
+      language: 'Idioma Preferido',
+      password: 'Contraseña',
+      passwordPlaceholder: 'Ingresa contraseña',
+      confirmPassword: 'Confirmar Contraseña',
+      confirmPasswordPlaceholder: 'Confirma contraseña',
+      register: 'Crear Cuenta',
+      registering: 'Creando...',
+      login: 'Iniciar Sesión',
+      loggingIn: 'Iniciando sesión...',
+      cancel: 'Cancelar',
+      back: 'Volver',
+      emailError: 'Por favor ingresa un correo válido',
+      nameError: 'Por favor ingresa tu nombre completo',
+      passwordError: 'La contraseña debe tener al menos 6 caracteres',
+      passwordMismatch: 'Las contraseñas no coinciden',
+      registerError: 'Error al crear cuenta',
+      loginError: 'Correo o contraseña inválidos',
+      connectionError: 'Error de conexión',
+      fillAllFields: 'Por favor completa todos los campos',
+      registerSuccess: '¡CUENTA CREADA!',
+      welcomeMessage: '¡Bienvenido! Tu cuenta ha sido creada exitosamente.',
+      haveAccount: '¿Ya tienes una cuenta?',
+      loginHere: 'Inicia sesión aquí',
+      noAccount: '¿No tienes una cuenta?',
+      registerHere: 'Regístrate aquí',
+      loginWithMetamask: 'Iniciar con Metamask',
+      loginWithEmail: 'Iniciar con Correo',
+      or: 'o',
+      metamaskNotFound: 'Metamask no encontrado',
+      metamaskError: 'Error al conectar con Metamask',
+      installMetamask: 'Instala Metamask para usar esta función',
+      linkWallet: 'VINCULAR BILLETERA',
+      linkWalletInfo: 'Esta billetera no está vinculada a ninguna cuenta. Inicia sesión en tu cuenta existente para vincularla.',
+      linkError: 'Error al vincular billetera',
+      linking: 'Vinculando...',
+      linkAndLogin: 'Vincular e Iniciar',
+    },
+    depositModal: {
+      title: 'DEPOSITAR',
+      currentBalance: 'Saldo Actual',
+      rechargeCard: 'Tarjeta de Recarga',
+      rechargeDesc: 'Usa un código de tarjeta de recarga',
+      depositCrypto: 'Depositar Cripto',
+      cryptoDesc: 'Envía BTC, ETH o USDT',
+      cancel: 'Cancelar',
+      invalidCode: 'Código inválido',
+      sendTo: 'Enviar a esta dirección:',
+      cryptoInfo1: 'Tu saldo se actualizará después de la confirmación de la red.',
+      cryptoInfo2: 'Solo envía la criptomoneda seleccionada a esta dirección.',
     },
   },
   ar: {
@@ -1194,6 +1387,11 @@ export const translations: Record<Language, Translations> = {
       balance: 'الرصيد',
       noCredits: 'لا يوجد رصيد',
       enterCode: 'أدخل الرمز',
+      login: 'تسجيل الدخول',
+      register: 'إنشاء حساب',
+      deposit: 'إيداع',
+      logout: 'تسجيل الخروج',
+      confirmLogout: 'هل أنت متأكد من تسجيل الخروج؟',
     },
     claimModal: {
       requestSent: 'تم إرسال الطلب!',
@@ -1248,6 +1446,64 @@ export const translations: Record<Language, Translations> = {
       title: 'قائمة الجوائز',
       odds: '1 من',
       close: 'إغلاق',
+    },
+    authModal: {
+      registerTitle: 'إنشاء حساب',
+      loginTitle: 'تسجيل الدخول',
+      email: 'البريد الإلكتروني',
+      emailPlaceholder: 'بريدك@الإلكتروني.com',
+      fullName: 'الاسم الكامل',
+      namePlaceholder: 'اسمك الكامل',
+      country: 'الدولة',
+      language: 'اللغة المفضلة',
+      password: 'كلمة المرور',
+      passwordPlaceholder: 'أدخل كلمة المرور',
+      confirmPassword: 'تأكيد كلمة المرور',
+      confirmPasswordPlaceholder: 'تأكيد كلمة المرور',
+      register: 'إنشاء حساب',
+      registering: 'جاري الإنشاء...',
+      login: 'تسجيل الدخول',
+      loggingIn: 'جاري تسجيل الدخول...',
+      cancel: 'إلغاء',
+      back: 'رجوع',
+      emailError: 'الرجاء إدخال بريد إلكتروني صحيح',
+      nameError: 'الرجاء إدخال اسمك الكامل',
+      passwordError: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+      passwordMismatch: 'كلمات المرور غير متطابقة',
+      registerError: 'خطأ في إنشاء الحساب',
+      loginError: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+      connectionError: 'خطأ في الاتصال',
+      fillAllFields: 'الرجاء ملء جميع الحقول',
+      registerSuccess: 'تم إنشاء الحساب!',
+      welcomeMessage: 'مرحباً! تم إنشاء حسابك بنجاح.',
+      haveAccount: 'لديك حساب بالفعل؟',
+      loginHere: 'سجل دخولك هنا',
+      noAccount: 'ليس لديك حساب؟',
+      registerHere: 'سجل هنا',
+      loginWithMetamask: 'الدخول بـ Metamask',
+      loginWithEmail: 'الدخول بالبريد الإلكتروني',
+      or: 'أو',
+      metamaskNotFound: 'Metamask غير موجود',
+      metamaskError: 'خطأ في الاتصال بـ Metamask',
+      installMetamask: 'قم بتثبيت Metamask لاستخدام هذه الميزة',
+      linkWallet: 'ربط المحفظة',
+      linkWalletInfo: 'هذه المحفظة غير مرتبطة بأي حساب. سجل دخولك إلى حسابك الحالي لربطها.',
+      linkError: 'خطأ في ربط المحفظة',
+      linking: 'جاري الربط...',
+      linkAndLogin: 'ربط وتسجيل الدخول',
+    },
+    depositModal: {
+      title: 'إيداع',
+      currentBalance: 'الرصيد الحالي',
+      rechargeCard: 'بطاقة إعادة الشحن',
+      rechargeDesc: 'استخدم رمز بطاقة إعادة الشحن',
+      depositCrypto: 'إيداع العملات المشفرة',
+      cryptoDesc: 'أرسل BTC أو ETH أو USDT',
+      cancel: 'إلغاء',
+      invalidCode: 'رمز غير صالح',
+      sendTo: 'أرسل إلى هذا العنوان:',
+      cryptoInfo1: 'سيتم تحديث رصيدك بعد تأكيد الشبكة.',
+      cryptoInfo2: 'أرسل فقط العملة المشفرة المحددة إلى هذا العنوان.',
     },
   },
 };
