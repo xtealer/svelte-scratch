@@ -8,8 +8,10 @@
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
-  import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play } from "lucide-svelte";
+  import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play, Pause } from "lucide-svelte";
   import { playerWallet, hasActiveSession as walletHasSession } from "$lib/stores/playerWallet";
+  import { WinCelebration, LowBalanceIndicator, BetPresets } from "$lib/components";
+  import { hapticWin, haptic } from "$lib/utils/haptics";
 
   const MAX_PRIZE = 500;
   const MIN_BET = 1;
@@ -118,6 +120,11 @@
   let showCodeModal = $state(false);
   let showClaimModal = $state(false);
 
+  // Win celebration state
+  let showWinCelebration = $state(false);
+  let celebrationAmount = $state(0);
+  let celebrationLevel = $state<'normal' | 'big' | 'mega'>('normal');
+
   // Sounds
   let sounds: { spin: HTMLAudioElement; win: HTMLAudioElement; bigWin: HTMLAudioElement; lose: HTMLAudioElement } | null = null;
 
@@ -184,6 +191,7 @@
       const nextBet = BET_STEPS[currentIndex + 1];
       if (nextBet <= credits) {
         betSize = nextBet;
+        haptic('light');
       }
     }
   }
@@ -192,7 +200,13 @@
     const currentIndex = BET_STEPS.indexOf(betSize);
     if (currentIndex > 0) {
       betSize = BET_STEPS[currentIndex - 1];
+      haptic('light');
     }
+  }
+
+  function handleBetChange(newBet: number) {
+    betSize = newBet;
+    haptic('light');
   }
 
   function getRandomSymbol(): string {
@@ -341,10 +355,20 @@
         // Animate the win counter
         animateWinCounter(currentPrize);
 
+        // Trigger haptic feedback
+        hapticWin(currentPrize);
+
         if (currentPrize >= 50) {
           playSound(sounds?.bigWin);
         } else {
           playSound(sounds?.win);
+        }
+
+        // Show win celebration for bigger wins (only if not in autoplay)
+        if (currentPrize >= 20 && !autoplayActive) {
+          celebrationAmount = currentPrize;
+          celebrationLevel = currentPrize >= 100 ? 'mega' : currentPrize >= 50 ? 'big' : 'normal';
+          showWinCelebration = true;
         }
       } else {
         if (Math.random() < 0.3) {
@@ -433,6 +457,7 @@
         <div class="info-row">
           <span class="info-label">{$t.gameUI.credit}:</span>
           <span class="info-value">${credits}</span>
+          <LowBalanceIndicator credits={credits} threshold={5} betSize={betSize} />
         </div>
         <div class="info-row">
           <span class="info-label">{$t.gameUI.bet}:</span>
@@ -447,33 +472,45 @@
       </div>
 
       <div class="center-controls">
-        <button class="bet-adjust-btn" onclick={decreaseBet} disabled={spinning || betSize <= MIN_BET}>
-          −
-        </button>
-
-        {#if credits >= betSize}
-          <button
-            class="spin-btn"
-            onclick={spin}
+        <div class="bet-presets-row">
+          <BetPresets
+            presets={BET_STEPS}
+            bind:currentBet={betSize}
+            maxBet={credits}
             disabled={spinning}
-            class:spinning
-          >
-            <RotateCw size={24} />
-            <span>{$t.gameUI.spin}</span>
-          </button>
-        {:else if sessionWinnings > 0}
-          <button class="spin-btn claim" onclick={openClaimModal}>
-            <span>{$t.gameUI.claim} ${sessionWinnings}</span>
-          </button>
-        {:else}
-          <button class="spin-btn new-code" onclick={openCodeModal}>
-            <span>{$t.gameUI.code}</span>
-          </button>
-        {/if}
+            onBetChange={handleBetChange}
+          />
+        </div>
 
-        <button class="bet-adjust-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > credits}>
-          +
-        </button>
+        <div class="spin-row">
+          <button class="bet-adjust-btn" onclick={decreaseBet} disabled={spinning || betSize <= MIN_BET}>
+            −
+          </button>
+
+          {#if credits >= betSize}
+            <button
+              class="spin-btn"
+              onclick={spin}
+              disabled={spinning}
+              class:spinning
+            >
+              <RotateCw size={24} />
+              <span>{$t.gameUI.spin}</span>
+            </button>
+          {:else if sessionWinnings > 0}
+            <button class="spin-btn claim" onclick={openClaimModal}>
+              <span>{$t.gameUI.claim} ${sessionWinnings}</span>
+            </button>
+          {:else}
+            <button class="spin-btn new-code" onclick={openCodeModal}>
+              <span>{$t.gameUI.code}</span>
+            </button>
+          {/if}
+
+          <button class="bet-adjust-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > credits}>
+            +
+          </button>
+        </div>
       </div>
 
       <div class="right-controls">
@@ -482,8 +519,13 @@
           <span>{$t.gameUI.payTable}</span>
         </button>
         <button class="side-btn" onclick={toggleAutoplay} class:active={autoplayActive}>
-          <Play size={16} />
-          <span>{$t.gameUI.auto} | {autoplayActive ? $t.gameUI.on : $t.gameUI.off}</span>
+          {#if autoplayActive}
+            <Pause size={16} />
+            <span>{autoplaySpinsLeft} left</span>
+          {:else}
+            <Play size={16} />
+            <span>{$t.gameUI.auto}</span>
+          {/if}
         </button>
         {#if sessionWinnings > 0}
           <button class="claim-btn" onclick={openClaimModal}>
@@ -511,6 +553,13 @@
   totalWinnings={sessionWinnings}
   gameId="slots"
   onPlayMore={convertWinningsToCredits}
+/>
+
+<WinCelebration
+  bind:show={showWinCelebration}
+  amount={celebrationAmount}
+  level={celebrationLevel}
+  duration={2500}
 />
 
 <style>
@@ -698,6 +747,19 @@
   }
 
   .center-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bet-presets-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .spin-row {
     display: flex;
     align-items: center;
     gap: 8px;
