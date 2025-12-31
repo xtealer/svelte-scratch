@@ -622,7 +622,7 @@ export const translations: Record<Language, Translations> = {
       title: 'ENTER CODE',
       placeholder: 'Enter code (e.g.: ABC123)',
       enterCodeError: 'Please enter a code',
-      info1: 'Enter the code from your ticket to load your plays.',
+      info1: 'Enter your code to claim your recharge.',
       info2: 'Each code can have multiple plays.',
       loadPlays: 'Load Plays',
       loading: 'Loading...',
