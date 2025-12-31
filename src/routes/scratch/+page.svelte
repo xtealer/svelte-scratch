@@ -5,6 +5,8 @@
   import PrizeModal from "$lib/PrizeModal.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import ClaimModal from "$lib/ClaimModal.svelte";
+  import LoginModal from "$lib/LoginModal.svelte";
+  import RegisterModal from "$lib/RegisterModal.svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
@@ -90,6 +92,8 @@
   let showPrizeModal = $state(false);
   let showCodeModal = $state(false);
   let showClaimModal = $state(false);
+  let showLoginModal = $state(false);
+  let showRegisterModal = $state(false);
 
   // Win celebration state
   let showWinCelebration = $state(false);
@@ -457,6 +461,24 @@
     }
   }
 
+  function openLoginModal(): void {
+    showLoginModal = true;
+  }
+
+  function openRegisterModal(): void {
+    showRegisterModal = true;
+  }
+
+  function switchToRegister(): void {
+    showLoginModal = false;
+    showRegisterModal = true;
+  }
+
+  function switchToLogin(): void {
+    showRegisterModal = false;
+    showLoginModal = true;
+  }
+
   // Convert winnings to plays ($1 = 1 play)
   function convertWinningsToPlays(): void {
     if ($playerWallet.winnings > 0) {
@@ -494,7 +516,7 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} />
+<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} />
 
 <div class="container" dir={$direction}>
   <div class="ticket">
@@ -597,6 +619,8 @@
   level={celebrationLevel}
   duration={2500}
 />
+<LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
+<RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
 
 <style>
   .footer-wrapper {
