@@ -1,22 +1,28 @@
 <script lang="ts">
+  import { t } from "$lib/i18n";
+
   interface Prize {
     symbol: string;
     amount: number;
-    odds: string;
+    odds: number;
   }
 
   let { show = $bindable(false) }: { show: boolean } = $props();
 
   const prizes: Prize[] = [
-    { symbol: '💎', amount: 500, odds: '1 en 8,945' },
-    { symbol: '⭐', amount: 100, odds: '1 en 3,334' },
-    { symbol: '🎰', amount: 50, odds: '1 en 1,243' },
-    { symbol: '💰', amount: 20, odds: '1 en 463' },
-    { symbol: '🪙', amount: 10, odds: '1 en 173' },
-    { symbol: '🪙', amount: 5, odds: '1 en 64' },
-    { symbol: '🪶', amount: 2, odds: '1 en 24' },
-    { symbol: '🪶', amount: 1, odds: '1 en 9' }
+    { symbol: '💎', amount: 500, odds: 8945 },
+    { symbol: '⭐', amount: 100, odds: 3334 },
+    { symbol: '🎰', amount: 50, odds: 1243 },
+    { symbol: '💰', amount: 20, odds: 463 },
+    { symbol: '🪙', amount: 10, odds: 173 },
+    { symbol: '🍀', amount: 5, odds: 64 },
+    { symbol: '🪶', amount: 2, odds: 24 },
+    { symbol: '🎲', amount: 1, odds: 9 }
   ];
+
+  function formatOdds(odds: number): string {
+    return `${$t.prizeModal.odds} ${odds.toLocaleString()}`;
+  }
 
   function close(): void {
     show = false;
@@ -34,15 +40,15 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="modal" onclick={handleBackdropClick}>
     <div class="modal-content">
-      <div class="modal-header">LISTA DE PREMIOS</div>
+      <div class="modal-header">{$t.prizeModal.title}</div>
       {#each prizes as prize}
         <div class="prize-row">
           <span class="prize-symbol">{prize.symbol}</span>
           <span class="prize-amount">${prize.amount}</span>
-          <span>{prize.odds}</span>
+          <span>{formatOdds(prize.odds)}</span>
         </div>
       {/each}
-      <button class="close-btn" onclick={close}>Cerrar</button>
+      <button class="close-btn" onclick={close}>{$t.prizeModal.close}</button>
     </div>
   </div>
 {/if}

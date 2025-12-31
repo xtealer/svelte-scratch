@@ -60,12 +60,12 @@
     50: "🎰",
     20: "💰",
     10: "🪙",
-    5: "🪙",
+    5: "🍀",
     2: "🪶",
-    1: "🪶",
+    1: "🎲",
   };
 
-  const loseSymbols: string[] = ["🪙", "💰", "💎", "🪶", "🎰", "⭐"];
+  const loseSymbols: string[] = ["🪙", "💰", "💎", "🪶", "🎰", "⭐", "🍀", "🎲"];
   const nearMissPrizes: number[] = [500, 100, 100, 50, 50, 20, 20, 10, 10];
 
   // Game state
@@ -896,103 +896,165 @@
       display: none;
     }
     .container {
-      padding: 4px 10px;
-      padding-top: max(50px, calc(env(safe-area-inset-top) + 42px));
+      padding: 4px 8px;
+      padding-top: max(48px, calc(env(safe-area-inset-top) + 40px));
       padding-bottom: max(4px, env(safe-area-inset-bottom));
     }
     .control-btn {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
     }
     .control-btn :global(svg) {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
     }
     .ticket {
-      border-radius: 14px;
+      border-radius: 12px;
       border-width: 2px;
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.9),
+        inset 0 0 20px #ff0;
     }
     .ticket-controls {
-      top: 1.5%;
+      top: 1%;
+      left: 3%;
+      right: 3%;
     }
     .ticket-title {
-      font-size: 1.5em;
-      top: 6%;
+      font-size: 1.4em;
+      top: 5%;
     }
     .ticket-subtitle {
-      font-size: 0.9em;
-      top: 11%;
+      font-size: 0.85em;
+      top: 9.5%;
     }
     .ticket-header {
-      font-size: 1em;
-      top: 15%;
+      font-size: 0.95em;
+      top: 13%;
     }
     .scratch-area {
-      top: 20%;
-      height: 52%;
-      border-radius: 14px;
+      top: 17%;
+      left: 4%;
+      width: 92%;
+      height: 58%;
+      border-radius: 12px;
     }
     .ticket-footer {
       bottom: 1%;
-      min-height: 50px;
+      left: 3%;
+      right: 3%;
+      min-height: 44px;
     }
     .next-play-btn {
+      padding: 10px 16px;
+      font-size: 0.95em;
+    }
+    .enter-code-btn {
       padding: 10px 18px;
       font-size: 1em;
     }
-    .enter-code-btn {
-      padding: 12px 20px;
-      font-size: 1.1em;
-    }
     .claim-btn {
-      padding: 6px 12px;
-      font-size: 0.85em;
+      padding: 5px 10px;
+      font-size: 0.8em;
     }
     .reveal-btn {
-      padding: 8px 16px;
-      font-size: 0.9em;
+      padding: 8px 14px;
+      font-size: 0.85em;
     }
     .plays-label {
-      font-size: 0.75em;
+      font-size: 0.7em;
     }
     .plays-value {
-      font-size: 1.2em;
+      font-size: 1.1em;
     }
     .near-miss {
-      font-size: 1.2em;
-      margin-bottom: 10px;
+      font-size: 1.1em;
+      margin-bottom: 8px;
     }
     .symbols {
-      gap: 15px;
-      margin-bottom: 15px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
     .symbols span {
-      font-size: 2.8em;
+      font-size: 2.6em;
     }
     .prize-text {
-      font-size: 1.4em;
+      font-size: 1.3em;
+    }
+    .prize {
+      padding: 10px;
     }
   }
 
   /* Very small phones */
   @media (max-width: 380px) {
+    .container {
+      padding: 2px 6px;
+      padding-top: max(46px, calc(env(safe-area-inset-top) + 38px));
+    }
+    .ticket {
+      border-radius: 10px;
+    }
+    .control-btn {
+      width: 26px;
+      height: 26px;
+    }
+    .control-btn :global(svg) {
+      width: 13px;
+      height: 13px;
+    }
     .ticket-title {
-      font-size: 1.3em;
+      font-size: 1.2em;
+      top: 4.5%;
     }
     .ticket-subtitle {
-      font-size: 0.8em;
+      font-size: 0.75em;
+      top: 9%;
     }
     .ticket-header {
-      font-size: 0.9em;
+      font-size: 0.85em;
+      top: 12.5%;
+    }
+    .scratch-area {
+      top: 16%;
+      height: 60%;
+      border-radius: 10px;
+    }
+    .symbols {
+      gap: 10px;
+      margin-bottom: 10px;
     }
     .symbols span {
-      font-size: 2.4em;
+      font-size: 2.2em;
     }
     .prize-text {
-      font-size: 1.2em;
+      font-size: 1.1em;
     }
     .near-miss {
+      font-size: 0.95em;
+      margin-bottom: 6px;
+    }
+    .next-play-btn {
+      padding: 8px 14px;
+      font-size: 0.9em;
+    }
+    .enter-code-btn {
+      padding: 8px 14px;
+      font-size: 0.9em;
+    }
+    .claim-btn {
+      padding: 4px 8px;
+      font-size: 0.75em;
+    }
+    .reveal-btn {
+      padding: 6px 12px;
+      font-size: 0.8em;
+    }
+    .plays-value {
       font-size: 1em;
+    }
+    .ticket-footer {
+      min-height: 40px;
     }
   }
 </style>

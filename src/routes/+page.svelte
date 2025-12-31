@@ -362,7 +362,11 @@
   }
 
   .win-row {
-    background: rgba(0, 231, 1, 0.05);
+    background: rgba(0, 231, 1, 0.08);
+  }
+
+  .win-row:hover {
+    background: rgba(0, 231, 1, 0.12);
   }
 
   .game-cell {
@@ -397,7 +401,9 @@
   }
 
   .win-multiplier {
-    color: #ffc107;
+    color: #00e701;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(0, 231, 1, 0.5);
   }
 
   .fire {
@@ -413,7 +419,7 @@
   }
 
   .loss-payout {
-    color: #ed6300;
+    color: #ed4245;
   }
 
   .loading-cell,

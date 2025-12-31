@@ -292,6 +292,23 @@ export interface ClaimModalTranslations {
   close: string;
 }
 
+export interface CodeModalTranslations {
+  title: string;
+  placeholder: string;
+  enterCodeError: string;
+  info1: string;
+  info2: string;
+  loadPlays: string;
+  loading: string;
+  cancel: string;
+}
+
+export interface PrizeModalTranslations {
+  title: string;
+  odds: string;
+  close: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
@@ -307,6 +324,8 @@ export interface Translations {
   gameUI: GameUITranslations;
   navbar: NavbarTranslations;
   claimModal: ClaimModalTranslations;
+  codeModal: CodeModalTranslations;
+  prizeModal: PrizeModalTranslations;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -590,6 +609,21 @@ export const translations: Record<Language, Translations> = {
       letsPlay: 'Let\'s Play!',
       close: 'Close',
     },
+    codeModal: {
+      title: 'ENTER CODE',
+      placeholder: 'Enter code (e.g.: ABC123)',
+      enterCodeError: 'Please enter a code',
+      info1: 'Enter the code from your ticket to load your plays.',
+      info2: 'Each code can have multiple plays.',
+      loadPlays: 'Load Plays',
+      loading: 'Loading...',
+      cancel: 'Cancel',
+    },
+    prizeModal: {
+      title: 'PRIZE LIST',
+      odds: '1 in',
+      close: 'Close',
+    },
   },
   es: {
     rechargeCard: {
@@ -871,6 +905,21 @@ export const translations: Record<Language, Translations> = {
       letsPlay: '¡A Jugar!',
       close: 'Cerrar',
     },
+    codeModal: {
+      title: 'INGRESAR CÓDIGO',
+      placeholder: 'Ingresa código (ej: ABC123)',
+      enterCodeError: 'Por favor ingresa un código',
+      info1: 'Ingresa el código de tu boleto para cargar tus jugadas.',
+      info2: 'Cada código puede tener varias jugadas.',
+      loadPlays: 'Cargar Jugadas',
+      loading: 'Cargando...',
+      cancel: 'Cancelar',
+    },
+    prizeModal: {
+      title: 'LISTA DE PREMIOS',
+      odds: '1 en',
+      close: 'Cerrar',
+    },
   },
   ar: {
     rechargeCard: {
@@ -1150,6 +1199,21 @@ export const translations: Record<Language, Translations> = {
       convertToCredits: 'تحويل إلى رصيد',
       cancel: 'إلغاء',
       letsPlay: 'هيا نلعب!',
+      close: 'إغلاق',
+    },
+    codeModal: {
+      title: 'أدخل الرمز',
+      placeholder: 'أدخل الرمز (مثال: ABC123)',
+      enterCodeError: 'الرجاء إدخال رمز',
+      info1: 'أدخل رمز تذكرتك لتحميل لعباتك.',
+      info2: 'كل رمز يمكن أن يحتوي على عدة لعبات.',
+      loadPlays: 'تحميل اللعبات',
+      loading: 'جاري التحميل...',
+      cancel: 'إلغاء',
+    },
+    prizeModal: {
+      title: 'قائمة الجوائز',
+      odds: '1 من',
       close: 'إغلاق',
     },
   },
