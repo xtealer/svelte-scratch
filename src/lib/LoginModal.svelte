@@ -207,6 +207,35 @@
     }
   }
 
+  async function handleSkipLinking(): Promise<void> {
+    submitting = true;
+    error = '';
+
+    try {
+      // Create a new MetaMask-only account
+      const response = await fetch('/api/player/login/metamask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ metamaskAddress, createIfNotExists: true })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        error = data.error || $t.authModal.loginError;
+        submitting = false;
+        return;
+      }
+
+      playerAuth.login(data.token, data.user);
+      close();
+    } catch {
+      error = $t.authModal.connectionError;
+    } finally {
+      submitting = false;
+    }
+  }
+
   function switchToRegister(): void {
     close();
     if (onSwitchToRegister) {
@@ -409,14 +438,12 @@
           <button class="submit-btn" onclick={handleLinkMetamask} disabled={submitting}>
             {submitting ? $t.authModal.linking : $t.authModal.linkAndLogin}
           </button>
+          <button class="skip-btn" onclick={handleSkipLinking} disabled={submitting}>
+            {$t.authModal.skipLinking}
+          </button>
           <button class="cancel-btn" onclick={() => { loginMode = 'select'; error = ''; }}>
             {$t.authModal.back}
           </button>
-        </div>
-
-        <div class="switch-mode">
-          <span>{$t.authModal.noAccount}</span>
-          <button class="link-btn" onclick={switchToRegister}>{$t.authModal.registerHere}</button>
         </div>
       {/if}
     </div>
@@ -666,6 +693,32 @@
   }
 
   .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .skip-btn {
+    padding: 12px;
+    font-size: 1em;
+    width: 100%;
+    background: linear-gradient(#f6851b, #e2761b);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .skip-btn:hover:not(:disabled) {
+    transform: scale(1.02);
+  }
+
+  .skip-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .skip-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }

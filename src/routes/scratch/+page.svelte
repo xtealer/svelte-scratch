@@ -7,6 +7,7 @@
   import ClaimModal from "$lib/ClaimModal.svelte";
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
+  import ProfileModal from "$lib/ProfileModal.svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
@@ -94,6 +95,7 @@
   let showClaimModal = $state(false);
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
+  let showProfileModal = $state(false);
 
   // Win celebration state
   let showWinCelebration = $state(false);
@@ -447,26 +449,45 @@
     ctx.fill();
   }
 
+  function closeAllModals(): void {
+    showCodeModal = false;
+    showPrizeModal = false;
+    showClaimModal = false;
+    showLoginModal = false;
+    showRegisterModal = false;
+    showProfileModal = false;
+  }
+
   function openCodeModal(): void {
+    closeAllModals();
     showCodeModal = true;
   }
 
   function openPrizeList(): void {
+    closeAllModals();
     showPrizeModal = true;
   }
 
   function openClaimModal(): void {
     if (sessionWinnings > 0) {
+      closeAllModals();
       showClaimModal = true;
     }
   }
 
   function openLoginModal(): void {
+    closeAllModals();
     showLoginModal = true;
   }
 
   function openRegisterModal(): void {
+    closeAllModals();
     showRegisterModal = true;
+  }
+
+  function openProfileModal(): void {
+    closeAllModals();
+    showProfileModal = true;
   }
 
   function switchToRegister(): void {
@@ -516,7 +537,7 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} />
+<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
 
 <div class="container" dir={$direction}>
   <div class="ticket">
@@ -621,6 +642,7 @@
 />
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
+<ProfileModal bind:show={showProfileModal} />
 
 <style>
   .footer-wrapper {

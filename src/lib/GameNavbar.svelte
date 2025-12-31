@@ -11,12 +11,14 @@
     onLogin,
     onRegister,
     onDeposit,
+    onProfile,
   }: {
     onEndSession?: () => void;
     onEnterCode?: () => void;
     onLogin?: () => void;
     onRegister?: () => void;
     onDeposit?: () => void;
+    onProfile?: () => void;
   } = $props();
 
   // Check if we're on the home page
@@ -52,6 +54,12 @@
   function handleDeposit() {
     if (onDeposit) {
       onDeposit();
+    }
+  }
+
+  function handleProfile() {
+    if (onProfile) {
+      onProfile();
     }
   }
 
@@ -113,7 +121,7 @@
         </button>
 
         <div class="user-menu">
-          <button class="user-btn" title={$playerUser?.fullName}>
+          <button class="user-btn" onclick={handleProfile} title={$playerUser?.fullName}>
             <User size={16} />
           </button>
           <button class="logout-btn" onclick={handleLogout} title={$t.navbar.logout}>

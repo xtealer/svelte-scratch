@@ -6,6 +6,7 @@
   import ClaimModal from "$lib/ClaimModal.svelte";
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
+  import ProfileModal from "$lib/ProfileModal.svelte";
   import SlotSymbol from "$lib/SlotSymbols.svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
@@ -123,6 +124,7 @@
   let showClaimModal = $state(false);
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
+  let showProfileModal = $state(false);
 
   // Win celebration state
   let showWinCelebration = $state(false);
@@ -161,24 +163,43 @@
     muted = !muted;
   }
 
+  function closeAllModals() {
+    showPrizeModal = false;
+    showCodeModal = false;
+    showClaimModal = false;
+    showLoginModal = false;
+    showRegisterModal = false;
+    showProfileModal = false;
+  }
+
   function openPrizeList() {
+    closeAllModals();
     showPrizeModal = true;
   }
 
   function openCodeModal() {
+    closeAllModals();
     showCodeModal = true;
   }
 
   function openClaimModal() {
+    closeAllModals();
     showClaimModal = true;
   }
 
   function openLoginModal() {
+    closeAllModals();
     showLoginModal = true;
   }
 
   function openRegisterModal() {
+    closeAllModals();
     showRegisterModal = true;
+  }
+
+  function openProfileModal() {
+    closeAllModals();
+    showProfileModal = true;
   }
 
   function switchToRegister() {
@@ -429,7 +450,7 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} />
+<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
 
 <div class="container" dir={$direction}>
   <!-- Top controls -->
@@ -585,6 +606,7 @@
 />
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
+<ProfileModal bind:show={showProfileModal} />
 
 <style>
   .container {
