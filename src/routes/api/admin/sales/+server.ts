@@ -39,7 +39,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
         code: s.code,
         plays: s.plays,
         price: s.price,
-        sellerId: s.soldBy?.toString(),
+        sellerId: s.sellerId?.toString(),
         sellerName: s.sellerName,
         soldAt: s.soldAt
       })),
