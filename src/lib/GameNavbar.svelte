@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Wallet, Coins, Trophy, X } from 'lucide-svelte';
+  import { Wallet, Coins, Trophy, X, LogIn } from 'lucide-svelte';
   import { playerWallet, hasActiveSession, totalBalance } from '$lib/stores/playerWallet';
   import { t } from '$lib/i18n';
 
-  let { onEndSession }: { onEndSession?: () => void } = $props();
+  let { onEndSession, onEnterCode }: { onEndSession?: () => void; onEnterCode?: () => void } = $props();
 
   function handleEndSession() {
     if (confirm($t.navbar.confirmEndSession)) {
@@ -13,11 +13,17 @@
       }
     }
   }
+
+  function handleEnterCode() {
+    if (onEnterCode) {
+      onEnterCode();
+    }
+  }
 </script>
 
-{#if $hasActiveSession}
-  <nav class="game-navbar">
-    <div class="navbar-content">
+<nav class="game-navbar">
+  <div class="navbar-content">
+    {#if $hasActiveSession}
       <div class="balance-section">
         <div class="balance-item code">
           <Wallet size={16} />
@@ -43,9 +49,21 @@
       <button class="end-session-btn" onclick={handleEndSession} title={$t.navbar.endSession}>
         <X size={18} />
       </button>
-    </div>
-  </nav>
-{/if}
+    {:else}
+      <div class="balance-section">
+        <div class="balance-item no-session">
+          <Coins size={16} />
+          <span class="label">{$t.navbar.noCredits}</span>
+        </div>
+      </div>
+
+      <button class="enter-code-btn" onclick={handleEnterCode}>
+        <LogIn size={16} />
+        <span>{$t.navbar.enterCode}</span>
+      </button>
+    {/if}
+  </div>
+</nav>
 
 <style>
   .game-navbar {
@@ -167,6 +185,49 @@
   }
 
   .end-session-btn:active {
+    transform: scale(0.95);
+  }
+
+  .balance-item.no-session {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+  }
+
+  .balance-item.no-session :global(svg) {
+    color: #ffd700;
+  }
+
+  .balance-item.no-session .label {
+    color: #ffd700;
+  }
+
+  .enter-code-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
+    color: #000;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85em;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .enter-code-btn :global(svg) {
+    color: #000;
+  }
+
+  .enter-code-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  }
+
+  .enter-code-btn:active {
     transform: scale(0.95);
   }
 

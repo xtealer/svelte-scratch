@@ -3,17 +3,40 @@
   import { Ticket, Dices } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
+  import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
-  import { hasActiveSession } from "$lib/stores/playerWallet";
+  import { playerWallet } from "$lib/stores/playerWallet";
+
+  let showCodeModal = $state(false);
 
   onMount(() => {
     initLanguage();
   });
+
+  function openCodeModal() {
+    showCodeModal = true;
+  }
+
+  async function handleCodeSubmit(code: string): Promise<void> {
+    const response = await fetch("/api/scratch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Invalid code");
+    }
+
+    playerWallet.loadCode(data.code, data.plays, data.totalWinnings || 0);
+  }
 </script>
 
-<GameNavbar />
+<GameNavbar onEnterCode={openCodeModal} />
 
-<div class="menu" class:has-navbar={$hasActiveSession} dir={$direction}>
+<div class="menu" dir={$direction}>
   <h1>{$t.gameMenu.title}</h1>
   <p class="subtitle">{$t.gameMenu.subtitle}</p>
 
@@ -40,6 +63,8 @@
   <Footer />
 </div>
 
+<ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
+
 <style>
   .menu {
     display: flex;
@@ -50,12 +75,8 @@
     min-height: 100vh;
     min-height: 100dvh;
     padding: 16px;
-    width: 100%;
-    transition: padding-top 0.2s ease;
-  }
-
-  .menu.has-navbar {
     padding-top: 60px;
+    width: 100%;
   }
 
   h1 {

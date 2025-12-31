@@ -479,10 +479,10 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} />
+<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} />
 
 {#if hasActiveSession}
-  <div class="session-info" class:has-navbar={hasActiveSession}>
+  <div class="session-info">
     <div class="info-item">
       <span class="label">{$t.gameUI.code}:</span>
       <span class="value">{currentCode}</span>
@@ -498,7 +498,7 @@
   </div>
 {/if}
 
-<div class="container" class:has-navbar={hasActiveSession} dir={$direction}>
+<div class="container" class:no-session={!hasActiveSession} dir={$direction}>
   <div class="ticket">
     <div class="ticket-controls">
       <div class="control-left">
@@ -612,17 +612,9 @@
     padding: 12px 20px;
     border-radius: 10px;
     margin: 10px auto;
+    margin-top: 55px;
     max-width: 500px;
     width: calc(100% - 30px);
-    transition: margin-top 0.2s ease;
-  }
-
-  .session-info.has-navbar {
-    margin-top: 55px;
-  }
-
-  .container.has-navbar {
-    margin-top: 0;
   }
 
   .info-item {
@@ -655,6 +647,10 @@
     max-width: 500px;
     margin: 10px auto;
     padding: 0 15px;
+  }
+
+  .container.no-session {
+    margin-top: 55px;
   }
 
   .ticket {

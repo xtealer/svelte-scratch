@@ -383,9 +383,9 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} />
+<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} />
 
-<div class="container" class:has-navbar={hasActiveSession} dir={$direction}>
+<div class="container" dir={$direction}>
   <!-- Top controls -->
   <div class="top-controls">
     <a href="/" class="control-btn back-btn" title={$t.gameUI.backToMenu}>
@@ -521,13 +521,9 @@
     min-height: 100vh;
     min-height: 100dvh;
     padding: 15px;
+    padding-top: 60px;
     width: 100%;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
-    transition: padding-top 0.2s ease;
-  }
-
-  .container.has-navbar {
-    padding-top: 60px;
   }
 
   .top-controls {
