@@ -13,10 +13,11 @@ export type TranslatedText = Record<SupportedLanguage, string>;
 export type UserRole = 'super' | 'admin' | 'seller';
 
 // Player user (customer account)
+// Note: email and password are optional for MetaMask-only accounts
 export interface PlayerUser {
   _id?: ObjectId;
-  email: string;
-  password: string; // hashed
+  email?: string;
+  password?: string; // hashed
   fullName: string;
   country: string;
   preferredLanguage: SupportedLanguage;

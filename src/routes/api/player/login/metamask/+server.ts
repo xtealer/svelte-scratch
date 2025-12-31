@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { loginWithMetamask, generatePlayerToken } from '$lib/server/db/playerUsers';
+import { loginWithMetamask, createMetamaskUser, generatePlayerToken } from '$lib/server/db/playerUsers';
 
 export const POST: RequestHandler = async ({ request }) => {
   try {
@@ -15,13 +15,12 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Invalid Metamask address format' }, { status: 400 });
     }
 
-    const user = await loginWithMetamask(metamaskAddress);
+    // Try to find existing user with this wallet
+    let user = await loginWithMetamask(metamaskAddress);
 
+    // If no user found, auto-create a new MetaMask-only account
     if (!user) {
-      return json(
-        { error: 'Wallet not linked to any account', code: 'WALLET_NOT_LINKED' },
-        { status: 404 }
-      );
+      user = await createMetamaskUser(metamaskAddress);
     }
 
     const token = generatePlayerToken(user);
