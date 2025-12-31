@@ -414,12 +414,14 @@
     font-weight: 600;
   }
 
-  .win-payout {
+  .payout-cell.win-payout {
     color: #00e701;
+    text-shadow: 0 0 8px rgba(0, 231, 1, 0.5);
   }
 
-  .loss-payout {
-    color: #ed4245;
+  .payout-cell.loss-payout {
+    color: #ff4444;
+    text-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
   }
 
   .loading-cell,
