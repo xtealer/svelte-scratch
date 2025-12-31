@@ -184,8 +184,8 @@
   }
 
   .modal-content {
-    background: linear-gradient(#222, #333);
-    border: 3px solid #ffd700;
+    background: linear-gradient(#1a2c38, #213743);
+    border: 3px solid #00e701;
     border-radius: 16px;
     padding: 20px 16px;
     width: 100%;
@@ -193,14 +193,14 @@
     max-height: calc(100vh - 24px);
     max-height: calc(100dvh - 24px);
     overflow-y: auto;
-    box-shadow: 0 0 30px #ff0;
+    box-shadow: 0 0 30px rgba(0, 231, 1, 0.3);
   }
 
   .modal-header {
     font-size: 1.3em;
     margin-bottom: 16px;
-    text-shadow: 0 0 10px #ff0;
-    color: #ffd700;
+    text-shadow: 0 0 10px rgba(0, 231, 1, 0.5);
+    color: #00e701;
     text-align: center;
   }
 
@@ -231,7 +231,7 @@
 
   .session-details {
     background: rgba(0, 0, 0, 0.3);
-    border: 1px solid #444;
+    border: 1px solid #2d4a5e;
     border-radius: 10px;
     padding: 12px;
     margin: 12px 0;
@@ -259,7 +259,7 @@
   }
 
   .detail-value.code {
-    color: #ffd700;
+    color: #00e701;
   }
 
   .detail-value.credits {
@@ -285,17 +285,17 @@
     font-size: 1.1em;
     text-align: center;
     text-transform: uppercase;
-    background: #111;
+    background: #0f1923;
     border: 2px solid #555;
     border-radius: 10px;
-    color: #ffd700;
+    color: #00e701;
     letter-spacing: 2px;
   }
 
   input:focus {
     outline: none;
-    border-color: #ffd700;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    border-color: #00e701;
+    box-shadow: 0 0 10px rgba(0, 231, 1, 0.3);
     font-size: 16px;
   }
 
@@ -339,7 +339,7 @@
     padding: 14px;
     font-size: 1.2em;
     width: 100%;
-    background: linear-gradient(#ffd700, #b8860b);
+    background: linear-gradient(#00e701, #00b301);
     color: #000;
     border: none;
     border-radius: 10px;
@@ -365,7 +365,7 @@
     padding: 12px;
     font-size: 1.1em;
     width: 100%;
-    background: linear-gradient(#555, #333);
+    background: linear-gradient(#2d4a5e, #1a2c38);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -374,7 +374,7 @@
 
   .cancel-btn:active:not(:disabled) {
     transform: scale(0.98);
-    background: linear-gradient(#666, #444);
+    background: linear-gradient(#3d5a6e, #2d4a5e);
   }
 
   .cancel-btn:disabled {
