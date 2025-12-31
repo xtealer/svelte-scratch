@@ -361,7 +361,7 @@ export const translations: Record<Language, Translations> = {
     },
     sales: {
       title: 'Sales',
-      allSellers: 'All Sellers',
+      allSellers: 'All',
       totalRevenue: 'Total Revenue',
       totalSales: 'Total Sales',
       topSellers: 'Top Sellers',
@@ -601,7 +601,7 @@ export const translations: Record<Language, Translations> = {
     },
     sales: {
       title: 'Ventas',
-      allSellers: 'Todos los Vendedores',
+      allSellers: 'Todos',
       totalRevenue: 'Ingresos Totales',
       totalSales: 'Ventas Totales',
       topSellers: 'Mejores Vendedores',
@@ -841,7 +841,7 @@ export const translations: Record<Language, Translations> = {
     },
     sales: {
       title: 'المبيعات',
-      allSellers: 'جميع البائعين',
+      allSellers: 'الكل',
       totalRevenue: 'إجمالي الإيرادات',
       totalSales: 'إجمالي المبيعات',
       topSellers: 'أفضل البائعين',
