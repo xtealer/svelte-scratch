@@ -11,8 +11,7 @@
     Copy,
     Check,
     Image,
-    FileText,
-    ShoppingCart
+    FileText
   } from 'lucide-svelte';
   import Footer from '$lib/Footer.svelte';
   import { initLanguage, t, getLanguage, direction } from '$lib/i18n';
@@ -49,9 +48,6 @@
   // Generated card display
   let generatedCard = $state<{ code: string; amount: number } | null>(null);
   let copiedCode = $state<string | null>(null);
-
-  // Mark as sold
-  let markingAsSold = $state<string | null>(null);
 
   onMount(async () => {
     initLanguage();
@@ -258,24 +254,6 @@ ${rc.goodLuck}`;
     generatedCard = null;
     showGenerate = false;
   }
-
-  async function markAsSold(code: string) {
-    markingAsSold = code;
-    try {
-      const res = await fetch('/api/admin/cards', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
-      });
-
-      if (res.ok) {
-        await loadCards();
-      }
-    } catch {
-      // Handle error
-    }
-    markingAsSold = null;
-  }
 </script>
 
 <div class="admin-container" dir={$direction}>
@@ -435,22 +413,7 @@ ${rc.goodLuck}`;
                 </td>
                 <td class="date">{formatDate(card.createdAt)}</td>
                 <td class="date">{formatDate(card.usedAt)}</td>
-                <td class="actions">
-                  {#if !card.used && !card.soldAt}
-                    <button
-                      class="sell-btn"
-                      onclick={() => markAsSold(card.code)}
-                      disabled={markingAsSold === card.code}
-                    >
-                      <ShoppingCart size={14} />
-                      <span>{markingAsSold === card.code ? '...' : $t.cardsAdmin.markAsSold}</span>
-                    </button>
-                  {:else if card.soldAt && !card.used}
-                    <span class="sold-label">{$t.cardsAdmin.sold}</span>
-                  {:else}
-                    -
-                  {/if}
-                </td>
+                <td class="actions">-</td>
               </tr>
             {/each}
           </tbody>

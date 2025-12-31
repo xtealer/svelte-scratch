@@ -1,42 +1,79 @@
 import { getDB } from './index';
-import type { Sale } from './types';
+import type { RechargeCard } from './types';
 import { ObjectId } from 'mongodb';
 
-const COLLECTION = 'sales';
+const CARDS_COLLECTION = 'rechargeCards';
 
-export async function getSalesByUser(userId: ObjectId, limit = 50): Promise<Sale[]> {
-  const db = await getDB();
-  return db.collection<Sale>(COLLECTION)
-    .find({ sellerId: userId })
-    .sort({ soldAt: -1 })
-    .limit(limit)
-    .toArray();
+// Sale data is now derived from cards (card generation = sale)
+export interface CardSale {
+  _id?: ObjectId;
+  code: string;
+  price: number;
+  plays: number;
+  sellerId: ObjectId;
+  sellerName?: string;
+  soldAt: Date;
 }
 
-export async function getAllSales(limit = 100): Promise<Sale[]> {
+export async function getSalesByUser(userId: ObjectId, limit = 50): Promise<CardSale[]> {
   const db = await getDB();
-  return db.collection<Sale>(COLLECTION)
-    .find({})
-    .sort({ soldAt: -1 })
-    .limit(limit)
-    .toArray();
+
+  const pipeline = [
+    { $match: { createdBy: userId } },
+    { $sort: { createdAt: -1 } },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'createdBy',
+        foreignField: '_id',
+        as: 'creator'
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        code: 1,
+        price: 1,
+        plays: 1,
+        sellerId: '$createdBy',
+        sellerName: { $arrayElemAt: ['$creator.username', 0] },
+        soldAt: '$createdAt'
+      }
+    }
+  ];
+
+  return db.collection<RechargeCard>(CARDS_COLLECTION).aggregate<CardSale>(pipeline).toArray();
 }
 
-export async function getSalesByDateRange(start: Date, end: Date, userId?: ObjectId): Promise<Sale[]> {
+export async function getAllSales(limit = 100): Promise<CardSale[]> {
   const db = await getDB();
 
-  const query: Record<string, unknown> = {
-    soldAt: { $gte: start, $lte: end }
-  };
+  const pipeline = [
+    { $sort: { createdAt: -1 } },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'createdBy',
+        foreignField: '_id',
+        as: 'creator'
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        code: 1,
+        price: 1,
+        plays: 1,
+        sellerId: '$createdBy',
+        sellerName: { $arrayElemAt: ['$creator.username', 0] },
+        soldAt: '$createdAt'
+      }
+    }
+  ];
 
-  if (userId) {
-    query.sellerId = userId;
-  }
-
-  return db.collection<Sale>(COLLECTION)
-    .find(query)
-    .sort({ soldAt: -1 })
-    .toArray();
+  return db.collection<RechargeCard>(CARDS_COLLECTION).aggregate<CardSale>(pipeline).toArray();
 }
 
 export async function getSalesStats(userId?: ObjectId) {
@@ -47,7 +84,8 @@ export async function getSalesStats(userId?: ObjectId) {
 
   const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-  const matchStage = userId ? { $match: { sellerId: userId } } : { $match: {} };
+  // Match by createdBy (seller) if userId provided
+  const matchStage = userId ? { $match: { createdBy: userId } } : { $match: {} };
 
   const pipeline = [
     matchStage,
@@ -64,7 +102,7 @@ export async function getSalesStats(userId?: ObjectId) {
           }
         ],
         today: [
-          { $match: { soldAt: { $gte: today } } },
+          { $match: { createdAt: { $gte: today } } },
           {
             $group: {
               _id: null,
@@ -74,7 +112,7 @@ export async function getSalesStats(userId?: ObjectId) {
           }
         ],
         month: [
-          { $match: { soldAt: { $gte: thisMonth } } },
+          { $match: { createdAt: { $gte: thisMonth } } },
           {
             $group: {
               _id: null,
@@ -87,7 +125,7 @@ export async function getSalesStats(userId?: ObjectId) {
     }
   ];
 
-  const result = await db.collection<Sale>(COLLECTION).aggregate(pipeline).toArray();
+  const result = await db.collection<RechargeCard>(CARDS_COLLECTION).aggregate(pipeline).toArray();
   const data = result[0];
 
   const total = data.total[0] || { totalSales: 0, totalRevenue: 0, totalPlays: 0 };
@@ -111,15 +149,30 @@ export async function getTopSellers(limit = 10) {
   const pipeline = [
     {
       $group: {
-        _id: '$sellerId',
-        sellerName: { $first: '$sellerName' },
+        _id: '$createdBy',
         totalSales: { $sum: 1 },
         totalRevenue: { $sum: '$price' }
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'seller'
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        sellerName: { $arrayElemAt: ['$seller.username', 0] },
+        totalSales: 1,
+        totalRevenue: 1
       }
     },
     { $sort: { totalRevenue: -1 } },
     { $limit: limit }
   ];
 
-  return db.collection<Sale>(COLLECTION).aggregate(pipeline).toArray();
+  return db.collection<RechargeCard>(CARDS_COLLECTION).aggregate(pipeline).toArray();
 }

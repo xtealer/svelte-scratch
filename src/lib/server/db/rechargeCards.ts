@@ -1,9 +1,8 @@
 import { getDB } from './index';
-import type { RechargeCard, Sale } from './types';
+import type { RechargeCard } from './types';
 import { ObjectId } from 'mongodb';
 
 const CARDS_COLLECTION = 'rechargeCards';
-const SALES_COLLECTION = 'sales';
 
 // Generate random unique code
 async function generateCode(): Promise<string> {
@@ -39,13 +38,14 @@ export async function createRechargeCard(
   const code = await generateCode();
 
   // amount = plays = price (all the same value)
+  // Card creation = sale (no separate sales collection needed)
   const card: RechargeCard = {
     code,
     plays: amount,
     price: amount,
     used: false,
     createdAt: new Date(),
-    createdBy,
+    createdBy
   };
 
   const result = await db.collection<RechargeCard>(CARDS_COLLECTION).insertOne(card);
@@ -80,43 +80,6 @@ export async function useRechargeCard(code: string, sessionId?: string): Promise
   return result;
 }
 
-export async function markCardAsSold(
-  code: string,
-  sellerId: ObjectId,
-  sellerName: string
-): Promise<RechargeCard | null> {
-  const db = await getDB();
-  const upperCode = code.toUpperCase().trim();
-
-  const card = await db.collection<RechargeCard>(CARDS_COLLECTION).findOneAndUpdate(
-    { code: upperCode },
-    {
-      $set: {
-        soldAt: new Date(),
-        soldBy: sellerId
-      }
-    },
-    { returnDocument: 'after' }
-  );
-
-  if (card) {
-    // Record the sale
-    const sale: Sale = {
-      rechargeCardId: card._id!,
-      code: card.code,
-      plays: card.plays,
-      price: card.price,
-      sellerId,
-      sellerName,
-      soldAt: new Date()
-    };
-
-    await db.collection<Sale>(SALES_COLLECTION).insertOne(sale);
-  }
-
-  return card;
-}
-
 export async function getCardsByCreator(creatorId: ObjectId): Promise<RechargeCard[]> {
   const db = await getDB();
   return db.collection<RechargeCard>(CARDS_COLLECTION)
@@ -146,12 +109,14 @@ export async function getCardStats() {
   const db = await getDB();
   const cards = await db.collection<RechargeCard>(CARDS_COLLECTION).find({}).toArray();
 
+  const totalValue = cards.reduce((sum, c) => sum + c.price, 0);
+
   return {
     total: cards.length,
     used: cards.filter(c => c.used).length,
     unused: cards.filter(c => !c.used).length,
-    sold: cards.filter(c => c.soldAt).length,
-    totalValue: cards.reduce((sum, c) => sum + c.price, 0),
-    soldValue: cards.filter(c => c.soldAt).reduce((sum, c) => sum + c.price, 0),
+    sold: cards.length,  // All cards are sold (generation = sale)
+    totalValue,
+    soldValue: totalValue,  // All cards are sold
   };
 }
