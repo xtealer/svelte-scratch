@@ -18,15 +18,11 @@
     show = $bindable(false),
     onDeposit,
     onWithdraw,
-    onTransactions,
-    onBetHistory,
     onLogout,
   }: {
     show: boolean;
     onDeposit?: () => void;
     onWithdraw?: () => void;
-    onTransactions?: () => void;
-    onBetHistory?: () => void;
     onLogout?: () => void;
   } = $props();
 
@@ -133,15 +129,15 @@
 
       <div class="menu-divider"></div>
 
-      <button class="menu-item" onclick={() => handleMenuItem(onTransactions)}>
+      <a href="/transactions" class="menu-item" onclick={close}>
         <History size={20} class="icon" />
         <span>{$t.userMenu.transactions}</span>
-      </button>
+      </a>
 
-      <button class="menu-item" onclick={() => handleMenuItem(onBetHistory)}>
+      <a href="/bets" class="menu-item" onclick={close}>
         <Dices size={20} class="icon" />
         <span>{$t.userMenu.betHistory}</span>
-      </button>
+      </a>
 
       <div class="menu-divider"></div>
 
