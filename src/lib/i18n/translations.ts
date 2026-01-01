@@ -207,6 +207,8 @@ export interface GameMenuTranslations {
   scratchDesc: string;
   slotsTitle: string;
   slotsDesc: string;
+  diceTitle: string;
+  diceDesc: string;
   prizeText: string;
   ourGames: string;
   allBets: string;
@@ -705,6 +707,8 @@ export const translations: Record<Language, Translations> = {
       scratchDesc: 'Scratch and Win!',
       slotsTitle: 'Slots',
       slotsDesc: 'Spin and Win!',
+      diceTitle: 'Dice',
+      diceDesc: 'Roll and Win!',
       prizeText: 'Win up to $500',
       ourGames: 'Our Games',
       allBets: 'All Bets',
@@ -1158,6 +1162,8 @@ export const translations: Record<Language, Translations> = {
       scratchDesc: '¡Rasca y Gana!',
       slotsTitle: 'Tragamonedas',
       slotsDesc: '¡Gira y Gana!',
+      diceTitle: 'Dados',
+      diceDesc: '¡Tira y Gana!',
       prizeText: 'Gana hasta $500',
       ourGames: 'Nuestros Juegos',
       allBets: 'Todas las Apuestas',
@@ -1611,6 +1617,8 @@ export const translations: Record<Language, Translations> = {
       scratchDesc: 'اخدش واربح!',
       slotsTitle: 'سلوتس',
       slotsDesc: 'دوّر واربح!',
+      diceTitle: 'النرد',
+      diceDesc: 'ارمِ واربح!',
       prizeText: 'اربح حتى $500',
       ourGames: 'ألعابنا',
       allBets: 'جميع الرهانات',
