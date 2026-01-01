@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Ticket, Dices, Gamepad2 } from "lucide-svelte";
+  import { Ticket, Dices, Gamepad2, UserX } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
@@ -190,12 +190,12 @@
         <table class="bets-table">
           <thead>
             <tr>
-              <th>{$t.gameMenu.game}</th>
-              <th>{$t.gameMenu.user}</th>
-              <th>{$t.gameMenu.time}</th>
-              <th>{$t.gameMenu.betAmount}</th>
-              <th>{$t.gameMenu.multiplier}</th>
-              <th>{$t.gameMenu.payout}</th>
+              <th class="th-game">{$t.gameMenu.game}</th>
+              <th class="th-user">{$t.gameMenu.user}</th>
+              <th class="th-time">{$t.gameMenu.time}</th>
+              <th class="th-bet">{$t.gameMenu.betAmount}</th>
+              <th class="th-multiplier">{$t.gameMenu.multiplier}</th>
+              <th class="th-payout">{$t.gameMenu.payout}</th>
             </tr>
           </thead>
           <tbody>
@@ -214,17 +214,21 @@
                     <span class="game-icon">{getGameIcon(play.game)}</span>
                     <span class="game-label">{getGameName(play.game)}</span>
                   </td>
-                  <td class="user-cell">{play.user}</td>
+                  <td class="user-cell">
+                    <UserX size={16} class="hidden-user-icon" />
+                    <span>Hidden</span>
+                  </td>
                   <td class="time-cell">{formatTime(play.time)}</td>
-                  <td class="bet-cell">${play.betAmount.toFixed(2)}</td>
-                  <td class="multiplier-cell" class:win-multiplier={play.isWin}>
-                    {#if play.isWin && parseFloat(play.multiplier) >= 10}
-                      <span class="fire">🔥</span>
-                    {/if}
+                  <td class="bet-cell">
+                    <span class="amount-value">${play.betAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span class="currency-icon tether">T</span>
+                  </td>
+                  <td class="multiplier-cell">
                     {play.multiplier}x
                   </td>
                   <td class="payout-cell" class:win-payout={play.isWin} class:loss-payout={!play.isWin}>
-                    {play.isWin ? '+' : '-'}${play.isWin ? play.payout.toFixed(2) : play.betAmount.toFixed(2)}
+                    <span class="amount-value">{play.isWin ? '' : '-'}${play.isWin ? play.payout.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : play.betAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span class="currency-icon tether">T</span>
                   </td>
                 </tr>
               {/each}
@@ -387,30 +391,48 @@
   .bets-table-container {
     background: #1a2c38;
     border-radius: 12px;
-    overflow: hidden;
+    overflow-x: auto;
   }
 
   .bets-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9em;
+    min-width: 700px;
   }
 
   .bets-table th {
-    background: #213743;
+    background: #0f212e;
     color: #7f8c8d;
     font-weight: 500;
+    padding: 14px 16px;
+    font-size: 0.8em;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+
+  /* Header alignments */
+  .th-game,
+  .th-user {
     text-align: left;
-    padding: 12px 16px;
-    font-size: 0.85em;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  }
+
+  .th-time,
+  .th-multiplier {
+    text-align: center;
+  }
+
+  .th-bet,
+  .th-payout {
+    text-align: right;
   }
 
   .bets-table td {
-    padding: 12px 16px;
+    padding: 14px 16px;
     color: #b1bad3;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
   }
 
   .bets-table tbody tr:last-child td {
@@ -422,21 +444,29 @@
   }
 
   .win-row {
-    background: rgba(0, 231, 1, 0.08);
+    background: rgba(0, 231, 1, 0.05);
   }
 
   .win-row:hover {
-    background: rgba(0, 231, 1, 0.12);
+    background: rgba(0, 231, 1, 0.08);
   }
 
   .game-cell {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 
   .game-icon {
-    font-size: 1.1em;
+    width: 32px;
+    height: 32px;
+    background: #213743;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
+    flex-shrink: 0;
   }
 
   .game-label {
@@ -445,43 +475,72 @@
   }
 
   .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: #7f8c8d;
+  }
+
+  .user-cell :global(.hidden-user-icon) {
+    color: #5b6b7a;
+    flex-shrink: 0;
   }
 
   .time-cell {
-    color: #7f8c8d;
+    color: #b1bad3;
+    text-align: center;
   }
 
   .bet-cell {
+    text-align: right;
+  }
+
+  .bet-cell,
+  .payout-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .amount-value {
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .currency-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .currency-icon.tether {
+    background: linear-gradient(135deg, #26a17b, #1a8a6a);
     color: #fff;
   }
 
   .multiplier-cell {
-    color: #7f8c8d;
-  }
-
-  .win-multiplier {
-    color: #00e701;
-    font-weight: 700;
-    text-shadow: 0 0 8px rgba(0, 231, 1, 0.5);
-  }
-
-  .fire {
-    margin-right: 4px;
+    color: #b1bad3;
+    text-align: center;
+    font-weight: 500;
   }
 
   .payout-cell {
     font-weight: 600;
   }
 
-  .payout-cell.win-payout {
+  .payout-cell.win-payout .amount-value {
     color: #00e701;
-    text-shadow: 0 0 8px rgba(0, 231, 1, 0.5);
   }
 
-  .payout-cell.loss-payout {
-    color: #ff4444;
-    text-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
+  .payout-cell.loss-payout .amount-value {
+    color: #b1bad3;
   }
 
   .loading-cell,
@@ -525,22 +584,31 @@
       font-size: 0.85em;
     }
 
-    /* Responsive table */
+    /* Responsive table - allow horizontal scroll */
+    .bets-table-container {
+      border-radius: 8px;
+    }
+
     .bets-table {
-      font-size: 0.8em;
+      font-size: 0.85em;
+      min-width: 600px;
     }
 
     .bets-table th,
     .bets-table td {
-      padding: 10px 8px;
+      padding: 12px 12px;
     }
 
-    /* Hide some columns on mobile */
-    .bets-table th:nth-child(2),
-    .bets-table td:nth-child(2),
-    .bets-table th:nth-child(3),
-    .bets-table td:nth-child(3) {
-      display: none;
+    .game-icon {
+      width: 28px;
+      height: 28px;
+      font-size: 0.9em;
+    }
+
+    .currency-icon {
+      width: 16px;
+      height: 16px;
+      font-size: 9px;
     }
   }
 
@@ -572,9 +640,8 @@
       font-size: 0.8em;
     }
 
-    .bets-table th:nth-child(5),
-    .bets-table td:nth-child(5) {
-      display: none;
+    .bets-table {
+      min-width: 550px;
     }
   }
 </style>
