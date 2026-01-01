@@ -347,7 +347,7 @@
       <div class="control-group">
         <div class="control-label">
           <span>Bet Amount</span>
-          <span class="usd-value">${(betAmount * 90000).toFixed(2)}</span>
+          <span class="usd-value">${betAmount.toFixed(2)}</span>
         </div>
         <div class="bet-input-row">
           <div class="bet-input-wrapper">
@@ -360,7 +360,7 @@
               step="0.00000001"
               disabled={gameActive || isRevealing}
             />
-            <span class="btc-icon">₿</span>
+            <span class="usdt-icon">$</span>
           </div>
           <button class="bet-action-btn" onclick={halveBet} disabled={gameActive || isRevealing}>½</button>
           <button class="bet-action-btn" onclick={doubleBet} disabled={gameActive || isRevealing}>2×</button>
@@ -415,7 +415,7 @@
           <div class="results-row">
             <span class="result-label">Profit</span>
             <span class="result-value" class:win={profit > 0} class:loss={profit < 0}>
-              {profit >= 0 ? '+' : ''}{profit.toFixed(8)} ₿
+              {profit >= 0 ? '+' : ''}${profit.toFixed(2)}
             </span>
           </div>
         </div>
@@ -595,10 +595,10 @@
     cursor: not-allowed;
   }
 
-  .btc-icon {
+  .usdt-icon {
     position: absolute;
     right: 12px;
-    color: #f7931a;
+    color: #26a17b;
     font-weight: bold;
   }
 
