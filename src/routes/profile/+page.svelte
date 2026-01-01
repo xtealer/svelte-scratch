@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { User, Mail, Lock, Wallet, Eye, EyeOff, Link, ArrowLeft, Check } from 'lucide-svelte';
-  import { t, initLanguage, direction } from '$lib/i18n';
+  import { User, Mail, Lock, Wallet, Eye, EyeOff, Link, ArrowLeft, Check, Globe } from 'lucide-svelte';
+  import { t, initLanguage, direction, setLanguage, getSupportedLanguages, currentLanguage, type Language } from '$lib/i18n';
   import { playerAuth, isPlayerLoggedIn, playerUser } from '$lib/stores/playerAuth';
   import GameNavbar from '$lib/GameNavbar.svelte';
   import Footer from '$lib/Footer.svelte';
@@ -18,11 +18,21 @@
   let showPassword = $state(false);
   let showConfirmPassword = $state(false);
 
+  // Language state
+  let savingLanguage = $state(false);
+  let languageSaved = $state(false);
+  let selectedLanguage = $state<Language>('en');
+
   // Check if user is MetaMask-only (no email linked)
   let isMetamaskOnly = $derived($playerUser?.metamaskAddress && !$playerUser?.email);
 
+  // Available languages
+  const languages = getSupportedLanguages();
+
   onMount(() => {
     initLanguage();
+    // Initialize selected language from user profile or current language
+    selectedLanguage = ($playerUser?.preferredLanguage as Language) || $currentLanguage;
     // Redirect to home if not logged in
     if (!$isPlayerLoggedIn) {
       goto('/');
@@ -108,6 +118,50 @@
       handleLinkEmail();
     }
   }
+
+  async function handleLanguageChange(lang: Language): Promise<void> {
+    if (lang === selectedLanguage || savingLanguage) return;
+
+    selectedLanguage = lang;
+    savingLanguage = true;
+    languageSaved = false;
+
+    try {
+      const token = localStorage.getItem('goldGames_playerToken');
+      if (!token) {
+        // Just set the language locally if not logged in
+        setLanguage(lang);
+        savingLanguage = false;
+        return;
+      }
+
+      const response = await fetch('/api/player/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferredLanguage: lang })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update local state and auth store
+        setLanguage(lang);
+        playerAuth.login(data.token, data.user);
+        languageSaved = true;
+        setTimeout(() => {
+          languageSaved = false;
+        }, 2000);
+      }
+    } catch {
+      // Fallback to just setting local language
+      setLanguage(lang);
+    } finally {
+      savingLanguage = false;
+    }
+  }
 </script>
 
 <GameNavbar />
@@ -154,6 +208,36 @@
             </span>
           </div>
         {/if}
+      </div>
+
+      <!-- Language Preference Section -->
+      <div class="language-section">
+        <div class="section-header-lang">
+          <Globe size={20} />
+          <h2>{$t.profile.preferredLanguage}</h2>
+          {#if languageSaved}
+            <span class="saved-badge">
+              <Check size={14} />
+              {$t.profile.languageSaved}
+            </span>
+          {:else if savingLanguage}
+            <span class="saving-badge">{$t.profile.savingLanguage}</span>
+          {/if}
+        </div>
+
+        <div class="language-options">
+          {#each languages as lang}
+            <button
+              class="language-btn"
+              class:active={selectedLanguage === lang.code}
+              onclick={() => handleLanguageChange(lang.code)}
+              disabled={savingLanguage}
+            >
+              <span class="lang-native">{lang.nativeLabel}</span>
+              <span class="lang-label">{lang.label}</span>
+            </button>
+          {/each}
+        </div>
       </div>
 
       {#if isMetamaskOnly && !success}
@@ -386,6 +470,103 @@
   .wallet-address {
     font-family: monospace;
     color: #f6851b;
+  }
+
+  .language-section {
+    background: rgba(0, 191, 255, 0.1);
+    border: 1px solid rgba(0, 191, 255, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .section-header-lang {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #00bfff;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .section-header-lang h2 {
+    font-size: 1.15em;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .section-header-lang :global(svg) {
+    flex-shrink: 0;
+  }
+
+  .saved-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    padding: 4px 10px;
+    background: rgba(0, 231, 1, 0.2);
+    border-radius: 20px;
+    font-size: 0.8em;
+    color: #00e701;
+    font-weight: 500;
+  }
+
+  .saving-badge {
+    margin-left: auto;
+    font-size: 0.8em;
+    color: #7f8c8d;
+  }
+
+  .language-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .language-btn {
+    flex: 1;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #2d4a5e;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .language-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #00bfff;
+  }
+
+  .language-btn.active {
+    background: rgba(0, 191, 255, 0.2);
+    border-color: #00bfff;
+  }
+
+  .language-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .lang-native {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .lang-label {
+    font-size: 0.8em;
+    color: #7f8c8d;
+  }
+
+  .language-btn.active .lang-native {
+    color: #00bfff;
   }
 
   .link-email-section {

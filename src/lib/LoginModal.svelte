@@ -1,6 +1,6 @@
 <script lang="ts">
   import { LogIn, Mail, Lock, Wallet, Link, Eye, EyeOff } from 'lucide-svelte';
-  import { t } from '$lib/i18n';
+  import { t, setLanguage, type Language } from '$lib/i18n';
   import { playerAuth, isPlayerLoggedIn } from '$lib/stores/playerAuth';
 
   let {
@@ -106,6 +106,10 @@
       }
 
       playerAuth.login(data.token, data.user);
+      // Set language from user preference
+      if (data.user.preferredLanguage) {
+        setLanguage(data.user.preferredLanguage as Language);
+      }
       close();
     } catch {
       error = $t.authModal.connectionError;
@@ -142,6 +146,10 @@
       }
 
       playerAuth.login(data.token, data.user);
+      // Set language from user preference
+      if (data.user.preferredLanguage) {
+        setLanguage(data.user.preferredLanguage as Language);
+      }
       close();
     } catch {
       error = $t.authModal.connectionError;
@@ -199,6 +207,10 @@
       // Update user with new metamask address and login
       const updatedUser = { ...loginData.user, metamaskAddress };
       playerAuth.login(loginData.token, updatedUser);
+      // Set language from user preference
+      if (loginData.user.preferredLanguage) {
+        setLanguage(loginData.user.preferredLanguage as Language);
+      }
       close();
     } catch {
       error = $t.authModal.connectionError;
@@ -228,6 +240,10 @@
       }
 
       playerAuth.login(data.token, data.user);
+      // Set language from user preference
+      if (data.user.preferredLanguage) {
+        setLanguage(data.user.preferredLanguage as Language);
+      }
       close();
     } catch {
       error = $t.authModal.connectionError;
@@ -453,7 +469,7 @@
 <style>
   .modal {
     position: fixed;
-    z-index: 100;
+    z-index: 1100;
     left: 0;
     top: 0;
     width: 100%;

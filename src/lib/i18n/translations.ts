@@ -394,6 +394,9 @@ export interface ProfileTranslations {
   emailLinkedSuccess: string;
   accountInfo: string;
   editProfile: string;
+  preferredLanguage: string;
+  languageSaved: string;
+  savingLanguage: string;
 }
 
 export interface Translations {
@@ -796,6 +799,9 @@ export const translations: Record<Language, Translations> = {
       emailLinkedSuccess: 'Email linked successfully!',
       accountInfo: 'Account Information',
       editProfile: 'Edit Profile',
+      preferredLanguage: 'Preferred Language',
+      languageSaved: 'Language saved!',
+      savingLanguage: 'Saving...',
     },
   },
   es: {
@@ -1175,6 +1181,9 @@ export const translations: Record<Language, Translations> = {
       emailLinkedSuccess: '¡Correo vinculado exitosamente!',
       accountInfo: 'Información de la Cuenta',
       editProfile: 'Editar Perfil',
+      preferredLanguage: 'Idioma Preferido',
+      languageSaved: '¡Idioma guardado!',
+      savingLanguage: 'Guardando...',
     },
   },
   ar: {
@@ -1554,6 +1563,9 @@ export const translations: Record<Language, Translations> = {
       emailLinkedSuccess: 'تم ربط البريد الإلكتروني بنجاح!',
       accountInfo: 'معلومات الحساب',
       editProfile: 'تعديل الملف الشخصي',
+      preferredLanguage: 'اللغة المفضلة',
+      languageSaved: 'تم حفظ اللغة!',
+      savingLanguage: 'جاري الحفظ...',
     },
   },
 };
