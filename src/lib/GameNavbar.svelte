@@ -91,9 +91,15 @@
     <div class="navbar-right">
       {#if $isPlayerLoggedIn}
         <!-- Logged in state -->
-        <button class="deposit-btn-standalone" onclick={handleDeposit}>
-          {$t.navbar.deposit}
-        </button>
+        <div class="balance-group">
+          <div class="usdt-balance">
+            <div class="tether-icon"><span>T</span></div>
+            <span class="balance-amount">${totalUsdtBalance.toFixed(2)}</span>
+          </div>
+          <button class="deposit-btn" onclick={handleDeposit}>
+            {$t.navbar.deposit}
+          </button>
+        </div>
 
         <div class="user-menu-container">
           <button class="user-avatar-btn" onclick={toggleDropdown}>
