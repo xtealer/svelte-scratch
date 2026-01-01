@@ -155,7 +155,7 @@
   }
 </script>
 
-<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} onHistory={openHistoryModal} onBetHistory={openBetHistoryModal} />
+<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onHistory={openHistoryModal} onBetHistory={openBetHistoryModal} />
 
 <div class="page" dir={$direction}>
   <main class="container">

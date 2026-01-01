@@ -11,7 +11,6 @@
     onRegister,
     onDeposit,
     onWithdraw,
-    onProfile,
     onHistory,
     onBetHistory,
   }: {
@@ -20,7 +19,6 @@
     onRegister?: () => void;
     onDeposit?: () => void;
     onWithdraw?: () => void;
-    onProfile?: () => void;
     onHistory?: () => void;
     onBetHistory?: () => void;
   } = $props();
@@ -63,13 +61,6 @@
     showDropdown = false;
     if (onWithdraw) {
       onWithdraw();
-    }
-  }
-
-  function handleProfile() {
-    showDropdown = false;
-    if (onProfile) {
-      onProfile();
     }
   }
 
@@ -141,7 +132,6 @@
             onWithdraw={handleWithdraw}
             onTransactions={handleHistory}
             onBetHistory={handleBetHistory}
-            onProfile={handleProfile}
             onLogout={handleLogout}
           />
         </div>
