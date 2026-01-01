@@ -2,6 +2,7 @@ import { getDB } from './index';
 import type { PlayerUser, SupportedLanguage } from './types';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import config from './config';
 import { ObjectId } from 'mongodb';
 
@@ -439,4 +440,89 @@ export async function linkEmailToAccount(
   // Return updated user
   const updatedUser = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
   return updatedUser!;
+}
+
+// Check if user is email-only (requires 2FA)
+export function isEmailOnlyUser(user: PlayerUser): boolean {
+  return !!user.email && !user.metamaskAddress;
+}
+
+// Generate a 6-digit verification code
+function generateVerificationCode(): string {
+  return crypto.randomInt(100000, 999999).toString();
+}
+
+// Generate and store 2FA code for a user
+export async function generate2FACode(userId: string | ObjectId): Promise<string | null> {
+  const db = await getDB();
+  const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+
+  const code = generateVerificationCode();
+  const hashedCode = await bcrypt.hash(code, 10);
+  const expiry = new Date(Date.now() + config.twoFactorCodeExpiry);
+
+  const result = await db.collection<PlayerUser>(COLLECTION).updateOne(
+    { _id: objectId },
+    {
+      $set: {
+        twoFactorCode: hashedCode,
+        twoFactorExpiry: expiry
+      }
+    }
+  );
+
+  if (result.modifiedCount === 0) {
+    return null;
+  }
+
+  return code;
+}
+
+// Verify 2FA code and complete login
+export async function verify2FACode(
+  userId: string | ObjectId,
+  code: string
+): Promise<{ valid: boolean; user?: PlayerUser; error?: string }> {
+  const db = await getDB();
+  const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+
+  const user = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+
+  if (!user) {
+    return { valid: false, error: 'User not found' };
+  }
+
+  if (!user.twoFactorCode || !user.twoFactorExpiry) {
+    return { valid: false, error: 'No verification code pending' };
+  }
+
+  // Check if code expired
+  if (new Date() > user.twoFactorExpiry) {
+    // Clear expired code
+    await db.collection<PlayerUser>(COLLECTION).updateOne(
+      { _id: objectId },
+      { $unset: { twoFactorCode: '', twoFactorExpiry: '' } }
+    );
+    return { valid: false, error: 'Verification code expired' };
+  }
+
+  // Verify code
+  const isValid = await bcrypt.compare(code, user.twoFactorCode);
+
+  if (!isValid) {
+    return { valid: false, error: 'Invalid verification code' };
+  }
+
+  // Clear the code and update last login
+  await db.collection<PlayerUser>(COLLECTION).updateOne(
+    { _id: objectId },
+    {
+      $set: { lastLogin: new Date() },
+      $unset: { twoFactorCode: '', twoFactorExpiry: '' }
+    }
+  );
+
+  // Return updated user
+  const updatedUser = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+  return { valid: true, user: updatedUser! };
 }

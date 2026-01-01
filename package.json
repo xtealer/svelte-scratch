@@ -18,6 +18,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@types/bcryptjs": "^2.4.6",
 		"@types/jsonwebtoken": "^9.0.10",
+		"@types/nodemailer": "^7.0.4",
 		"svelte": "^5.45.6",
 		"svelte-check": "^4.3.4",
 		"tsx": "^4.21.0",
@@ -31,6 +32,7 @@
 		"jsonwebtoken": "^9.0.3",
 		"lucide-svelte": "^0.562.0",
 		"mongodb": "^7.0.0",
+		"nodemailer": "^7.0.12",
 		"qrcode": "^1.5.4"
 	}
 }

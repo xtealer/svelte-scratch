@@ -30,6 +30,9 @@ export interface PlayerUser {
   // Wager requirement tracking for crypto deposits
   wagerRequired: number;       // Total amount that must be wagered
   wagerCompleted: number;      // Amount wagered so far
+  // Email 2FA for email-only users
+  twoFactorCode?: string;      // Hashed 6-digit verification code
+  twoFactorExpiry?: Date;      // Code expiration time
 }
 
 // User account
