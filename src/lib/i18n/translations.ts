@@ -409,6 +409,7 @@ export interface PrizeModalTranslations {
   title: string;
   odds: string;
   close: string;
+  matchThree: string;
 }
 
 export interface ProfileTranslations {
@@ -783,6 +784,7 @@ export const translations: Record<Language, Translations> = {
       title: 'PRIZE LIST',
       odds: '1 in',
       close: 'Close',
+      matchThree: 'Match 3 symbols on the center line to win!',
     },
     authModal: {
       registerTitle: 'CREATE ACCOUNT',
@@ -1235,6 +1237,7 @@ export const translations: Record<Language, Translations> = {
       title: 'LISTA DE PREMIOS',
       odds: '1 en',
       close: 'Cerrar',
+      matchThree: '¡Combina 3 símbolos en la línea central para ganar!',
     },
     authModal: {
       registerTitle: 'CREAR CUENTA',
@@ -1687,6 +1690,7 @@ export const translations: Record<Language, Translations> = {
       title: 'قائمة الجوائز',
       odds: '1 من',
       close: 'إغلاق',
+      matchThree: 'طابق 3 رموز على الخط الأوسط للفوز!',
     },
     authModal: {
       registerTitle: 'إنشاء حساب',
