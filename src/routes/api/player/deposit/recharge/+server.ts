@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { verifyPlayerToken, addToPlayerBalance } from '$lib/server/db/playerUsers';
+import { verifyPlayerToken, addToPlayerBalance, recordPlayerDeposit } from '$lib/server/db/playerUsers';
 import { getRechargeCard, useRechargeCard } from '$lib/server/db/rechargeCards';
 
 // POST - Deposit from a recharge card to user's USDT balance
@@ -46,6 +46,11 @@ export const POST: RequestHandler = async ({ request }) => {
     if (!result.success) {
       return json({ error: 'Failed to update balance' }, { status: 500 });
     }
+
+    // Record the deposit in history
+    await recordPlayerDeposit(payload.odSI, 'recharge', usedCard.plays, {
+      rechargeCode: upperCode
+    });
 
     return json({
       success: true,

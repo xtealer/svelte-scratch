@@ -263,6 +263,7 @@ export interface NavbarTranslations {
   register: string;
   deposit: string;
   withdraw: string;
+  history: string;
   logout: string;
   confirmLogout: string;
 }
@@ -438,9 +439,51 @@ export interface TwoFactorTranslations {
   expiresNote: string;
 }
 
+export interface TransactionHistoryTranslations {
+  title: string;
+  all: string;
+  deposits: string;
+  withdrawals: string;
+  bets: string;
+  noTransactions: string;
+  loading: string;
+  deposit: string;
+  withdrawal: string;
+  bet: string;
+  amount: string;
+  date: string;
+  status: string;
+  game: string;
+  prize: string;
+  win: string;
+  loss: string;
+  pending: string;
+  approved: string;
+  rejected: string;
+  paid: string;
+  rechargeCard: string;
+  crypto: string;
+  cash: string;
+  close: string;
+  viewMore: string;
+}
+
+export interface UserMenuTranslations {
+  balance: string;
+  deposit: string;
+  withdraw: string;
+  transactions: string;
+  betHistory: string;
+  myProfile: string;
+  settings: string;
+  logOut: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
+  transactionHistory: TransactionHistoryTranslations;
+  userMenu: UserMenuTranslations;
   common: CommonTranslations;
   dashboard: DashboardTranslations;
   sales: SalesTranslations;
@@ -715,6 +758,7 @@ export const translations: Record<Language, Translations> = {
       register: 'Register',
       deposit: 'Deposit',
       withdraw: 'Withdraw',
+      history: 'History',
       logout: 'Logout',
       confirmLogout: 'Are you sure you want to logout?',
     },
@@ -873,6 +917,44 @@ export const translations: Record<Language, Translations> = {
       codeSent: 'New code sent!',
       resendError: 'Failed to resend code',
       expiresNote: 'Code expires in 5 minutes',
+    },
+    transactionHistory: {
+      title: 'TRANSACTION HISTORY',
+      all: 'All',
+      deposits: 'Deposits',
+      withdrawals: 'Withdrawals',
+      bets: 'Bets',
+      noTransactions: 'No transactions yet',
+      loading: 'Loading...',
+      deposit: 'Deposit',
+      withdrawal: 'Withdrawal',
+      bet: 'Bet',
+      amount: 'Amount',
+      date: 'Date',
+      status: 'Status',
+      game: 'Game',
+      prize: 'Prize',
+      win: 'Win',
+      loss: 'Loss',
+      pending: 'Pending',
+      approved: 'Approved',
+      rejected: 'Rejected',
+      paid: 'Paid',
+      rechargeCard: 'Recharge Card',
+      crypto: 'Crypto',
+      cash: 'Cash',
+      close: 'Close',
+      viewMore: 'View More',
+    },
+    userMenu: {
+      balance: 'Balance',
+      deposit: 'Deposit',
+      withdraw: 'Withdraw',
+      transactions: 'Transactions',
+      betHistory: 'Bet History',
+      myProfile: 'My Profile',
+      settings: 'Settings',
+      logOut: 'Log Out',
     },
   },
   es: {
@@ -1128,6 +1210,7 @@ export const translations: Record<Language, Translations> = {
       register: 'Registrarse',
       deposit: 'Depositar',
       withdraw: 'Retirar',
+      history: 'Historial',
       logout: 'Cerrar Sesión',
       confirmLogout: '¿Estás seguro de cerrar sesión?',
     },
@@ -1286,6 +1369,44 @@ export const translations: Record<Language, Translations> = {
       codeSent: '¡Nuevo código enviado!',
       resendError: 'Error al reenviar código',
       expiresNote: 'El código expira en 5 minutos',
+    },
+    transactionHistory: {
+      title: 'HISTORIAL DE TRANSACCIONES',
+      all: 'Todas',
+      deposits: 'Depósitos',
+      withdrawals: 'Retiros',
+      bets: 'Apuestas',
+      noTransactions: 'Sin transacciones aún',
+      loading: 'Cargando...',
+      deposit: 'Depósito',
+      withdrawal: 'Retiro',
+      bet: 'Apuesta',
+      amount: 'Monto',
+      date: 'Fecha',
+      status: 'Estado',
+      game: 'Juego',
+      prize: 'Premio',
+      win: 'Ganado',
+      loss: 'Perdido',
+      pending: 'Pendiente',
+      approved: 'Aprobado',
+      rejected: 'Rechazado',
+      paid: 'Pagado',
+      rechargeCard: 'Tarjeta de Recarga',
+      crypto: 'Cripto',
+      cash: 'Efectivo',
+      close: 'Cerrar',
+      viewMore: 'Ver Más',
+    },
+    userMenu: {
+      balance: 'Saldo',
+      deposit: 'Depositar',
+      withdraw: 'Retirar',
+      transactions: 'Transacciones',
+      betHistory: 'Historial de Apuestas',
+      myProfile: 'Mi Perfil',
+      settings: 'Configuración',
+      logOut: 'Cerrar Sesión',
     },
   },
   ar: {
@@ -1541,6 +1662,7 @@ export const translations: Record<Language, Translations> = {
       register: 'إنشاء حساب',
       deposit: 'إيداع',
       withdraw: 'سحب',
+      history: 'السجل',
       logout: 'تسجيل الخروج',
       confirmLogout: 'هل أنت متأكد من تسجيل الخروج؟',
     },
@@ -1699,6 +1821,44 @@ export const translations: Record<Language, Translations> = {
       codeSent: 'تم إرسال رمز جديد!',
       resendError: 'فشل في إعادة إرسال الرمز',
       expiresNote: 'الرمز صالح لمدة 5 دقائق',
+    },
+    transactionHistory: {
+      title: 'سجل المعاملات',
+      all: 'الكل',
+      deposits: 'الإيداعات',
+      withdrawals: 'السحوبات',
+      bets: 'الرهانات',
+      noTransactions: 'لا توجد معاملات بعد',
+      loading: 'جاري التحميل...',
+      deposit: 'إيداع',
+      withdrawal: 'سحب',
+      bet: 'رهان',
+      amount: 'المبلغ',
+      date: 'التاريخ',
+      status: 'الحالة',
+      game: 'اللعبة',
+      prize: 'الجائزة',
+      win: 'فوز',
+      loss: 'خسارة',
+      pending: 'قيد الانتظار',
+      approved: 'موافق عليه',
+      rejected: 'مرفوض',
+      paid: 'مدفوع',
+      rechargeCard: 'بطاقة إعادة الشحن',
+      crypto: 'عملة مشفرة',
+      cash: 'نقدي',
+      close: 'إغلاق',
+      viewMore: 'عرض المزيد',
+    },
+    userMenu: {
+      balance: 'الرصيد',
+      deposit: 'إيداع',
+      withdraw: 'سحب',
+      transactions: 'المعاملات',
+      betHistory: 'سجل الرهانات',
+      myProfile: 'ملفي الشخصي',
+      settings: 'الإعدادات',
+      logOut: 'تسجيل الخروج',
     },
   },
 };

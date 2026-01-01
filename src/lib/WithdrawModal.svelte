@@ -5,10 +5,10 @@
 
   let {
     show = $bindable(false),
-    onWithdrawSubmit,
+    onWithdrawSuccess,
   }: {
     show: boolean;
-    onWithdrawSubmit?: (data: WithdrawData) => Promise<void>;
+    onWithdrawSuccess?: (newBalance: number) => void;
   } = $props();
 
   type WithdrawMode = 'select' | 'crypto' | 'cash' | '2fa';
@@ -193,6 +193,30 @@
     }
   }
 
+  async function submitWithdrawal(data: WithdrawData): Promise<{ success: boolean; newBalance?: number }> {
+    const authState = playerAuth.get();
+    if (!authState.token) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch('/api/withdraw/submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authState.token}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || $t.withdrawModal.requestError);
+    }
+
+    return { success: true, newBalance: result.newBalance };
+  }
+
   async function resend2FACode(): Promise<void> {
     sending2FA = true;
     codeSentMessage = '';
@@ -238,14 +262,18 @@
     error = '';
 
     try {
-      if (onWithdrawSubmit) {
-        await onWithdrawSubmit({
-          type: 'crypto',
-          amount: parseFloat(amount),
-          network: selectedNetwork,
-          walletAddress: walletAddress.trim()
-        });
+      const result = await submitWithdrawal({
+        type: 'crypto',
+        amount: parseFloat(amount),
+        network: selectedNetwork,
+        walletAddress: walletAddress.trim()
+      });
+
+      if (result.newBalance !== undefined) {
+        playerAuth.updateBalance(result.newBalance);
+        onWithdrawSuccess?.(result.newBalance);
       }
+
       successType = 'crypto';
       success = true;
     } catch (e) {
@@ -289,15 +317,19 @@
     try {
       const fullPhone = `${selectedCountryInfo.dial} ${phoneNumber.trim()}`;
 
-      if (onWithdrawSubmit) {
-        await onWithdrawSubmit({
-          type: 'cash',
-          amount: parseFloat(amount),
-          playerName: playerName.trim(),
-          playerPhone: fullPhone,
-          playerCountry: selectedCountry
-        });
+      const result = await submitWithdrawal({
+        type: 'cash',
+        amount: parseFloat(amount),
+        playerName: playerName.trim(),
+        playerPhone: fullPhone,
+        playerCountry: selectedCountry
+      });
+
+      if (result.newBalance !== undefined) {
+        playerAuth.updateBalance(result.newBalance);
+        onWithdrawSuccess?.(result.newBalance);
       }
+
       successType = 'cash';
       success = true;
     } catch (e) {
@@ -325,29 +357,32 @@
 
     // Then proceed with the actual withdrawal
     try {
+      let result;
       if (pendingWithdrawType === 'crypto') {
-        if (onWithdrawSubmit) {
-          await onWithdrawSubmit({
-            type: 'crypto',
-            amount: parseFloat(amount),
-            network: selectedNetwork,
-            walletAddress: walletAddress.trim()
-          });
-        }
+        result = await submitWithdrawal({
+          type: 'crypto',
+          amount: parseFloat(amount),
+          network: selectedNetwork,
+          walletAddress: walletAddress.trim()
+        });
         successType = 'crypto';
       } else {
         const fullPhone = `${selectedCountryInfo.dial} ${phoneNumber.trim()}`;
-        if (onWithdrawSubmit) {
-          await onWithdrawSubmit({
-            type: 'cash',
-            amount: parseFloat(amount),
-            playerName: playerName.trim(),
-            playerPhone: fullPhone,
-            playerCountry: selectedCountry
-          });
-        }
+        result = await submitWithdrawal({
+          type: 'cash',
+          amount: parseFloat(amount),
+          playerName: playerName.trim(),
+          playerPhone: fullPhone,
+          playerCountry: selectedCountry
+        });
         successType = 'cash';
       }
+
+      if (result.newBalance !== undefined) {
+        playerAuth.updateBalance(result.newBalance);
+        onWithdrawSuccess?.(result.newBalance);
+      }
+
       success = true;
     } catch (e) {
       error = e instanceof Error ? e.message : $t.withdrawModal.requestError;

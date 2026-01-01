@@ -206,3 +206,41 @@ export interface DashboardStats {
   recentSales: Sale[];
   recentPayouts: Payout[];
 }
+
+// Player deposit type
+export type DepositType = 'recharge' | 'crypto';
+
+// Player deposit record (for tracking deposit history)
+export interface PlayerDeposit {
+  _id?: ObjectId;
+  playerId: ObjectId;
+  type: DepositType;
+  amount: number;
+  // For recharge card deposits
+  rechargeCode?: string;
+  // For crypto deposits
+  network?: string;
+  txHash?: string;
+  // Common fields
+  createdAt: Date;
+}
+
+// Player withdrawal request (for tracking withdrawal history)
+export interface PlayerWithdrawal {
+  _id?: ObjectId;
+  playerId: ObjectId;
+  type: 'crypto' | 'cash';
+  amount: number;
+  status: 'pending' | 'approved' | 'rejected' | 'paid';
+  // Crypto fields
+  network?: string;
+  walletAddress?: string;
+  // Cash fields
+  playerName?: string;
+  playerPhone?: string;
+  playerCountry?: string;
+  // Common fields
+  createdAt: Date;
+  processedAt?: Date;
+  notes?: string;
+}
