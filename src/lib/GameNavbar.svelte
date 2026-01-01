@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Wallet, Trophy, X, LogIn, Home, UserPlus, LogOut, User } from 'lucide-svelte';
+  import { X, LogIn, Home, UserPlus, LogOut, User } from 'lucide-svelte';
   import { playerWallet, hasActiveSession } from '$lib/stores/playerWallet';
   import { playerAuth, isPlayerLoggedIn, playerUser } from '$lib/stores/playerAuth';
   import { t } from '$lib/i18n';
@@ -24,8 +24,12 @@
   // Check if we're on the home page
   let isHomePage = $derived($page.url.pathname === '/');
 
-  // Balance combines recharge card credits with any USDT balance
-  let totalUsdtBalance = $derived(($playerWallet.credits || 0) + ($playerUser?.usdtBalance ?? 0));
+  // Balance combines recharge card credits + winnings + any USDT balance
+  let totalUsdtBalance = $derived(
+    ($playerWallet.credits || 0) +
+    ($playerWallet.winnings || 0) +
+    ($playerUser?.usdtBalance ?? 0)
+  );
 
   function handleEndSession() {
     if (confirm($t.navbar.confirmEndSession)) {
@@ -94,20 +98,6 @@
       {#if $isPlayerLoggedIn}
         <!-- Logged in state -->
         {#if $hasActiveSession}
-          <div class="balance-section">
-            <div class="balance-item code">
-              <Wallet size={14} />
-              <span class="value">{$playerWallet.code}</span>
-            </div>
-
-            {#if $playerWallet.winnings > 0}
-              <div class="balance-item winnings">
-                <Trophy size={14} />
-                <span class="value">${$playerWallet.winnings.toFixed(2)}</span>
-              </div>
-            {/if}
-          </div>
-
           <button class="end-session-btn" onclick={handleEndSession} title={$t.navbar.endSession}>
             <X size={18} />
           </button>
@@ -215,57 +205,6 @@
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-
-  .balance-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .balance-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    font-size: 0.85em;
-  }
-
-  .balance-item :global(svg) {
-    flex-shrink: 0;
-  }
-
-  .balance-item.code :global(svg) {
-    color: #ffc107;
-  }
-
-  .balance-item.winnings :global(svg) {
-    color: #00e701;
-  }
-
-  .balance-item .value {
-    font-weight: 600;
-    color: #fff;
-  }
-
-  .balance-item.code .value {
-    color: #ffc107;
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 0.9em;
-  }
-
-  .balance-item.winnings {
-    background: rgba(0, 231, 1, 0.15);
-    border: 1px solid rgba(0, 231, 1, 0.3);
-  }
-
-  .balance-item.winnings .value {
-    color: #00e701;
   }
 
   .end-session-btn {
@@ -442,19 +381,6 @@
       font-size: 1.1em;
     }
 
-    .balance-section {
-      gap: 6px;
-    }
-
-    .balance-item {
-      padding: 6px 8px;
-      font-size: 0.8em;
-    }
-
-    .balance-item.code {
-      display: none;
-    }
-
     .login-btn,
     .register-btn {
       padding: 8px 12px;
@@ -504,16 +430,6 @@
 
     .logo {
       font-size: 1em;
-    }
-
-    .balance-item {
-      padding: 5px 6px;
-      font-size: 0.75em;
-    }
-
-    .balance-item :global(svg) {
-      width: 12px;
-      height: 12px;
     }
 
     .login-btn span,
