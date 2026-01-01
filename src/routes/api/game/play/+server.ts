@@ -128,12 +128,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
     const { gameId, bet = 1, rollOver, isRollOver, targetMultiplier, selectedSide, difficulty, segments, action, multiplier, winnings } = await request.json();
 
-    if (!gameId || !['slots', 'scratch', 'dice', 'limbo', 'flip', 'wheel', 'crash', 'mines', 'keno', 'chickenroad', 'blackjack'].includes(gameId)) {
+    if (!gameId || !['slots', 'scratch', 'dice', 'limbo', 'flip', 'wheel', 'crash', 'mines', 'keno', 'chickenroad', 'blackjack', 'baccarat', 'bingo'].includes(gameId)) {
       return json({ error: 'Invalid game' }, { status: 400 });
     }
 
     // Different bet validation for crypto games (allows smaller bets)
-    const cryptoGames = ['dice', 'limbo', 'flip', 'wheel', 'crash', 'mines', 'keno', 'chickenroad', 'blackjack'];
+    const cryptoGames = ['dice', 'limbo', 'flip', 'wheel', 'crash', 'mines', 'keno', 'chickenroad', 'blackjack', 'baccarat', 'bingo'];
     const minBet = cryptoGames.includes(gameId) ? 0.00000001 : 1;
     if (typeof bet !== 'number' || bet < minBet || bet > 10) {
       return json({ error: 'Invalid bet amount' }, { status: 400 });
@@ -271,6 +271,28 @@ export const POST: RequestHandler = async ({ request }) => {
     } else if (gameId === 'blackjack') {
       // Blackjack game logic
       if (action === 'deal') {
+        // Starting game - deduct bet
+        prize = 0;
+      } else if (action === 'finish' && winnings !== undefined) {
+        // Game finished - return winnings
+        prize = winnings;
+      } else {
+        prize = 0;
+      }
+    } else if (gameId === 'baccarat') {
+      // Baccarat game logic
+      if (action === 'deal') {
+        // Starting game - deduct bet
+        prize = 0;
+      } else if (action === 'finish' && winnings !== undefined) {
+        // Game finished - return winnings
+        prize = winnings;
+      } else {
+        prize = 0;
+      }
+    } else if (gameId === 'bingo') {
+      // Bingo game logic
+      if (action === 'start') {
         // Starting game - deduct bet
         prize = 0;
       } else if (action === 'finish' && winnings !== undefined) {
