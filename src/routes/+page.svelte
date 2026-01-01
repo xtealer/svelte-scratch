@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Ticket, Dices, Gamepad2, UserX, Target, Coins, CircleDot, TrendingUp, Bomb, Grid3X3, Car, Spade } from "lucide-svelte";
+  import { Ticket, Dices, Gamepad2, UserX, Target, Coins, CircleDot, TrendingUp, Bomb, Grid3X3, Car, Spade, Club } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
@@ -134,7 +134,8 @@
       mines: '💎',
       keno: '🔢',
       chickenroad: '🐔',
-      blackjack: '🃏'
+      blackjack: '🃏',
+      baccarat: '🎴'
     };
     return icons[gameId] || '🎮';
   }
@@ -151,7 +152,8 @@
       mines: 'Mines',
       keno: 'Keno',
       chickenroad: 'Chicken Road',
-      blackjack: 'Blackjack'
+      blackjack: 'Blackjack',
+      baccarat: 'Baccarat'
     };
     return names[gameId] || gameId;
   }
@@ -307,6 +309,19 @@
           <div class="game-info">
             <div class="game-name">Blackjack</div>
             <div class="game-desc">Beat the dealer to 21!</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Baccarat -->
+        <a href="/baccarat" class="game-card">
+          <div class="game-image baccarat-bg">
+            <Club size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Baccarat</div>
+            <div class="game-desc">Player, Banker, or Tie?</div>
             <div class="game-prize">{$t.gameMenu.prizeText}</div>
           </div>
           <button class="play-btn">{$t.gameMenu.playNow}</button>
@@ -521,6 +536,10 @@
 
   .blackjack-bg {
     background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  }
+
+  .baccarat-bg {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   }
 
   .game-info {
