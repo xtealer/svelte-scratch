@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { ChevronDown, Coins, DollarSign } from 'lucide-svelte';
-  import { playerWallet } from '$lib/stores/playerWallet';
+  import { ChevronDown, Coins, DollarSign, AlertTriangle } from 'lucide-svelte';
+  import { playerWallet, wagerMet, wagerProgress, wagerRemaining } from '$lib/stores/playerWallet';
   import { t } from '$lib/i18n';
 
   let {
@@ -274,14 +274,32 @@
           <p>{$t.claimModal.completeInfo}</p>
         </div>
 
+        {#if $playerWallet.wagerRequired > 0 && !$wagerMet}
+          <div class="wager-warning">
+            <AlertTriangle size={20} />
+            <div class="wager-info">
+              <span class="wager-text">Wager requirement: ${$wagerRemaining.toFixed(2)} remaining</span>
+              <div class="wager-progress-bar">
+                <div class="wager-progress-fill" style="width: {$wagerProgress}%"></div>
+              </div>
+              <span class="wager-hint">Keep playing to unlock payout</span>
+            </div>
+          </div>
+        {/if}
+
         <div class="button-group">
           <button
             class="submit-btn payout-btn"
             onclick={submitPayoutRequest}
-            disabled={submitting || !isFormValid}
+            disabled={submitting || !isFormValid || !$wagerMet}
+            title={!$wagerMet ? 'Complete wager requirement to unlock payout' : ''}
           >
             <DollarSign size={20} />
-            {submitting ? $t.claimModal.sending : $t.claimModal.requestPayout}
+            {#if !$wagerMet}
+              Payout Locked
+            {:else}
+              {submitting ? $t.claimModal.sending : $t.claimModal.requestPayout}
+            {/if}
           </button>
 
           {#if onPlayMore}
@@ -305,7 +323,7 @@
 <style>
   .modal {
     position: fixed;
-    z-index: 100;
+    z-index: 1100;
     left: 0;
     top: 0;
     width: 100%;
@@ -561,6 +579,56 @@
 
   .close-btn:active {
     transform: scale(0.98);
+  }
+
+  .wager-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(255, 165, 0, 0.1);
+    border: 1px solid rgba(255, 165, 0, 0.4);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .wager-warning :global(svg) {
+    color: #ffa500;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .wager-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .wager-text {
+    color: #ffa500;
+    font-weight: 600;
+    font-size: 0.9em;
+  }
+
+  .wager-progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .wager-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffa500, #ff8c00);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  .wager-hint {
+    color: #888;
+    font-size: 0.75em;
   }
 
   .success-view {

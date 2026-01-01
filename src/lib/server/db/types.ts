@@ -25,6 +25,11 @@ export interface PlayerUser {
   active: boolean;
   createdAt: Date;
   lastLogin?: Date;
+  // USDT balance tracking
+  usdtBalance: number;         // Current USDT balance available to play
+  // Wager requirement tracking for crypto deposits
+  wagerRequired: number;       // Total amount that must be wagered
+  wagerCompleted: number;      // Amount wagered so far
 }
 
 // User account
@@ -117,6 +122,9 @@ export interface PlayerSession {
   claimed: boolean;         // Whether winnings have been claimed
   claimedAt?: Date;
   lastGameId?: string;      // Last game played
+  // Wager requirement tracking
+  wagerRequired: number;    // Total amount that must be wagered (deposit * multiplier)
+  wagerCompleted: number;   // Amount wagered so far
 }
 
 // Payout request status

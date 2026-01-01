@@ -34,6 +34,9 @@ export const POST: RequestHandler = async ({ request }) => {
           code: upperCode,
           plays: status.creditsLeft,
           totalWinnings: status.totalWinnings,
+          wagerRequired: status.wagerRequired,
+          wagerCompleted: status.wagerCompleted,
+          wagerMet: status.wagerMet,
           message: `Session restored with ${status.creditsLeft} credit${status.creditsLeft !== 1 ? "s" : ""} remaining`,
         });
       }
@@ -55,6 +58,9 @@ export const POST: RequestHandler = async ({ request }) => {
       code: upperCode,
       plays: usedTicket.plays,
       totalWinnings: session.totalWinnings,
+      wagerRequired: session.wagerRequired || 0,
+      wagerCompleted: session.wagerCompleted || 0,
+      wagerMet: (session.wagerCompleted || 0) >= (session.wagerRequired || 0),
       message: `Loaded ${usedTicket.plays} credit${usedTicket.plays > 1 ? "s" : ""}!`,
     });
   } catch (error) {

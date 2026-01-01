@@ -503,10 +503,14 @@ export async function getCreditConversionStats() {
 
 // ==================== UNIFIED PLAYER SESSION (CROSS-GAME WALLET) ====================
 
+// Wager multiplier for deposits (1x = must wager the deposit amount once before withdrawal)
+export const WAGER_MULTIPLIER = 1;
+
 // Get or create a unified player session for a code
 export async function getOrCreatePlayerSession(
   code: string,
-  initialCredits: number
+  initialCredits: number,
+  wagerMultiplier: number = WAGER_MULTIPLIER
 ): Promise<PlayerSession> {
   const db = await getDB();
   const upperCode = code.toUpperCase().trim();
@@ -521,6 +525,9 @@ export async function getOrCreatePlayerSession(
     return session;
   }
 
+  // Calculate wager requirement based on deposit amount
+  const wagerRequired = initialCredits * wagerMultiplier;
+
   // Create new session
   const newSession: PlayerSession = {
     code: upperCode,
@@ -529,6 +536,8 @@ export async function getOrCreatePlayerSession(
     creditsUsed: 0,
     totalWinnings: 0,
     claimed: false,
+    wagerRequired,
+    wagerCompleted: 0,
   };
 
   const result = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).insertOne(newSession);
@@ -553,6 +562,9 @@ export async function getPlayerSessionStatus(code: string): Promise<{
   totalWinnings: number;
   claimed: boolean;
   lastGameId?: string;
+  wagerRequired: number;
+  wagerCompleted: number;
+  wagerMet: boolean;
 } | null> {
   const session = await getPlayerSession(code);
 
@@ -560,12 +572,18 @@ export async function getPlayerSessionStatus(code: string): Promise<{
     return null;
   }
 
+  const wagerRequired = session.wagerRequired || 0;
+  const wagerCompleted = session.wagerCompleted || 0;
+
   return {
     exists: true,
     creditsLeft: session.initialCredits - session.creditsUsed,
     totalWinnings: session.totalWinnings,
     claimed: session.claimed,
-    lastGameId: session.lastGameId
+    lastGameId: session.lastGameId,
+    wagerRequired,
+    wagerCompleted,
+    wagerMet: wagerRequired === 0 || wagerCompleted >= wagerRequired
   };
 }
 
@@ -580,6 +598,9 @@ export async function recordPlayerPlay(
   symbol: string;
   creditsLeft: number;
   totalWinnings: number;
+  wagerRequired: number;
+  wagerCompleted: number;
+  wagerMet: boolean;
   error?: string;
 }> {
   const db = await getDB();
@@ -592,13 +613,13 @@ export async function recordPlayerPlay(
   });
 
   if (!session) {
-    return { success: false, prize: 0, symbol: '', creditsLeft: 0, totalWinnings: 0, error: 'Session not found' };
+    return { success: false, prize: 0, symbol: '', creditsLeft: 0, totalWinnings: 0, wagerRequired: 0, wagerCompleted: 0, wagerMet: true, error: 'Session not found' };
   }
 
   const creditsLeft = session.initialCredits - session.creditsUsed;
 
   if (creditsLeft < betAmount) {
-    return { success: false, prize: 0, symbol: '', creditsLeft, totalWinnings: session.totalWinnings, error: 'Not enough credits' };
+    return { success: false, prize: 0, symbol: '', creditsLeft, totalWinnings: session.totalWinnings, wagerRequired: session.wagerRequired || 0, wagerCompleted: session.wagerCompleted || 0, wagerMet: (session.wagerCompleted || 0) >= (session.wagerRequired || 0), error: 'Not enough credits' };
   }
 
   // Calculate prize server-side
@@ -617,13 +638,14 @@ export async function recordPlayerPlay(
   };
   await db.collection<GamePlay>(PLAYS_COLLECTION).insertOne(play);
 
-  // Update player session
+  // Update player session - include wager progress (bet amount counts towards wager)
   const updatedSession = await db.collection<PlayerSession>(PLAYER_SESSIONS_COLLECTION).findOneAndUpdate(
     { _id: session._id },
     {
       $inc: {
         creditsUsed: betAmount,
-        totalWinnings: prize
+        totalWinnings: prize,
+        wagerCompleted: betAmount  // Bet amount counts towards wager requirement
       },
       $set: {
         lastGameId: gameId
@@ -633,15 +655,21 @@ export async function recordPlayerPlay(
   );
 
   if (!updatedSession) {
-    return { success: false, prize: 0, symbol: '', creditsLeft, totalWinnings: session.totalWinnings, error: 'Failed to update session' };
+    return { success: false, prize: 0, symbol: '', creditsLeft, totalWinnings: session.totalWinnings, wagerRequired: session.wagerRequired || 0, wagerCompleted: session.wagerCompleted || 0, wagerMet: (session.wagerCompleted || 0) >= (session.wagerRequired || 0), error: 'Failed to update session' };
   }
+
+  const wagerRequired = updatedSession.wagerRequired || 0;
+  const wagerCompleted = updatedSession.wagerCompleted || 0;
 
   return {
     success: true,
     prize,
     symbol,
     creditsLeft: updatedSession.initialCredits - updatedSession.creditsUsed,
-    totalWinnings: updatedSession.totalWinnings
+    totalWinnings: updatedSession.totalWinnings,
+    wagerRequired,
+    wagerCompleted,
+    wagerMet: wagerRequired === 0 || wagerCompleted >= wagerRequired
   };
 }
 
