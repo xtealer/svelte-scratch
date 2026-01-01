@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowUpFromLine, Wallet, CircleDollarSign, Banknote, ChevronDown, Shield } from 'lucide-svelte';
+  import { ArrowUpFromLine, Wallet, CircleDollarSign, Banknote, Shield } from 'lucide-svelte';
   import { t } from '$lib/i18n';
   import { usdtBalance, isEmailOnlyUser, playerAuth } from '$lib/stores/playerAuth';
 
@@ -23,34 +23,7 @@
     // Cash fields
     playerName?: string;
     playerPhone?: string;
-    playerCountry?: string;
   }
-
-  // Country codes for dropdown
-  const countries = [
-    { code: 'US', name: 'United States', dial: '+1' },
-    { code: 'MX', name: 'México', dial: '+52' },
-    { code: 'GT', name: 'Guatemala', dial: '+502' },
-    { code: 'SV', name: 'El Salvador', dial: '+503' },
-    { code: 'HN', name: 'Honduras', dial: '+504' },
-    { code: 'NI', name: 'Nicaragua', dial: '+505' },
-    { code: 'CR', name: 'Costa Rica', dial: '+506' },
-    { code: 'PA', name: 'Panamá', dial: '+507' },
-    { code: 'CO', name: 'Colombia', dial: '+57' },
-    { code: 'VE', name: 'Venezuela', dial: '+58' },
-    { code: 'EC', name: 'Ecuador', dial: '+593' },
-    { code: 'PE', name: 'Perú', dial: '+51' },
-    { code: 'BO', name: 'Bolivia', dial: '+591' },
-    { code: 'CL', name: 'Chile', dial: '+56' },
-    { code: 'AR', name: 'Argentina', dial: '+54' },
-    { code: 'UY', name: 'Uruguay', dial: '+598' },
-    { code: 'PY', name: 'Paraguay', dial: '+595' },
-    { code: 'BR', name: 'Brasil', dial: '+55' },
-    { code: 'ES', name: 'España', dial: '+34' },
-    { code: 'DO', name: 'República Dominicana', dial: '+1' },
-    { code: 'PR', name: 'Puerto Rico', dial: '+1' },
-    { code: 'CU', name: 'Cuba', dial: '+53' },
-  ];
 
   const networkNames: Record<Network, string> = {
     ethereum: 'Ethereum (ERC-20)',
@@ -70,7 +43,6 @@
   let walletAddress = $state('');
   let selectedNetwork = $state<Network>('ethereum');
   let playerName = $state('');
-  let selectedCountry = $state('US');
   let phoneNumber = $state('');
   let loading = $state(false);
   let error = $state('');
@@ -85,9 +57,6 @@
 
   // Calculate available balance - now unified from USDT balance
   let availableBalance = $derived($usdtBalance);
-
-  // Get selected country info
-  let selectedCountryInfo = $derived(countries.find(c => c.code === selectedCountry) || countries[0]);
 
   function close(): void {
     show = false;
@@ -315,14 +284,11 @@
     error = '';
 
     try {
-      const fullPhone = `${selectedCountryInfo.dial} ${phoneNumber.trim()}`;
-
       const result = await submitWithdrawal({
         type: 'cash',
         amount: parseFloat(amount),
         playerName: playerName.trim(),
-        playerPhone: fullPhone,
-        playerCountry: selectedCountry
+        playerPhone: phoneNumber.trim()
       });
 
       if (result.newBalance !== undefined) {
@@ -367,13 +333,11 @@
         });
         successType = 'crypto';
       } else {
-        const fullPhone = `${selectedCountryInfo.dial} ${phoneNumber.trim()}`;
         result = await submitWithdrawal({
           type: 'cash',
           amount: parseFloat(amount),
           playerName: playerName.trim(),
-          playerPhone: fullPhone,
-          playerCountry: selectedCountry
+          playerPhone: phoneNumber.trim()
         });
         successType = 'cash';
       }
@@ -596,24 +560,14 @@
 
         <div class="form-group">
           <label for="phone">{$t.withdrawModal.phoneNumber} <span class="required">*</span></label>
-          <div class="phone-input-group">
-            <div class="country-select">
-              <select bind:value={selectedCountry} disabled={loading}>
-                {#each countries as country}
-                  <option value={country.code}>{country.dial}</option>
-                {/each}
-              </select>
-              <ChevronDown size={16} />
-            </div>
-            <input
-              id="phone"
-              type="tel"
-              bind:value={phoneNumber}
-              placeholder={$t.withdrawModal.phonePlaceholder}
-              disabled={loading}
-              class="phone-input"
-            />
-          </div>
+          <input
+            id="phone"
+            type="tel"
+            bind:value={phoneNumber}
+            placeholder={$t.withdrawModal.phonePlaceholder}
+            disabled={loading}
+            class="text-input"
+          />
         </div>
 
         <div class="info">
@@ -963,61 +917,6 @@
 
   .address-input::placeholder,
   .text-input::placeholder {
-    color: #666;
-  }
-
-  .phone-input-group {
-    display: flex;
-    gap: 8px;
-  }
-
-  .country-select {
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .country-select select {
-    appearance: none;
-    padding: 14px 32px 14px 12px;
-    background: #0f1923;
-    border: 2px solid #2d4a5e;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 0.95em;
-    cursor: pointer;
-  }
-
-  .country-select select:focus {
-    outline: none;
-    border-color: #f97316;
-  }
-
-  .country-select :global(svg) {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #666;
-    pointer-events: none;
-  }
-
-  .phone-input {
-    flex: 1;
-    padding: 14px 12px;
-    font-size: 0.95em;
-    background: #0f1923;
-    border: 2px solid #2d4a5e;
-    border-radius: 10px;
-    color: #fff;
-  }
-
-  .phone-input:focus {
-    outline: none;
-    border-color: #f97316;
-    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
-  }
-
-  .phone-input::placeholder {
     color: #666;
   }
 

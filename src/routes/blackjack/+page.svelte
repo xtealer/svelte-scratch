@@ -462,7 +462,7 @@
       <div class="control-group">
         <div class="control-label">
           <span>Bet Amount</span>
-          <span class="usd-value">${(betAmount * 90000).toFixed(2)}</span>
+          <span class="usd-value">${betAmount.toFixed(2)}</span>
         </div>
         <div class="bet-input-row">
           <div class="bet-input-wrapper">
@@ -475,7 +475,7 @@
               step="0.00000001"
               disabled={gameActive}
             />
-            <span class="btc-icon">₿</span>
+            <span class="usdt-icon">$</span>
           </div>
           <button class="bet-action-btn" onclick={halveBet} disabled={gameActive}>½</button>
           <button class="bet-action-btn" onclick={doubleBet} disabled={gameActive}>2×</button>
@@ -520,16 +520,16 @@
         <div class="result-display" class:win={result === 'win' || result === 'blackjack'} class:push={result === 'push'} class:lose={result === 'lose'}>
           {#if result === 'blackjack'}
             <span class="result-text">BLACKJACK!</span>
-            <span class="result-amount">+{(winnings - betAmount).toFixed(8)} ₿</span>
+            <span class="result-amount">+${(winnings - betAmount).toFixed(2)}</span>
           {:else if result === 'win'}
             <span class="result-text">You Win!</span>
-            <span class="result-amount">+{(winnings - betAmount).toFixed(8)} ₿</span>
+            <span class="result-amount">+${(winnings - betAmount).toFixed(2)}</span>
           {:else if result === 'push'}
             <span class="result-text">Push</span>
             <span class="result-amount">Bet returned</span>
           {:else}
             <span class="result-text">You Lose</span>
-            <span class="result-amount">-{betAmount.toFixed(8)} ₿</span>
+            <span class="result-amount">-${betAmount.toFixed(2)}</span>
           {/if}
         </div>
       {/if}
@@ -750,10 +750,10 @@
     cursor: not-allowed;
   }
 
-  .btc-icon {
+  .usdt-icon {
     position: absolute;
     right: 12px;
-    color: #f7931a;
+    color: #26a17b;
     font-weight: bold;
   }
 

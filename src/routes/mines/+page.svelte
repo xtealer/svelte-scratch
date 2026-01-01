@@ -355,7 +355,7 @@
       <div class="control-group">
         <div class="control-label">
           <span>Bet Amount</span>
-          <span class="usd-value">${(betAmount * 90000).toFixed(2)}</span>
+          <span class="usd-value">${betAmount.toFixed(2)}</span>
         </div>
         <div class="bet-input-row">
           <div class="bet-input-wrapper">
@@ -368,7 +368,7 @@
               step="0.00000001"
               disabled={gameActive}
             />
-            <span class="btc-icon">₿</span>
+            <span class="usdt-icon">$</span>
           </div>
           <button class="bet-action-btn" onclick={halveBet} disabled={gameActive}>½</button>
           <button class="bet-action-btn" onclick={doubleBet} disabled={gameActive}>2×</button>
@@ -430,11 +430,11 @@
       <div class="control-group">
         <div class="control-label">
           <span>Total Profit ({currentMultiplier.toFixed(2)}x)</span>
-          <span class="usd-value">${(profit * 90000).toFixed(2)}</span>
+          <span class="usd-value">${profit.toFixed(2)}</span>
         </div>
         <div class="profit-display">
           <span>{profit.toFixed(8)}</span>
-          <span class="btc-icon">₿</span>
+          <span class="usdt-icon">$</span>
         </div>
       </div>
     </div>
@@ -464,7 +464,7 @@
       {#if gameOver && !tiles.some(t => t.state === 'mine' && tiles.find((t2, i) => tiles[i].state === 'mine' && tiles.findIndex(t3 => t3.state === 'mine') === i))}
         <div class="game-result" class:win={profit > 0}>
           {#if profit > 0}
-            <span class="result-text">You won {profit.toFixed(8)} BTC!</span>
+            <span class="result-text">You won ${profit.toFixed(2)} USDT!</span>
           {:else}
             <span class="result-text">Better luck next time!</span>
           {/if}
@@ -620,10 +620,10 @@
     cursor: not-allowed;
   }
 
-  .btc-icon {
+  .usdt-icon {
     position: absolute;
     right: 12px;
-    color: #f7931a;
+    color: #26a17b;
     font-weight: bold;
   }
 
