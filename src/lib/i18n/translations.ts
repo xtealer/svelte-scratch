@@ -332,22 +332,44 @@ export interface WithdrawModalTranslations {
   title: string;
   availableBalance: string;
   amount: string;
+  // Method selection
+  cryptoTitle: string;
+  cryptoDesc: string;
+  cashTitle: string;
+  cashDesc: string;
+  // Crypto fields
+  selectNetwork: string;
   walletAddress: string;
   addressPlaceholder: string;
-  info1: string;
-  info2: string;
+  cryptoInfo1: string;
+  cryptoInfo2: string;
+  // Cash fields
+  fullName: string;
+  namePlaceholder: string;
+  phoneNumber: string;
+  phonePlaceholder: string;
+  cashInfo1: string;
+  cashInfo2: string;
+  // Errors
   amountError: string;
   insufficientBalance: string;
   addressError: string;
   invalidAddress: string;
+  nameError: string;
+  phoneError: string;
   requestError: string;
+  // Actions
   processing: string;
   submit: string;
   cancel: string;
+  back: string;
+  // Success
   requestSent: string;
   amountRequested: string;
-  successInfo1: string;
-  successInfo2: string;
+  cryptoSuccessInfo1: string;
+  cryptoSuccessInfo2: string;
+  cashSuccessInfo1: string;
+  cashSuccessInfo2: string;
   close: string;
 }
 
@@ -818,22 +840,38 @@ export const translations: Record<Language, Translations> = {
       title: 'WITHDRAW',
       availableBalance: 'Available Balance',
       amount: 'Amount',
-      walletAddress: 'USDT Wallet Address (ERC-20)',
+      cryptoTitle: 'Withdraw USDT',
+      cryptoDesc: 'Send to your wallet address',
+      cashTitle: 'Cash Withdrawal',
+      cashDesc: 'Request handled by partner',
+      selectNetwork: 'Select Network',
+      walletAddress: 'Wallet Address',
       addressPlaceholder: '0x...',
-      info1: 'Withdrawals are processed within 24 hours.',
-      info2: 'Only ERC-20 USDT addresses are supported.',
+      cryptoInfo1: 'Withdrawals are processed within 24 hours.',
+      cryptoInfo2: 'Only send to the selected network!',
+      fullName: 'Full Name',
+      namePlaceholder: 'Your full name',
+      phoneNumber: 'Phone Number',
+      phonePlaceholder: 'Phone number',
+      cashInfo1: 'Our partner will contact you to arrange payment.',
+      cashInfo2: 'Please ensure your contact information is correct.',
       amountError: 'Please enter a valid amount',
       insufficientBalance: 'Insufficient balance',
       addressError: 'Please enter a wallet address',
-      invalidAddress: 'Please enter a valid ERC-20 wallet address',
+      invalidAddress: 'Please enter a valid wallet address',
+      nameError: 'Please enter your full name',
+      phoneError: 'Please enter a valid phone number',
       requestError: 'Error processing withdrawal request',
       processing: 'Processing...',
       submit: 'Request Withdrawal',
       cancel: 'Cancel',
+      back: 'Back',
       requestSent: 'REQUEST SENT!',
       amountRequested: 'Amount Requested',
-      successInfo1: 'Your withdrawal request has been submitted.',
-      successInfo2: 'You will receive your USDT within 24 hours.',
+      cryptoSuccessInfo1: 'Your withdrawal request has been submitted.',
+      cryptoSuccessInfo2: 'You will receive your USDT within 24 hours.',
+      cashSuccessInfo1: 'Your cash withdrawal request has been submitted.',
+      cashSuccessInfo2: 'Our partner will contact you shortly.',
       close: 'Close',
     },
     profile: {
@@ -1222,22 +1260,38 @@ export const translations: Record<Language, Translations> = {
       title: 'RETIRAR',
       availableBalance: 'Saldo Disponible',
       amount: 'Monto',
-      walletAddress: 'Dirección de Billetera USDT (ERC-20)',
+      cryptoTitle: 'Retirar USDT',
+      cryptoDesc: 'Enviar a tu billetera',
+      cashTitle: 'Retiro en Efectivo',
+      cashDesc: 'Solicitud manejada por socio',
+      selectNetwork: 'Seleccionar Red',
+      walletAddress: 'Dirección de Billetera',
       addressPlaceholder: '0x...',
-      info1: 'Los retiros se procesan en 24 horas.',
-      info2: 'Solo se admiten direcciones USDT ERC-20.',
+      cryptoInfo1: 'Los retiros se procesan en 24 horas.',
+      cryptoInfo2: '¡Solo envía a la red seleccionada!',
+      fullName: 'Nombre Completo',
+      namePlaceholder: 'Tu nombre completo',
+      phoneNumber: 'Número de Teléfono',
+      phonePlaceholder: 'Número de teléfono',
+      cashInfo1: 'Nuestro socio te contactará para coordinar el pago.',
+      cashInfo2: 'Por favor asegúrate de que tu información de contacto sea correcta.',
       amountError: 'Por favor ingresa un monto válido',
       insufficientBalance: 'Saldo insuficiente',
       addressError: 'Por favor ingresa una dirección de billetera',
-      invalidAddress: 'Por favor ingresa una dirección ERC-20 válida',
+      invalidAddress: 'Por favor ingresa una dirección de billetera válida',
+      nameError: 'Por favor ingresa tu nombre completo',
+      phoneError: 'Por favor ingresa un número de teléfono válido',
       requestError: 'Error al procesar la solicitud de retiro',
       processing: 'Procesando...',
       submit: 'Solicitar Retiro',
       cancel: 'Cancelar',
+      back: 'Volver',
       requestSent: '¡SOLICITUD ENVIADA!',
       amountRequested: 'Monto Solicitado',
-      successInfo1: 'Tu solicitud de retiro ha sido enviada.',
-      successInfo2: 'Recibirás tu USDT en 24 horas.',
+      cryptoSuccessInfo1: 'Tu solicitud de retiro ha sido enviada.',
+      cryptoSuccessInfo2: 'Recibirás tu USDT en 24 horas.',
+      cashSuccessInfo1: 'Tu solicitud de retiro en efectivo ha sido enviada.',
+      cashSuccessInfo2: 'Nuestro socio te contactará pronto.',
       close: 'Cerrar',
     },
     profile: {
@@ -1626,22 +1680,38 @@ export const translations: Record<Language, Translations> = {
       title: 'سحب',
       availableBalance: 'الرصيد المتاح',
       amount: 'المبلغ',
-      walletAddress: 'عنوان محفظة USDT (ERC-20)',
+      cryptoTitle: 'سحب USDT',
+      cryptoDesc: 'إرسال إلى عنوان محفظتك',
+      cashTitle: 'سحب نقدي',
+      cashDesc: 'طلب يتم التعامل معه من قبل الشريك',
+      selectNetwork: 'اختر الشبكة',
+      walletAddress: 'عنوان المحفظة',
       addressPlaceholder: '0x...',
-      info1: 'تتم معالجة عمليات السحب خلال 24 ساعة.',
-      info2: 'يتم دعم عناوين USDT ERC-20 فقط.',
+      cryptoInfo1: 'تتم معالجة عمليات السحب خلال 24 ساعة.',
+      cryptoInfo2: 'أرسل فقط إلى الشبكة المحددة!',
+      fullName: 'الاسم الكامل',
+      namePlaceholder: 'اسمك الكامل',
+      phoneNumber: 'رقم الهاتف',
+      phonePlaceholder: 'رقم الهاتف',
+      cashInfo1: 'سيتصل بك شريكنا لترتيب الدفع.',
+      cashInfo2: 'يرجى التأكد من صحة معلومات الاتصال الخاصة بك.',
       amountError: 'الرجاء إدخال مبلغ صالح',
       insufficientBalance: 'رصيد غير كافي',
       addressError: 'الرجاء إدخال عنوان المحفظة',
-      invalidAddress: 'الرجاء إدخال عنوان ERC-20 صالح',
+      invalidAddress: 'الرجاء إدخال عنوان محفظة صالح',
+      nameError: 'الرجاء إدخال اسمك الكامل',
+      phoneError: 'الرجاء إدخال رقم هاتف صالح',
       requestError: 'خطأ في معالجة طلب السحب',
       processing: 'جاري المعالجة...',
       submit: 'طلب السحب',
       cancel: 'إلغاء',
+      back: 'رجوع',
       requestSent: 'تم إرسال الطلب!',
       amountRequested: 'المبلغ المطلوب',
-      successInfo1: 'تم تقديم طلب السحب الخاص بك.',
-      successInfo2: 'ستتلقى USDT الخاص بك في غضون 24 ساعة.',
+      cryptoSuccessInfo1: 'تم تقديم طلب السحب الخاص بك.',
+      cryptoSuccessInfo2: 'ستتلقى USDT الخاص بك في غضون 24 ساعة.',
+      cashSuccessInfo1: 'تم تقديم طلب السحب النقدي الخاص بك.',
+      cashSuccessInfo2: 'سيتصل بك شريكنا قريباً.',
       close: 'إغلاق',
     },
     profile: {
