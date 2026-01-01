@@ -90,6 +90,48 @@ function createPlayerAuthStore() {
       });
     },
 
+    // Update USDT balance (for deposits, wins, and bets)
+    updateBalance: (newBalance: number) => {
+      update(state => {
+        if (!state.user) return state;
+        const updatedUser = { ...state.user, usdtBalance: newBalance };
+        const newState = { ...state, user: updatedUser };
+        if (browser) {
+          localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+        }
+        return newState;
+      });
+    },
+
+    // Add to USDT balance (for deposits and wins)
+    addBalance: (amount: number) => {
+      update(state => {
+        if (!state.user) return state;
+        const currentBalance = state.user.usdtBalance ?? 0;
+        const updatedUser = { ...state.user, usdtBalance: currentBalance + amount };
+        const newState = { ...state, user: updatedUser };
+        if (browser) {
+          localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+        }
+        return newState;
+      });
+    },
+
+    // Deduct from USDT balance (for bets)
+    deductBalance: (amount: number) => {
+      update(state => {
+        if (!state.user) return state;
+        const currentBalance = state.user.usdtBalance ?? 0;
+        const newBalance = Math.max(0, currentBalance - amount);
+        const updatedUser = { ...state.user, usdtBalance: newBalance };
+        const newState = { ...state, user: updatedUser };
+        if (browser) {
+          localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+        }
+        return newState;
+      });
+    },
+
     // Get current state value
     get: () => get({ subscribe }),
 
@@ -118,3 +160,11 @@ export const playerUser = derived(playerAuth, $auth => $auth.user);
 
 // Derived store to check if auth is loading
 export const isAuthLoading = derived(playerAuth, $auth => $auth.loading);
+
+// Derived store to get USDT balance
+export const usdtBalance = derived(playerAuth, $auth => $auth.user?.usdtBalance ?? 0);
+
+// Derived store to check if player can play (has balance)
+export const canPlay = derived(playerAuth, $auth =>
+  $auth.user !== null && ($auth.user.usdtBalance ?? 0) > 0
+);

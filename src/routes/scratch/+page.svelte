@@ -3,10 +3,8 @@
   import { get } from "svelte/store";
   import { browser } from "$app/environment";
   import PrizeModal from "$lib/PrizeModal.svelte";
-  import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import DepositModal from "$lib/DepositModal.svelte";
   import WithdrawModal from "$lib/WithdrawModal.svelte";
-  import ClaimModal from "$lib/ClaimModal.svelte";
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
   import ProfileModal from "$lib/ProfileModal.svelte";
@@ -14,7 +12,7 @@
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { Trophy, Volume2, VolumeX } from "lucide-svelte";
-  import { playerWallet, hasActiveSession as walletHasSession, wagerMet, wagerProgress, wagerRemaining } from "$lib/stores/playerWallet";
+  import { playerAuth, isPlayerLoggedIn, playerUser, usdtBalance } from "$lib/stores/playerAuth";
   import { WinCelebration, LowBalanceIndicator, MiniPrizeTable } from "$lib/components";
   import { hapticWin } from "$lib/utils/haptics";
 
@@ -83,20 +81,16 @@
   let muted = $state(false);
   let revealed = $state(false);
 
-  // Session state - derived from unified wallet
-  let currentCode = $derived($playerWallet.code);
-  let playsLeft = $derived($playerWallet.credits);
-  let sessionWinnings = $derived($playerWallet.winnings);
-  let hasActiveSession = $derived($walletHasSession);
-  let canPlay = $derived(playsLeft > 0 && revealed);
-  let canStartNewPlay = $derived(playsLeft > 0);
+  // Balance state - derived from user auth
+  let balance = $derived($usdtBalance);
+  let isLoggedIn = $derived($isPlayerLoggedIn);
+  let canPlay = $derived(balance > 0 && revealed);
+  let canStartNewPlay = $derived(balance > 0);
 
   // Modal state
   let showPrizeModal = $state(false);
-  let showCodeModal = $state(false);
   let showDepositModal = $state(false);
   let showWithdrawModal = $state(false);
-  let showClaimModal = $state(false);
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
   let showProfileModal = $state(false);
@@ -142,13 +136,9 @@
     };
     Object.values(sounds).forEach((s) => s.load());
 
-    // Mark this as the last game played if session exists
-    if ($walletHasSession) {
-      playerWallet.setLastGame('scratch');
-      // Start a play if we have credits
-      if ($playerWallet.credits > 0) {
-        startNewPlay();
-      }
+    // Start a play if logged in with balance
+    if ($isPlayerLoggedIn && $usdtBalance > 0) {
+      startNewPlay();
     }
 
     ctx = canvas.getContext("2d");
@@ -156,10 +146,10 @@
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("orientationchange", resizeCanvas);
 
-    // Initialize canvas with "Enter Code" message
+    // Initialize canvas
     setTimeout(() => {
       resizeCanvas();
-      if (!$playerWallet.code) {
+      if (!$isPlayerLoggedIn || $usdtBalance <= 0) {
         showWelcomeMessage();
       }
     }, 0);
@@ -299,8 +289,8 @@
   let pendingPlayResult: { prize: number; symbol: string } | null = null;
 
   async function startNewPlay(): Promise<void> {
-    const currentCredits = $playerWallet.credits;
-    if (currentCredits <= 0) return;
+    const currentBalance = $usdtBalance;
+    if (currentBalance <= 0 || !$isPlayerLoggedIn) return;
 
     // Hide result first
     prizeText = "-";
@@ -309,18 +299,25 @@
     symbols = ["❓", "❓", "❓"];
     pendingPlayResult = null;
 
+    // Get auth token
+    const authState = playerAuth.get();
+    if (!authState.token) return;
+
     // Call server API for the play result
     try {
       const response = await fetch("/api/game/play", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: $playerWallet.code, gameId: 'scratch', bet: 1 }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authState.token}`
+        },
+        body: JSON.stringify({ gameId: 'scratch', bet: 1 }),
       });
       const result = await response.json();
 
       if (result.success) {
-        // Update unified wallet with wager progress
-        playerWallet.updateCredits(result.playsLeft, result.totalWinnings, result.wagerCompleted);
+        // Update balance in auth store
+        playerAuth.updateBalance(result.balance);
         pendingPlayResult = { prize: result.prize, symbol: result.symbol };
 
         // Generate symbols based on server result
@@ -376,7 +373,7 @@
   }
 
   function revealAll(): void {
-    if (!hasActiveSession || revealed) return;
+    if (!isLoggedIn || balance <= 0 || revealed) return;
     if (ctx && canvas) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
@@ -403,7 +400,7 @@
   }
 
   function startScratch(e: MouseEvent | TouchEvent): void {
-    if (!hasActiveSession) return;
+    if (!isLoggedIn || balance <= 0) return;
 
     scratchAreaRect = scratchArea.getBoundingClientRect();
     isScratching = true;
@@ -454,19 +451,12 @@
   }
 
   function closeAllModals(): void {
-    showCodeModal = false;
     showDepositModal = false;
     showWithdrawModal = false;
     showPrizeModal = false;
-    showClaimModal = false;
     showLoginModal = false;
     showRegisterModal = false;
     showProfileModal = false;
-  }
-
-  function openCodeModal(): void {
-    closeAllModals();
-    showCodeModal = true;
   }
 
   function openDepositModal(): void {
@@ -482,13 +472,6 @@
   function openPrizeList(): void {
     closeAllModals();
     showPrizeModal = true;
-  }
-
-  function openClaimModal(): void {
-    if (sessionWinnings > 0) {
-      closeAllModals();
-      showClaimModal = true;
-    }
   }
 
   function openLoginModal(): void {
@@ -516,51 +499,15 @@
     showLoginModal = true;
   }
 
-  // Convert winnings to plays ($1 = 1 play)
-  function convertWinningsToPlays(): void {
-    if ($playerWallet.winnings > 0) {
-      playerWallet.convertWinningsToCredits();
-    }
-  }
-
-  function resetSession(): void {
-    playerWallet.clear();
-    revealed = false;
-    showWelcomeMessage();
-    setTimeout(resizeCanvas, 0);
-  }
-
-  async function handleCodeSubmit(code: string): Promise<void> {
-    const response = await fetch("/api/scratch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, gameId: 'scratch' }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Código inválido");
-    }
-
-    // Load the session using unified wallet with wager requirements
-    playerWallet.loadCode(
-      data.code,
-      data.plays,
-      data.totalWinnings || 0,
-      'scratch',
-      data.wagerRequired || 0,
-      data.wagerCompleted || 0
-    );
-
-    // Start first play automatically if we have plays
-    if (data.plays > 0) {
+  // Handle successful deposit - start a new play if we have balance
+  async function handleDepositSuccess(): Promise<void> {
+    if ($usdtBalance > 0) {
       startNewPlay();
     }
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
+<GameNavbar onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
 
 <div class="container" dir={$direction}>
   <div class="ticket">
@@ -608,35 +555,34 @@
       <canvas bind:this={canvas}></canvas>
     </div>
     <div class="ticket-footer">
-      {#if hasActiveSession}
+      {#if isLoggedIn && balance > 0}
         <div class="footer-left">
           <div class="plays-counter">
-            <span class="plays-label">{$t.gameUI.plays}:</span>
-            <span class="plays-value">{playsLeft}</span>
-            <LowBalanceIndicator credits={playsLeft} threshold={3} showAllIn={false} />
+            <span class="plays-label">{$t.gameUI.balance}:</span>
+            <span class="plays-value">${balance.toFixed(2)}</span>
+            <LowBalanceIndicator credits={balance} threshold={3} showAllIn={false} />
           </div>
-          {#if sessionWinnings > 0}
-            <button class="claim-btn" onclick={openClaimModal}>
-              {$t.gameUI.claim} ${sessionWinnings.toFixed(2)}
-            </button>
-          {/if}
         </div>
         <div class="footer-right">
           {#if !revealed}
             <button class="reveal-btn" onclick={revealAll}> {$t.gameUI.reveal} </button>
-          {:else if playsLeft > 0}
+          {:else if balance > 0}
             <button class="next-play-btn" onclick={startNewPlay}>
               {$t.gameUI.next}
             </button>
           {:else}
-            <button class="next-play-btn" onclick={openCodeModal}>
-              {$t.gameUI.newCode}
+            <button class="next-play-btn" onclick={openDepositModal}>
+              {$t.navbar.deposit}
             </button>
           {/if}
         </div>
+      {:else if isLoggedIn}
+        <button class="enter-code-btn" onclick={openDepositModal}>
+          {$t.navbar.deposit}
+        </button>
       {:else}
-        <button class="enter-code-btn" onclick={openCodeModal}>
-          {$t.gameUI.enterCode}
+        <button class="enter-code-btn" onclick={openLoginModal}>
+          {$t.navbar.login}
         </button>
       {/if}
     </div>
@@ -648,16 +594,8 @@
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
-<ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
-<DepositModal bind:show={showDepositModal} onCodeSubmit={handleCodeSubmit} />
+<DepositModal bind:show={showDepositModal} onDepositSuccess={handleDepositSuccess} />
 <WithdrawModal bind:show={showWithdrawModal} />
-<ClaimModal
-  bind:show={showClaimModal}
-  scratchCode={currentCode}
-  totalWinnings={sessionWinnings}
-  gameId="scratch"
-  onPlayMore={convertWinningsToPlays}
-/>
 
 <WinCelebration
   bind:show={showWinCelebration}

@@ -229,6 +229,165 @@ export async function changePlayerPassword(id: string | ObjectId, newPassword: s
   return result.modifiedCount > 0;
 }
 
+// Add to player's USDT balance (for deposits from recharge cards)
+export async function addToPlayerBalance(
+  userId: string | ObjectId,
+  amount: number,
+  addToWagerRequired: boolean = true
+): Promise<{ success: boolean; newBalance: number; wagerRequired: number; wagerCompleted: number }> {
+  const db = await getDB();
+  const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+
+  // Get current user to check balance
+  const user = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+  if (!user) {
+    return { success: false, newBalance: 0, wagerRequired: 0, wagerCompleted: 0 };
+  }
+
+  const currentBalance = user.usdtBalance ?? 0;
+  const currentWagerRequired = user.wagerRequired ?? 0;
+  const currentWagerCompleted = user.wagerCompleted ?? 0;
+  const newBalance = currentBalance + amount;
+  // Wager requirement: deposit amount must be wagered 1x before withdrawal
+  const newWagerRequired = addToWagerRequired ? currentWagerRequired + amount : currentWagerRequired;
+
+  await db.collection<PlayerUser>(COLLECTION).updateOne(
+    { _id: objectId },
+    {
+      $set: {
+        usdtBalance: newBalance,
+        wagerRequired: newWagerRequired
+      }
+    }
+  );
+
+  return {
+    success: true,
+    newBalance,
+    wagerRequired: newWagerRequired,
+    wagerCompleted: currentWagerCompleted
+  };
+}
+
+// Deduct from player's USDT balance (for bets)
+export async function deductFromPlayerBalance(
+  userId: string | ObjectId,
+  amount: number
+): Promise<{ success: boolean; newBalance: number; error?: string }> {
+  const db = await getDB();
+  const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+
+  // Get current user to check balance
+  const user = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+  if (!user) {
+    return { success: false, newBalance: 0, error: 'User not found' };
+  }
+
+  const currentBalance = user.usdtBalance ?? 0;
+  if (currentBalance < amount) {
+    return { success: false, newBalance: currentBalance, error: 'Insufficient balance' };
+  }
+
+  const newBalance = currentBalance - amount;
+
+  await db.collection<PlayerUser>(COLLECTION).updateOne(
+    { _id: objectId },
+    { $set: { usdtBalance: newBalance } }
+  );
+
+  return { success: true, newBalance };
+}
+
+// Process a game play: deduct bet, add winnings, update wager
+export async function processPlayerGamePlay(
+  userId: string | ObjectId,
+  bet: number,
+  winnings: number
+): Promise<{
+  success: boolean;
+  newBalance: number;
+  wagerRequired: number;
+  wagerCompleted: number;
+  wagerMet: boolean;
+  error?: string;
+}> {
+  const db = await getDB();
+  const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+
+  // Get current user
+  const user = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+  if (!user) {
+    return {
+      success: false,
+      newBalance: 0,
+      wagerRequired: 0,
+      wagerCompleted: 0,
+      wagerMet: false,
+      error: 'User not found'
+    };
+  }
+
+  const currentBalance = user.usdtBalance ?? 0;
+  if (currentBalance < bet) {
+    return {
+      success: false,
+      newBalance: currentBalance,
+      wagerRequired: user.wagerRequired ?? 0,
+      wagerCompleted: user.wagerCompleted ?? 0,
+      wagerMet: (user.wagerCompleted ?? 0) >= (user.wagerRequired ?? 0),
+      error: 'Insufficient balance'
+    };
+  }
+
+  // Calculate new values
+  const newBalance = currentBalance - bet + winnings;
+  const wagerRequired = user.wagerRequired ?? 0;
+  const newWagerCompleted = (user.wagerCompleted ?? 0) + bet;
+  const wagerMet = newWagerCompleted >= wagerRequired;
+
+  await db.collection<PlayerUser>(COLLECTION).updateOne(
+    { _id: objectId },
+    {
+      $set: {
+        usdtBalance: newBalance,
+        wagerCompleted: newWagerCompleted
+      }
+    }
+  );
+
+  return {
+    success: true,
+    newBalance,
+    wagerRequired,
+    wagerCompleted: newWagerCompleted,
+    wagerMet
+  };
+}
+
+// Get player balance info
+export async function getPlayerBalance(userId: string | ObjectId): Promise<{
+  balance: number;
+  wagerRequired: number;
+  wagerCompleted: number;
+  wagerMet: boolean;
+} | null> {
+  const db = await getDB();
+  const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
+
+  const user = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
+  if (!user) return null;
+
+  const wagerRequired = user.wagerRequired ?? 0;
+  const wagerCompleted = user.wagerCompleted ?? 0;
+
+  return {
+    balance: user.usdtBalance ?? 0,
+    wagerRequired,
+    wagerCompleted,
+    wagerMet: wagerCompleted >= wagerRequired
+  };
+}
+
 export async function linkEmailToAccount(
   userId: string | ObjectId,
   email: string,

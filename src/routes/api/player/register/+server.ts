@@ -49,7 +49,8 @@ export const POST: RequestHandler = async ({ request }) => {
         email: user.email,
         fullName: user.fullName,
         country: user.country,
-        preferredLanguage: user.preferredLanguage
+        preferredLanguage: user.preferredLanguage,
+        usdtBalance: user.usdtBalance ?? 0
       }
     });
   } catch (error) {

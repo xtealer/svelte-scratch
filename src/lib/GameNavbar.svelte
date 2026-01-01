@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { X, LogIn, Home, UserPlus, LogOut, User } from 'lucide-svelte';
-  import { playerWallet, hasActiveSession } from '$lib/stores/playerWallet';
+  import { LogIn, Home, UserPlus, LogOut, User } from 'lucide-svelte';
   import { playerAuth, isPlayerLoggedIn, playerUser } from '$lib/stores/playerAuth';
   import { t } from '$lib/i18n';
   import { page } from '$app/stores';
 
   let {
-    onEndSession,
     onEnterCode,
     onLogin,
     onRegister,
@@ -14,7 +12,6 @@
     onWithdraw,
     onProfile,
   }: {
-    onEndSession?: () => void;
     onEnterCode?: () => void;
     onLogin?: () => void;
     onRegister?: () => void;
@@ -26,21 +23,8 @@
   // Check if we're on the home page
   let isHomePage = $derived($page.url.pathname === '/');
 
-  // Balance combines recharge card credits + winnings + any USDT balance
-  let totalUsdtBalance = $derived(
-    ($playerWallet.credits || 0) +
-    ($playerWallet.winnings || 0) +
-    ($playerUser?.usdtBalance ?? 0)
-  );
-
-  function handleEndSession() {
-    if (confirm($t.navbar.confirmEndSession)) {
-      playerWallet.clear();
-      if (onEndSession) {
-        onEndSession();
-      }
-    }
-  }
+  // Balance is unified USDT balance from user account
+  let totalUsdtBalance = $derived($playerUser?.usdtBalance ?? 0);
 
   function handleEnterCode() {
     if (onEnterCode) {
@@ -81,7 +65,6 @@
   function handleLogout() {
     if (confirm($t.navbar.confirmLogout)) {
       playerAuth.logout();
-      playerWallet.clear();
     }
   }
 </script>
@@ -105,12 +88,6 @@
     <div class="navbar-right">
       {#if $isPlayerLoggedIn}
         <!-- Logged in state -->
-        {#if $hasActiveSession}
-          <button class="end-session-btn" onclick={handleEndSession} title={$t.navbar.endSession}>
-            <X size={18} />
-          </button>
-        {/if}
-
         <div class="balance-group">
           <button class="withdraw-btn" onclick={handleWithdraw} title={$t.navbar.withdraw}>
             {$t.navbar.withdraw}
@@ -216,32 +193,6 @@
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-
-  .end-session-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: rgba(237, 99, 0, 0.2);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-
-  .end-session-btn :global(svg) {
-    color: #ed6300;
-  }
-
-  .end-session-btn:hover {
-    background: rgba(237, 99, 0, 0.4);
-  }
-
-  .end-session-btn:active {
-    transform: scale(0.95);
   }
 
   .login-btn,
@@ -450,8 +401,7 @@
     }
 
     .user-btn,
-    .logout-btn,
-    .end-session-btn {
+    .logout-btn {
       width: 34px;
       height: 34px;
     }
