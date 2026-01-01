@@ -24,6 +24,9 @@
   // Check if we're on the home page
   let isHomePage = $derived($page.url.pathname === '/');
 
+  // USDT balance (placeholder - can be connected to real balance later)
+  let usdtBalance = $derived($playerUser?.usdtBalance ?? 0);
+
   function handleEndSession() {
     if (confirm($t.navbar.confirmEndSession)) {
       playerWallet.clear();
@@ -115,10 +118,17 @@
           </button>
         {/if}
 
-        <button class="deposit-btn" onclick={handleDeposit} title={$t.navbar.deposit}>
-          <PlusCircle size={16} />
-          <span class="btn-text">{$t.navbar.deposit}</span>
-        </button>
+        <div class="deposit-group">
+          <div class="usdt-balance">
+            <div class="tether-icon">
+              <span>T</span>
+            </div>
+            <span class="balance-amount">${usdtBalance.toFixed(2)}</span>
+          </div>
+          <button class="deposit-btn" onclick={handleDeposit} title={$t.navbar.deposit}>
+            {$t.navbar.deposit}
+          </button>
+        </div>
 
         <div class="user-menu">
           <button class="user-btn" onclick={handleProfile} title={$playerUser?.fullName}>
@@ -337,26 +347,64 @@
     transform: scale(0.98);
   }
 
+  .deposit-group {
+    display: flex;
+    align-items: center;
+    background: #2d3d4a;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .usdt-balance {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .tether-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #26a17b, #1a8a6a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .tether-icon span {
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .balance-amount {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95em;
+    white-space: nowrap;
+  }
+
   .deposit-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 10px 16px;
-    background: #00e701;
+    padding: 8px 16px;
+    height: 100%;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
     color: #0f1923;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
     font-weight: 700;
     font-size: 0.9em;
     transition: all 0.2s;
-    flex-shrink: 0;
   }
 
   .deposit-btn:hover {
-    background: #00c700;
-    transform: scale(1.02);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
   }
 
   .deposit-btn:active {
@@ -421,18 +469,36 @@
     }
 
     .login-btn,
-    .register-btn,
-    .deposit-btn {
+    .register-btn {
       padding: 8px 12px;
       font-size: 0.85em;
     }
 
-    .btn-text {
-      display: none;
+    .deposit-group {
+      border-radius: 6px;
+    }
+
+    .usdt-balance {
+      padding: 6px 8px;
+      gap: 6px;
+    }
+
+    .tether-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .tether-icon span {
+      font-size: 12px;
+    }
+
+    .balance-amount {
+      font-size: 0.85em;
     }
 
     .deposit-btn {
-      padding: 8px 10px;
+      padding: 6px 10px;
+      font-size: 0.8em;
     }
 
     .user-btn,

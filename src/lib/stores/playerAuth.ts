@@ -12,6 +12,7 @@ export interface PlayerAuthUser {
   country: string;
   preferredLanguage: SupportedLanguage;
   metamaskAddress?: string;
+  usdtBalance?: number; // USDT balance for deposits
 }
 
 interface PlayerAuthState {
