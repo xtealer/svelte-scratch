@@ -64,3 +64,28 @@ export async function send2FACode(email: string, code: string): Promise<boolean>
 
   return sendEmail({ to: email, subject, text, html });
 }
+
+export async function send2FACodeForWithdrawal(email: string, code: string, amount: number): Promise<boolean> {
+  const subject = 'Gold Games - Withdrawal Verification Code';
+  const text = `Your withdrawal verification code is: ${code}\n\nAmount: $${amount.toFixed(2)}\n\nThis code will expire in 5 minutes.\n\nIf you did not request this withdrawal, please secure your account immediately.`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #1a2c38, #213743); padding: 30px; border-radius: 16px; text-align: center;">
+        <h1 style="color: #f97316; margin: 0 0 20px 0; font-size: 24px;">Gold Games</h1>
+        <p style="color: #b1bad3; margin: 0 0 10px 0;">Withdrawal Request</p>
+        <div style="background: #0f1923; border: 2px solid #f97316; border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <p style="color: #888; font-size: 14px; margin: 0;">Amount</p>
+          <span style="font-size: 28px; font-weight: bold; color: #f97316;">$${amount.toFixed(2)}</span>
+        </div>
+        <p style="color: #b1bad3; margin: 20px 0 10px 0;">Your verification code is:</p>
+        <div style="background: #0f1923; border: 2px solid #00e701; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: bold; color: #00e701; letter-spacing: 8px;">${code}</span>
+        </div>
+        <p style="color: #888; font-size: 14px; margin: 20px 0 0 0;">This code will expire in 5 minutes.</p>
+        <p style="color: #ff6b6b; font-size: 12px; margin: 10px 0 0 0;">If you did not request this withdrawal, please secure your account immediately.</p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({ to: email, subject, text, html });
+}

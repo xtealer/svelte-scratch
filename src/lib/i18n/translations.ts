@@ -371,6 +371,18 @@ export interface WithdrawModalTranslations {
   cashSuccessInfo1: string;
   cashSuccessInfo2: string;
   close: string;
+  // 2FA Verification
+  verificationTitle: string;
+  verificationInstruction: string;
+  verificationPlaceholder: string;
+  verify: string;
+  verifying: string;
+  resendCode: string;
+  sending: string;
+  codeSent: string;
+  codeExpires: string;
+  invalidCode: string;
+  codeError: string;
 }
 
 export interface CodeModalTranslations {
@@ -824,6 +836,17 @@ export const translations: Record<Language, Translations> = {
       cashSuccessInfo1: 'Your cash withdrawal request has been submitted.',
       cashSuccessInfo2: 'Our partner will contact you shortly.',
       close: 'Close',
+      verificationTitle: 'VERIFY WITHDRAWAL',
+      verificationInstruction: 'Enter the 6-digit code sent to your email',
+      verificationPlaceholder: 'Enter code',
+      verify: 'Verify & Submit',
+      verifying: 'Verifying...',
+      resendCode: 'Resend Code',
+      sending: 'Sending...',
+      codeSent: 'New code sent!',
+      codeExpires: 'Code expires in 5 minutes',
+      invalidCode: 'Invalid verification code',
+      codeError: 'Failed to send verification code',
     },
     profile: {
       title: 'PROFILE',
@@ -1226,6 +1249,17 @@ export const translations: Record<Language, Translations> = {
       cashSuccessInfo1: 'Tu solicitud de retiro en efectivo ha sido enviada.',
       cashSuccessInfo2: 'Nuestro socio te contactará pronto.',
       close: 'Cerrar',
+      verificationTitle: 'VERIFICAR RETIRO',
+      verificationInstruction: 'Ingresa el código de 6 dígitos enviado a tu correo',
+      verificationPlaceholder: 'Ingresa código',
+      verify: 'Verificar y Enviar',
+      verifying: 'Verificando...',
+      resendCode: 'Reenviar Código',
+      sending: 'Enviando...',
+      codeSent: '¡Nuevo código enviado!',
+      codeExpires: 'El código expira en 5 minutos',
+      invalidCode: 'Código de verificación inválido',
+      codeError: 'Error al enviar código de verificación',
     },
     profile: {
       title: 'PERFIL',
@@ -1628,6 +1662,17 @@ export const translations: Record<Language, Translations> = {
       cashSuccessInfo1: 'تم تقديم طلب السحب النقدي الخاص بك.',
       cashSuccessInfo2: 'سيتصل بك شريكنا قريباً.',
       close: 'إغلاق',
+      verificationTitle: 'تحقق من السحب',
+      verificationInstruction: 'أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني',
+      verificationPlaceholder: 'أدخل الرمز',
+      verify: 'تحقق وأرسل',
+      verifying: 'جاري التحقق...',
+      resendCode: 'إعادة إرسال الرمز',
+      sending: 'جاري الإرسال...',
+      codeSent: 'تم إرسال رمز جديد!',
+      codeExpires: 'الرمز صالح لمدة 5 دقائق',
+      invalidCode: 'رمز التحقق غير صالح',
+      codeError: 'فشل في إرسال رمز التحقق',
     },
     profile: {
       title: 'الملف الشخصي',
