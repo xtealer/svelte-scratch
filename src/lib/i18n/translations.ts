@@ -262,6 +262,7 @@ export interface NavbarTranslations {
   login: string;
   register: string;
   deposit: string;
+  withdraw: string;
   logout: string;
   confirmLogout: string;
 }
@@ -325,6 +326,29 @@ export interface DepositModalTranslations {
   sendTo: string;
   cryptoInfo1: string;
   cryptoInfo2: string;
+}
+
+export interface WithdrawModalTranslations {
+  title: string;
+  availableBalance: string;
+  amount: string;
+  walletAddress: string;
+  addressPlaceholder: string;
+  info1: string;
+  info2: string;
+  amountError: string;
+  insufficientBalance: string;
+  addressError: string;
+  invalidAddress: string;
+  requestError: string;
+  processing: string;
+  submit: string;
+  cancel: string;
+  requestSent: string;
+  amountRequested: string;
+  successInfo1: string;
+  successInfo2: string;
+  close: string;
 }
 
 export interface ClaimModalTranslations {
@@ -417,6 +441,7 @@ export interface Translations {
   prizeModal: PrizeModalTranslations;
   authModal: AuthModalTranslations;
   depositModal: DepositModalTranslations;
+  withdrawModal: WithdrawModalTranslations;
   profile: ProfileTranslations;
 }
 
@@ -673,6 +698,7 @@ export const translations: Record<Language, Translations> = {
       login: 'Login',
       register: 'Register',
       deposit: 'Deposit',
+      withdraw: 'Withdraw',
       logout: 'Logout',
       confirmLogout: 'Are you sure you want to logout?',
     },
@@ -787,6 +813,28 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'Send to this address:',
       cryptoInfo1: 'Your balance will be updated after network confirmation.',
       cryptoInfo2: 'Only send the selected cryptocurrency to this address.',
+    },
+    withdrawModal: {
+      title: 'WITHDRAW',
+      availableBalance: 'Available Balance',
+      amount: 'Amount',
+      walletAddress: 'USDT Wallet Address (ERC-20)',
+      addressPlaceholder: '0x...',
+      info1: 'Withdrawals are processed within 24 hours.',
+      info2: 'Only ERC-20 USDT addresses are supported.',
+      amountError: 'Please enter a valid amount',
+      insufficientBalance: 'Insufficient balance',
+      addressError: 'Please enter a wallet address',
+      invalidAddress: 'Please enter a valid ERC-20 wallet address',
+      requestError: 'Error processing withdrawal request',
+      processing: 'Processing...',
+      submit: 'Request Withdrawal',
+      cancel: 'Cancel',
+      requestSent: 'REQUEST SENT!',
+      amountRequested: 'Amount Requested',
+      successInfo1: 'Your withdrawal request has been submitted.',
+      successInfo2: 'You will receive your USDT within 24 hours.',
+      close: 'Close',
     },
     profile: {
       title: 'PROFILE',
@@ -1054,6 +1102,7 @@ export const translations: Record<Language, Translations> = {
       login: 'Iniciar Sesión',
       register: 'Registrarse',
       deposit: 'Depositar',
+      withdraw: 'Retirar',
       logout: 'Cerrar Sesión',
       confirmLogout: '¿Estás seguro de cerrar sesión?',
     },
@@ -1168,6 +1217,28 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'Enviar a esta dirección:',
       cryptoInfo1: 'Tu saldo se actualizará después de la confirmación de la red.',
       cryptoInfo2: 'Solo envía la criptomoneda seleccionada a esta dirección.',
+    },
+    withdrawModal: {
+      title: 'RETIRAR',
+      availableBalance: 'Saldo Disponible',
+      amount: 'Monto',
+      walletAddress: 'Dirección de Billetera USDT (ERC-20)',
+      addressPlaceholder: '0x...',
+      info1: 'Los retiros se procesan en 24 horas.',
+      info2: 'Solo se admiten direcciones USDT ERC-20.',
+      amountError: 'Por favor ingresa un monto válido',
+      insufficientBalance: 'Saldo insuficiente',
+      addressError: 'Por favor ingresa una dirección de billetera',
+      invalidAddress: 'Por favor ingresa una dirección ERC-20 válida',
+      requestError: 'Error al procesar la solicitud de retiro',
+      processing: 'Procesando...',
+      submit: 'Solicitar Retiro',
+      cancel: 'Cancelar',
+      requestSent: '¡SOLICITUD ENVIADA!',
+      amountRequested: 'Monto Solicitado',
+      successInfo1: 'Tu solicitud de retiro ha sido enviada.',
+      successInfo2: 'Recibirás tu USDT en 24 horas.',
+      close: 'Cerrar',
     },
     profile: {
       title: 'PERFIL',
@@ -1435,6 +1506,7 @@ export const translations: Record<Language, Translations> = {
       login: 'تسجيل الدخول',
       register: 'إنشاء حساب',
       deposit: 'إيداع',
+      withdraw: 'سحب',
       logout: 'تسجيل الخروج',
       confirmLogout: 'هل أنت متأكد من تسجيل الخروج؟',
     },
@@ -1549,6 +1621,28 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'أرسل إلى هذا العنوان:',
       cryptoInfo1: 'سيتم تحديث رصيدك بعد تأكيد الشبكة.',
       cryptoInfo2: 'أرسل فقط العملة المشفرة المحددة إلى هذا العنوان.',
+    },
+    withdrawModal: {
+      title: 'سحب',
+      availableBalance: 'الرصيد المتاح',
+      amount: 'المبلغ',
+      walletAddress: 'عنوان محفظة USDT (ERC-20)',
+      addressPlaceholder: '0x...',
+      info1: 'تتم معالجة عمليات السحب خلال 24 ساعة.',
+      info2: 'يتم دعم عناوين USDT ERC-20 فقط.',
+      amountError: 'الرجاء إدخال مبلغ صالح',
+      insufficientBalance: 'رصيد غير كافي',
+      addressError: 'الرجاء إدخال عنوان المحفظة',
+      invalidAddress: 'الرجاء إدخال عنوان ERC-20 صالح',
+      requestError: 'خطأ في معالجة طلب السحب',
+      processing: 'جاري المعالجة...',
+      submit: 'طلب السحب',
+      cancel: 'إلغاء',
+      requestSent: 'تم إرسال الطلب!',
+      amountRequested: 'المبلغ المطلوب',
+      successInfo1: 'تم تقديم طلب السحب الخاص بك.',
+      successInfo2: 'ستتلقى USDT الخاص بك في غضون 24 ساعة.',
+      close: 'إغلاق',
     },
     profile: {
       title: 'الملف الشخصي',
