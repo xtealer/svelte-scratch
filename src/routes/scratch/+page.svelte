@@ -833,28 +833,6 @@
     transform: scale(0.98);
   }
 
-  .claim-btn {
-    padding: 8px 16px;
-    font-size: 0.95em;
-    background: linear-gradient(#ff6600, #cc4400);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
-    font-weight: bold;
-    transition: transform 0.1s;
-    text-shadow: 1px 1px 2px #000;
-  }
-
-  .claim-btn:hover {
-    transform: scale(1.05);
-  }
-
-  .claim-btn:active {
-    transform: scale(0.98);
-  }
-
   .reveal-btn {
     padding: 10px 20px;
     font-size: 1em;
@@ -987,10 +965,6 @@
       padding: 10px 18px;
       font-size: 1em;
     }
-    .claim-btn {
-      padding: 5px 10px;
-      font-size: 0.8em;
-    }
     .reveal-btn {
       padding: 8px 14px;
       font-size: 0.85em;
@@ -1075,10 +1049,6 @@
     .enter-code-btn {
       padding: 8px 14px;
       font-size: 0.9em;
-    }
-    .claim-btn {
-      padding: 4px 8px;
-      font-size: 0.75em;
     }
     .reveal-btn {
       padding: 6px 12px;

@@ -835,11 +835,6 @@
     color: #000;
   }
 
-  .spin-btn.claim {
-    background: linear-gradient(180deg, #ff6600 0%, #cc4400 100%);
-    color: #fff;
-  }
-
   .right-controls {
     display: flex;
     flex-direction: column;
@@ -870,23 +865,6 @@
   .side-btn.active {
     background: #4a4a5a;
     color: #0f0;
-  }
-
-  .claim-btn {
-    padding: 8px 12px;
-    font-size: 0.8em;
-    background: linear-gradient(180deg, #ff6600 0%, #cc4400 100%);
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.1s;
-    text-shadow: 1px 1px 2px #000;
-  }
-
-  .claim-btn:hover {
-    transform: scale(1.05);
   }
 
   .enter-code-container {
@@ -945,9 +923,6 @@
       gap: 8px;
     }
 
-    .claim-btn {
-      display: none;
-    }
   }
 
   /* Mobile phones */
