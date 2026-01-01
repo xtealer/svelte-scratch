@@ -210,25 +210,33 @@
             {:else}
               {#each recentPlays as play}
                 <tr class:win-row={play.isWin}>
-                  <td class="game-cell">
-                    <span class="game-icon">{getGameIcon(play.game)}</span>
-                    <span class="game-label">{getGameName(play.game)}</span>
+                  <td class="td-game">
+                    <span class="game-cell">
+                      <span class="game-icon">{getGameIcon(play.game)}</span>
+                      <span class="game-label">{getGameName(play.game)}</span>
+                    </span>
                   </td>
-                  <td class="user-cell">
-                    <UserX size={16} class="hidden-user-icon" />
-                    <span>Hidden</span>
+                  <td class="td-user">
+                    <span class="user-cell">
+                      <UserX size={16} class="hidden-user-icon" />
+                      <span>Hidden</span>
+                    </span>
                   </td>
-                  <td class="time-cell">{formatTime(play.time)}</td>
-                  <td class="bet-cell">
-                    <span class="amount-value">${play.betAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    <span class="currency-icon tether">T</span>
+                  <td class="td-time">{formatTime(play.time)}</td>
+                  <td class="td-bet">
+                    <span class="bet-cell">
+                      <span class="amount-value">${play.betAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span class="currency-icon tether">T</span>
+                    </span>
                   </td>
-                  <td class="multiplier-cell">
+                  <td class="td-multiplier">
                     {play.multiplier}x
                   </td>
-                  <td class="payout-cell" class:win-payout={play.isWin} class:loss-payout={!play.isWin}>
-                    <span class="amount-value">{play.isWin ? '' : '-'}${play.isWin ? play.payout.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : play.betAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    <span class="currency-icon tether">T</span>
+                  <td class="td-payout" class:win-payout={play.isWin} class:loss-payout={!play.isWin}>
+                    <span class="payout-cell">
+                      <span class="amount-value">{play.isWin ? '' : '-'}${play.isWin ? play.payout.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : play.betAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span class="currency-icon tether">T</span>
+                    </span>
                   </td>
                 </tr>
               {/each}
@@ -398,7 +406,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9em;
-    min-width: 700px;
+    table-layout: fixed;
   }
 
   .bets-table th {
@@ -412,20 +420,35 @@
     white-space: nowrap;
   }
 
-  /* Header alignments */
-  .th-game,
+  /* Column widths and alignments */
+  .th-game {
+    text-align: left;
+    width: 15%;
+  }
+
   .th-user {
     text-align: left;
+    width: 15%;
   }
 
-  .th-time,
+  .th-time {
+    text-align: center;
+    width: 15%;
+  }
+
+  .th-bet {
+    text-align: right;
+    width: 20%;
+  }
+
   .th-multiplier {
     text-align: center;
+    width: 15%;
   }
 
-  .th-bet,
   .th-payout {
     text-align: right;
+    width: 20%;
   }
 
   .bets-table td {
@@ -433,6 +456,43 @@
     color: #b1bad3;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     vertical-align: middle;
+  }
+
+  /* Cell alignments */
+  .td-game {
+    text-align: left;
+  }
+
+  .td-user {
+    text-align: left;
+  }
+
+  .td-time {
+    text-align: center;
+    color: #b1bad3;
+  }
+
+  .td-bet {
+    text-align: right;
+  }
+
+  .td-multiplier {
+    text-align: center;
+    color: #b1bad3;
+    font-weight: 500;
+  }
+
+  .td-payout {
+    text-align: right;
+    font-weight: 600;
+  }
+
+  .td-payout.win-payout .amount-value {
+    color: #00e701;
+  }
+
+  .td-payout.loss-payout .amount-value {
+    color: #b1bad3;
   }
 
   .bets-table tbody tr:last-child td {
@@ -452,7 +512,7 @@
   }
 
   .game-cell {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
   }
@@ -475,7 +535,7 @@
   }
 
   .user-cell {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     color: #7f8c8d;
@@ -486,18 +546,9 @@
     flex-shrink: 0;
   }
 
-  .time-cell {
-    color: #b1bad3;
-    text-align: center;
-  }
-
-  .bet-cell {
-    text-align: right;
-  }
-
   .bet-cell,
   .payout-cell {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: flex-end;
     gap: 6px;
@@ -523,24 +574,6 @@
   .currency-icon.tether {
     background: linear-gradient(135deg, #26a17b, #1a8a6a);
     color: #fff;
-  }
-
-  .multiplier-cell {
-    color: #b1bad3;
-    text-align: center;
-    font-weight: 500;
-  }
-
-  .payout-cell {
-    font-weight: 600;
-  }
-
-  .payout-cell.win-payout .amount-value {
-    color: #00e701;
-  }
-
-  .payout-cell.loss-payout .amount-value {
-    color: #b1bad3;
   }
 
   .loading-cell,
@@ -604,11 +637,19 @@
     .th-time,
     .th-bet,
     .th-multiplier,
-    .user-cell,
-    .time-cell,
-    .bet-cell,
-    .multiplier-cell {
+    .td-user,
+    .td-time,
+    .td-bet,
+    .td-multiplier {
       display: none;
+    }
+
+    .th-game {
+      width: 50%;
+    }
+
+    .th-payout {
+      width: 50%;
     }
 
     .game-icon {
