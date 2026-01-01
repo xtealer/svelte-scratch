@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { LogIn, Home, UserPlus, LogOut, User, History } from 'lucide-svelte';
+  import { LogIn, Home, UserPlus, ChevronDown, ChevronUp } from 'lucide-svelte';
   import { playerAuth, isPlayerLoggedIn, playerUser } from '$lib/stores/playerAuth';
   import { t } from '$lib/i18n';
   import { page } from '$app/stores';
+  import UserDropdownMenu from '$lib/UserDropdownMenu.svelte';
 
   let {
     onEnterCode,
@@ -12,6 +13,7 @@
     onWithdraw,
     onProfile,
     onHistory,
+    onBetHistory,
   }: {
     onEnterCode?: () => void;
     onLogin?: () => void;
@@ -20,6 +22,7 @@
     onWithdraw?: () => void;
     onProfile?: () => void;
     onHistory?: () => void;
+    onBetHistory?: () => void;
   } = $props();
 
   // Check if we're on the home page
@@ -27,6 +30,9 @@
 
   // Balance is unified USDT balance from user account
   let totalUsdtBalance = $derived($playerUser?.usdtBalance ?? 0);
+
+  // Dropdown state
+  let showDropdown = $state(false);
 
   function handleEnterCode() {
     if (onEnterCode) {
@@ -47,33 +53,52 @@
   }
 
   function handleDeposit() {
+    showDropdown = false;
     if (onDeposit) {
       onDeposit();
     }
   }
 
   function handleWithdraw() {
+    showDropdown = false;
     if (onWithdraw) {
       onWithdraw();
     }
   }
 
   function handleProfile() {
+    showDropdown = false;
     if (onProfile) {
       onProfile();
     }
   }
 
   function handleHistory() {
+    showDropdown = false;
     if (onHistory) {
       onHistory();
     }
   }
 
+  function handleBetHistory() {
+    showDropdown = false;
+    // Use onHistory with bets filter for bet history
+    if (onBetHistory) {
+      onBetHistory();
+    } else if (onHistory) {
+      onHistory();
+    }
+  }
+
   function handleLogout() {
+    showDropdown = false;
     if (confirm($t.navbar.confirmLogout)) {
       playerAuth.logout();
     }
+  }
+
+  function toggleDropdown() {
+    showDropdown = !showDropdown;
   }
 </script>
 
@@ -96,31 +121,29 @@
     <div class="navbar-right">
       {#if $isPlayerLoggedIn}
         <!-- Logged in state -->
-        <div class="balance-group">
-          <button class="withdraw-btn" onclick={handleWithdraw} title={$t.navbar.withdraw}>
-            {$t.navbar.withdraw}
-          </button>
-          <div class="usdt-balance">
-            <div class="tether-icon">
-              <span>T</span>
-            </div>
-            <span class="balance-amount">${totalUsdtBalance.toFixed(2)}</span>
-          </div>
-          <button class="deposit-btn" onclick={handleDeposit} title={$t.navbar.deposit}>
-            {$t.navbar.deposit}
-          </button>
-        </div>
+        <button class="deposit-btn-standalone" onclick={handleDeposit}>
+          {$t.navbar.deposit}
+        </button>
 
-        <div class="user-menu">
-          <button class="history-btn" onclick={handleHistory} title={$t.navbar.history}>
-            <History size={16} />
+        <div class="user-menu-container">
+          <button class="user-avatar-btn" onclick={toggleDropdown}>
+            <div class="avatar-gradient"></div>
+            {#if showDropdown}
+              <ChevronUp size={14} class="chevron" />
+            {:else}
+              <ChevronDown size={14} class="chevron" />
+            {/if}
           </button>
-          <button class="user-btn" onclick={handleProfile} title={$playerUser?.fullName}>
-            <User size={16} />
-          </button>
-          <button class="logout-btn" onclick={handleLogout} title={$t.navbar.logout}>
-            <LogOut size={16} />
-          </button>
+
+          <UserDropdownMenu
+            bind:show={showDropdown}
+            onDeposit={handleDeposit}
+            onWithdraw={handleWithdraw}
+            onTransactions={handleHistory}
+            onBetHistory={handleBetHistory}
+            onProfile={handleProfile}
+            onLogout={handleLogout}
+          />
         </div>
       {:else}
         <!-- Not logged in state -->
@@ -333,44 +356,62 @@
     transform: scale(0.98);
   }
 
-  .user-menu {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .user-btn,
-  .logout-btn,
-  .history-btn {
+  .deposit-btn-standalone {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: #0f1923;
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9em;
     transition: all 0.2s;
     flex-shrink: 0;
   }
 
-  .user-btn :global(svg) {
-    color: #00bfff;
+  .deposit-btn-standalone:hover {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    transform: scale(1.02);
   }
 
-  .history-btn :global(svg) {
-    color: #00bfff;
+  .deposit-btn-standalone:active {
+    transform: scale(0.98);
   }
 
-  .logout-btn :global(svg) {
-    color: #ff6b6b;
+  .user-menu-container {
+    position: relative;
   }
 
-  .user-btn:hover,
-  .logout-btn:hover,
-  .history-btn:hover {
+  .user-avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .user-avatar-btn:hover {
     background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .user-avatar-btn .avatar-gradient {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 50%, #d299c2 100%);
+  }
+
+  .user-avatar-btn :global(.chevron) {
+    color: #b1bad3;
+    margin-right: 4px;
   }
 
   /* Mobile adjustments */
@@ -417,11 +458,14 @@
       font-size: 0.8em;
     }
 
-    .user-btn,
-    .logout-btn,
-    .history-btn {
-      width: 34px;
-      height: 34px;
+    .deposit-btn-standalone {
+      padding: 8px 14px;
+      font-size: 0.85em;
+    }
+
+    .user-avatar-btn .avatar-gradient {
+      width: 28px;
+      height: 28px;
     }
   }
 
@@ -443,6 +487,24 @@
     .login-btn,
     .register-btn {
       padding: 8px;
+    }
+
+    .deposit-btn-standalone {
+      padding: 8px 12px;
+      font-size: 0.8em;
+    }
+
+    .user-avatar-btn {
+      padding: 3px;
+    }
+
+    .user-avatar-btn .avatar-gradient {
+      width: 26px;
+      height: 26px;
+    }
+
+    .user-avatar-btn :global(.chevron) {
+      display: none;
     }
   }
 </style>

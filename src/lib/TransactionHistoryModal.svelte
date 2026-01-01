@@ -5,8 +5,10 @@
 
   let {
     show = $bindable(false),
+    initialFilter = 'all',
   }: {
     show: boolean;
+    initialFilter?: 'all' | 'deposits' | 'withdrawals' | 'bets';
   } = $props();
 
   type FilterType = 'all' | 'deposits' | 'withdrawals' | 'bets';
@@ -33,6 +35,7 @@
   // Fetch transactions when modal opens or filter changes
   $effect(() => {
     if (show) {
+      filter = initialFilter;
       fetchTransactions();
     }
   });

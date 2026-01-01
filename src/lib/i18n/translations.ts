@@ -468,10 +468,22 @@ export interface TransactionHistoryTranslations {
   viewMore: string;
 }
 
+export interface UserMenuTranslations {
+  balance: string;
+  deposit: string;
+  withdraw: string;
+  transactions: string;
+  betHistory: string;
+  myProfile: string;
+  settings: string;
+  logOut: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
   transactionHistory: TransactionHistoryTranslations;
+  userMenu: UserMenuTranslations;
   common: CommonTranslations;
   dashboard: DashboardTranslations;
   sales: SalesTranslations;
@@ -934,6 +946,16 @@ export const translations: Record<Language, Translations> = {
       close: 'Close',
       viewMore: 'View More',
     },
+    userMenu: {
+      balance: 'Balance',
+      deposit: 'Deposit',
+      withdraw: 'Withdraw',
+      transactions: 'Transactions',
+      betHistory: 'Bet History',
+      myProfile: 'My Profile',
+      settings: 'Settings',
+      logOut: 'Log Out',
+    },
   },
   es: {
     rechargeCard: {
@@ -1376,6 +1398,16 @@ export const translations: Record<Language, Translations> = {
       close: 'Cerrar',
       viewMore: 'Ver Más',
     },
+    userMenu: {
+      balance: 'Saldo',
+      deposit: 'Depositar',
+      withdraw: 'Retirar',
+      transactions: 'Transacciones',
+      betHistory: 'Historial de Apuestas',
+      myProfile: 'Mi Perfil',
+      settings: 'Configuración',
+      logOut: 'Cerrar Sesión',
+    },
   },
   ar: {
     rechargeCard: {
@@ -1817,6 +1849,16 @@ export const translations: Record<Language, Translations> = {
       cash: 'نقدي',
       close: 'إغلاق',
       viewMore: 'عرض المزيد',
+    },
+    userMenu: {
+      balance: 'الرصيد',
+      deposit: 'إيداع',
+      withdraw: 'سحب',
+      transactions: 'المعاملات',
+      betHistory: 'سجل الرهانات',
+      myProfile: 'ملفي الشخصي',
+      settings: 'الإعدادات',
+      logOut: 'تسجيل الخروج',
     },
   },
 };

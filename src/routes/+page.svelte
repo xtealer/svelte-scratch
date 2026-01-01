@@ -31,6 +31,7 @@
   let showRegisterModal = $state(false);
   let showProfileModal = $state(false);
   let showHistoryModal = $state(false);
+  let historyFilter = $state<'all' | 'deposits' | 'withdrawals' | 'bets'>('all');
   let recentPlays = $state<RecentPlay[]>([]);
   let loadingPlays = $state(true);
 
@@ -96,6 +97,13 @@
 
   function openHistoryModal() {
     closeAllModals();
+    historyFilter = 'all';
+    showHistoryModal = true;
+  }
+
+  function openBetHistoryModal() {
+    closeAllModals();
+    historyFilter = 'bets';
     showHistoryModal = true;
   }
 
@@ -147,7 +155,7 @@
   }
 </script>
 
-<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} onHistory={openHistoryModal} />
+<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} onHistory={openHistoryModal} onBetHistory={openBetHistoryModal} />
 
 <div class="page" dir={$direction}>
   <main class="container">
@@ -252,7 +260,7 @@
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
 <ProfileModal bind:show={showProfileModal} />
-<TransactionHistoryModal bind:show={showHistoryModal} />
+<TransactionHistoryModal bind:show={showHistoryModal} initialFilter={historyFilter} />
 
 <style>
   .page {
