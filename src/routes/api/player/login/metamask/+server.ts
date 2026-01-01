@@ -41,7 +41,8 @@ export const POST: RequestHandler = async ({ request }) => {
         fullName: user.fullName,
         country: user.country,
         preferredLanguage: user.preferredLanguage,
-        metamaskAddress: user.metamaskAddress
+        metamaskAddress: user.metamaskAddress,
+        usdtBalance: user.usdtBalance ?? 0
       }
     });
   } catch (error) {

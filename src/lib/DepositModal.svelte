@@ -1,14 +1,14 @@
 <script lang="ts">
   import { Wallet, CreditCard, CircleDollarSign, Copy, Check } from 'lucide-svelte';
   import { t } from '$lib/i18n';
-  import { playerWallet, hasActiveSession } from '$lib/stores/playerWallet';
+  import { playerAuth, isPlayerLoggedIn, usdtBalance } from '$lib/stores/playerAuth';
 
   let {
     show = $bindable(false),
-    onCodeSubmit,
+    onDepositSuccess,
   }: {
     show: boolean;
-    onCodeSubmit?: (code: string) => Promise<void>;
+    onDepositSuccess?: () => void;
   } = $props();
 
   type DepositMode = 'select' | 'recharge' | 'crypto';
@@ -63,14 +63,44 @@
       return;
     }
 
+    if (!$isPlayerLoggedIn) {
+      error = 'Please login first';
+      return;
+    }
+
     loading = true;
     error = '';
 
     try {
-      if (onCodeSubmit) {
-        await onCodeSubmit(code.trim().toUpperCase());
-        close();
+      const authState = playerAuth.get();
+      if (!authState.token) {
+        throw new Error('Not authenticated');
       }
+
+      const response = await fetch('/api/player/deposit/recharge', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authState.token}`
+        },
+        body: JSON.stringify({ code: code.trim().toUpperCase() })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || $t.depositModal.invalidCode);
+      }
+
+      // Update balance in auth store
+      playerAuth.updateBalance(data.newBalance);
+
+      // Call success callback
+      if (onDepositSuccess) {
+        onDepositSuccess();
+      }
+
+      close();
     } catch (e) {
       error = e instanceof Error ? e.message : $t.depositModal.invalidCode;
     } finally {
@@ -126,10 +156,10 @@
           <span>{$t.depositModal.title}</span>
         </div>
 
-        {#if $hasActiveSession}
+        {#if $isPlayerLoggedIn}
           <div class="current-balance">
             <span class="balance-label">{$t.depositModal.currentBalance}</span>
-            <span class="balance-value">${$playerWallet.credits + $playerWallet.winnings}</span>
+            <span class="balance-value">${$usdtBalance.toFixed(2)}</span>
           </div>
         {/if}
 

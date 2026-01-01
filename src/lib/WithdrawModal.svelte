@@ -1,8 +1,7 @@
 <script lang="ts">
   import { ArrowUpFromLine, Wallet, CircleDollarSign, Banknote, ChevronDown } from 'lucide-svelte';
   import { t } from '$lib/i18n';
-  import { playerUser } from '$lib/stores/playerAuth';
-  import { playerWallet } from '$lib/stores/playerWallet';
+  import { usdtBalance } from '$lib/stores/playerAuth';
 
   let {
     show = $bindable(false),
@@ -78,12 +77,8 @@
   let success = $state(false);
   let successType = $state<'crypto' | 'cash'>('crypto');
 
-  // Calculate available balance
-  let availableBalance = $derived(
-    ($playerWallet.credits || 0) +
-    ($playerWallet.winnings || 0) +
-    ($playerUser?.usdtBalance ?? 0)
-  );
+  // Calculate available balance - now unified from USDT balance
+  let availableBalance = $derived($usdtBalance);
 
   // Get selected country info
   let selectedCountryInfo = $derived(countries.find(c => c.code === selectedCountry) || countries[0]);

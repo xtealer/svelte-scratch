@@ -2,10 +2,8 @@
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
   import PrizeModal from "$lib/PrizeModal.svelte";
-  import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import DepositModal from "$lib/DepositModal.svelte";
   import WithdrawModal from "$lib/WithdrawModal.svelte";
-  import ClaimModal from "$lib/ClaimModal.svelte";
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
   import ProfileModal from "$lib/ProfileModal.svelte";
@@ -13,8 +11,8 @@
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
-  import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play, Pause } from "lucide-svelte";
-  import { playerWallet, hasActiveSession as walletHasSession, wagerMet, wagerProgress, wagerRemaining } from "$lib/stores/playerWallet";
+  import { ArrowLeft, Trophy, Volume2, VolumeX, RotateCw, Grid3x3, Play, Pause } from "lucide-svelte";
+  import { playerAuth, isPlayerLoggedIn, playerUser, usdtBalance } from "$lib/stores/playerAuth";
   import { WinCelebration, LowBalanceIndicator, BetPresets } from "$lib/components";
   import { hapticWin, haptic } from "$lib/utils/haptics";
 
@@ -109,11 +107,9 @@
     winAnimationFrame = requestAnimationFrame(animate);
   }
 
-  // Session state - derived from unified wallet
-  let hasActiveSession = $derived($walletHasSession);
-  let currentCode = $derived($playerWallet.code);
-  let credits = $derived($playerWallet.credits);
-  let sessionWinnings = $derived($playerWallet.winnings);
+  // Balance state - derived from user auth
+  let isLoggedIn = $derived($isPlayerLoggedIn);
+  let balance = $derived($usdtBalance);
 
   // Autoplay state
   let autoplayActive = $state(false);
@@ -122,10 +118,8 @@
 
   // Modals
   let showPrizeModal = $state(false);
-  let showCodeModal = $state(false);
   let showDepositModal = $state(false);
   let showWithdrawModal = $state(false);
-  let showClaimModal = $state(false);
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
   let showProfileModal = $state(false);
@@ -148,11 +142,6 @@
         bigWin: new Audio("https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"),
         lose: new Audio("https://assets.mixkit.co/active_storage/sfx/2001/2001-preview.mp3"),
       };
-
-      // Mark this as the last game played
-      if ($walletHasSession) {
-        playerWallet.setLastGame('slots');
-      }
     }
   });
 
@@ -169,10 +158,8 @@
 
   function closeAllModals() {
     showPrizeModal = false;
-    showCodeModal = false;
     showDepositModal = false;
     showWithdrawModal = false;
-    showClaimModal = false;
     showLoginModal = false;
     showRegisterModal = false;
     showProfileModal = false;
@@ -183,11 +170,6 @@
     showPrizeModal = true;
   }
 
-  function openCodeModal() {
-    closeAllModals();
-    showCodeModal = true;
-  }
-
   function openDepositModal() {
     closeAllModals();
     showDepositModal = true;
@@ -196,11 +178,6 @@
   function openWithdrawModal() {
     closeAllModals();
     showWithdrawModal = true;
-  }
-
-  function openClaimModal() {
-    closeAllModals();
-    showClaimModal = true;
   }
 
   function openLoginModal() {
@@ -228,17 +205,14 @@
     showLoginModal = true;
   }
 
-  function convertWinningsToCredits() {
-    if ($playerWallet.winnings > 0) {
-      playerWallet.convertWinningsToCredits();
-      // Adjust bet size if needed
-      const newCredits = $playerWallet.credits;
-      if (betSize > newCredits) {
-        for (let i = BET_STEPS.length - 1; i >= 0; i--) {
-          if (BET_STEPS[i] <= newCredits) {
-            betSize = BET_STEPS[i];
-            break;
-          }
+  // Handle successful deposit
+  function handleDepositSuccess() {
+    // Adjust bet size if needed
+    if (betSize > balance) {
+      for (let i = BET_STEPS.length - 1; i >= 0; i--) {
+        if (BET_STEPS[i] <= balance) {
+          betSize = BET_STEPS[i];
+          break;
         }
       }
     }
@@ -248,7 +222,7 @@
     const currentIndex = BET_STEPS.indexOf(betSize);
     if (currentIndex < BET_STEPS.length - 1) {
       const nextBet = BET_STEPS[currentIndex + 1];
-      if (nextBet <= credits) {
+      if (nextBet <= balance) {
         betSize = nextBet;
         haptic('light');
       }
@@ -315,44 +289,6 @@
     ];
   }
 
-  async function handleCodeSubmit(code: string): Promise<void> {
-    const response = await fetch("/api/scratch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, gameId: 'slots' }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Código inválido");
-    }
-
-    // Update unified wallet with wager requirements
-    playerWallet.loadCode(
-      data.code,
-      data.plays,
-      data.totalWinnings || 0,
-      'slots',
-      data.wagerRequired || 0,
-      data.wagerCompleted || 0
-    );
-
-    betSize = Math.min(betSize, data.plays);
-    if (betSize < 1) betSize = 1;
-    lastWin = 0;
-    reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
-  }
-
-  function resetSession() {
-    stopAutoplay();
-    playerWallet.clear();
-    currentPrize = 0;
-    lastWin = 0;
-    reels = [getRandomReelStrip(), getRandomReelStrip(), getRandomReelStrip()];
-    betSize = 1;
-  }
-
   function startAutoplay(spins: number) {
     autoplaySpinsLeft = spins;
     autoplayActive = true;
@@ -373,8 +309,15 @@
   }
 
   async function spin() {
-    const currentCredits = $playerWallet.credits;
-    if (spinning || currentCredits < betSize || !$walletHasSession) {
+    const currentBalance = $usdtBalance;
+    if (spinning || currentBalance < betSize || !$isPlayerLoggedIn) {
+      if (autoplayActive) stopAutoplay();
+      return;
+    }
+
+    // Get auth token
+    const authState = playerAuth.get();
+    if (!authState.token) {
       if (autoplayActive) stopAutoplay();
       return;
     }
@@ -393,16 +336,19 @@
     }, spinInterval);
 
     // Call server API for the play result
-    let result: { success: boolean; prize: number; symbol: string; playsLeft: number; totalWinnings: number; error?: string };
+    let result: { success: boolean; prize: number; symbol: string; balance: number; error?: string };
     try {
       const response = await fetch("/api/game/play", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: $playerWallet.code, gameId: 'slots', bet: betSize }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authState.token}`
+        },
+        body: JSON.stringify({ gameId: 'slots', bet: betSize }),
       });
       result = await response.json();
     } catch {
-      result = { success: false, prize: 0, symbol: '', playsLeft: currentCredits, totalWinnings: $playerWallet.winnings, error: 'Network error' };
+      result = { success: false, prize: 0, symbol: '', balance: currentBalance, error: 'Network error' };
     }
 
     // Wait for spin animation to complete
@@ -410,8 +356,8 @@
     clearInterval(spinAnimation);
 
     if (result.success) {
-      // Update unified wallet with wager progress
-      playerWallet.updateCredits(result.playsLeft, result.totalWinnings, result.wagerCompleted);
+      // Update balance in auth store
+      playerAuth.updateBalance(result.balance);
 
       if (result.prize > 0) {
         currentPrize = result.prize;
@@ -452,10 +398,10 @@
 
     spinning = false;
 
-    const newCredits = $playerWallet.credits;
-    if (newCredits < betSize && newCredits > 0) {
+    const newBalance = $usdtBalance;
+    if (newBalance < betSize && newBalance > 0) {
       for (let i = BET_STEPS.length - 1; i >= 0; i--) {
-        if (BET_STEPS[i] <= newCredits) {
+        if (BET_STEPS[i] <= newBalance) {
           betSize = BET_STEPS[i];
           break;
         }
@@ -464,7 +410,7 @@
 
     if (autoplayActive) {
       autoplaySpinsLeft--;
-      if (autoplaySpinsLeft <= 0 || newCredits < betSize) {
+      if (autoplaySpinsLeft <= 0 || newBalance < betSize) {
         stopAutoplay();
       } else {
         setTimeout(() => spin(), 500);
@@ -473,7 +419,7 @@
   }
 </script>
 
-<GameNavbar onEndSession={resetSession} onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
+<GameNavbar onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
 
 <div class="container" dir={$direction}>
   <!-- Top controls -->
@@ -482,11 +428,6 @@
       <ArrowLeft size={20} />
     </a>
     <div class="spacer"></div>
-    {#if hasActiveSession}
-      <button class="control-btn end-btn" onclick={resetSession} title={$t.gameUI.endSession}>
-        <X size={20} />
-      </button>
-    {/if}
     <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? $t.gameUI.unmute : $t.gameUI.mute}>
       {#if muted}
         <VolumeX size={20} />
@@ -517,30 +458,18 @@
   </div>
 
   <!-- Bottom controls -->
-  {#if hasActiveSession}
+  {#if isLoggedIn && balance > 0}
     <div class="bottom-controls">
       <div class="left-info">
         <div class="info-row">
-          <span class="info-label">{$t.gameUI.credit}:</span>
-          <span class="info-value">${credits}</span>
-          <LowBalanceIndicator credits={credits} threshold={5} betSize={betSize} />
+          <span class="info-label">{$t.gameUI.balance}:</span>
+          <span class="info-value">${balance.toFixed(2)}</span>
+          <LowBalanceIndicator credits={balance} threshold={5} betSize={betSize} />
         </div>
         <div class="info-row">
           <span class="info-label">{$t.gameUI.bet}:</span>
           <span class="info-value">${betSize}</span>
         </div>
-        {#if sessionWinnings > 0}
-          <div class="info-row winnings">
-            <span class="info-label">{$t.gameUI.won}:</span>
-            <span class="info-value winnings-value">${sessionWinnings}</span>
-          </div>
-        {/if}
-        {#if $playerWallet.wagerRequired > 0 && !$wagerMet}
-          <div class="info-row wager">
-            <span class="info-label">Wager:</span>
-            <span class="info-value wager-value">{Math.round($wagerProgress)}%</span>
-          </div>
-        {/if}
       </div>
 
       <div class="center-controls">
@@ -548,7 +477,7 @@
           <BetPresets
             presets={BET_STEPS}
             bind:currentBet={betSize}
-            maxBet={credits}
+            maxBet={balance}
             disabled={spinning}
             onBetChange={handleBetChange}
           />
@@ -559,7 +488,7 @@
             −
           </button>
 
-          {#if credits >= betSize}
+          {#if balance >= betSize}
             <button
               class="spin-btn"
               onclick={spin}
@@ -569,17 +498,13 @@
               <RotateCw size={24} />
               <span>{$t.gameUI.spin}</span>
             </button>
-          {:else if sessionWinnings > 0}
-            <button class="spin-btn claim" onclick={openClaimModal}>
-              <span>{$t.gameUI.claim} ${sessionWinnings}</span>
-            </button>
           {:else}
-            <button class="spin-btn new-code" onclick={openCodeModal}>
-              <span>{$t.gameUI.code}</span>
+            <button class="spin-btn new-code" onclick={openDepositModal}>
+              <span>{$t.navbar.deposit}</span>
             </button>
           {/if}
 
-          <button class="bet-adjust-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > credits}>
+          <button class="bet-adjust-btn" onclick={increaseBet} disabled={spinning || betSize >= MAX_BET || BET_STEPS[BET_STEPS.indexOf(betSize) + 1] > balance}>
             +
           </button>
         </div>
@@ -599,17 +524,18 @@
             <span>{$t.gameUI.auto}</span>
           {/if}
         </button>
-        {#if sessionWinnings > 0}
-          <button class="claim-btn" onclick={openClaimModal}>
-            {$t.gameUI.claim} ${sessionWinnings}
-          </button>
-        {/if}
       </div>
+    </div>
+  {:else if isLoggedIn}
+    <div class="enter-code-container">
+      <button class="enter-code-btn" onclick={openDepositModal}>
+        {$t.navbar.deposit}
+      </button>
     </div>
   {:else}
     <div class="enter-code-container">
-      <button class="enter-code-btn" onclick={openCodeModal}>
-        {$t.gameUI.enterCode}
+      <button class="enter-code-btn" onclick={openLoginModal}>
+        {$t.navbar.login}
       </button>
     </div>
   {/if}
@@ -618,16 +544,8 @@
 </div>
 
 <PrizeModal bind:show={showPrizeModal} />
-<ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
-<DepositModal bind:show={showDepositModal} onCodeSubmit={handleCodeSubmit} />
+<DepositModal bind:show={showDepositModal} onDepositSuccess={handleDepositSuccess} />
 <WithdrawModal bind:show={showWithdrawModal} />
-<ClaimModal
-  bind:show={showClaimModal}
-  scratchCode={currentCode}
-  totalWinnings={sessionWinnings}
-  gameId="slots"
-  onPlayMore={convertWinningsToCredits}
-/>
 
 <WinCelebration
   bind:show={showWinCelebration}
@@ -689,20 +607,8 @@
     opacity: 0.6;
   }
 
-  .control-btn.end-btn {
-    border-color: #ff6666;
-  }
-
-  .control-btn.end-btn:hover {
-    background: rgba(255, 100, 100, 0.3);
-  }
-
   .control-btn :global(svg) {
     color: #ffd700;
-  }
-
-  .control-btn.end-btn :global(svg) {
-    color: #ff6666;
   }
 
   .win-display {
@@ -929,11 +835,6 @@
     color: #000;
   }
 
-  .spin-btn.claim {
-    background: linear-gradient(180deg, #ff6600 0%, #cc4400 100%);
-    color: #fff;
-  }
-
   .right-controls {
     display: flex;
     flex-direction: column;
@@ -964,23 +865,6 @@
   .side-btn.active {
     background: #4a4a5a;
     color: #0f0;
-  }
-
-  .claim-btn {
-    padding: 8px 12px;
-    font-size: 0.8em;
-    background: linear-gradient(180deg, #ff6600 0%, #cc4400 100%);
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: transform 0.1s;
-    text-shadow: 1px 1px 2px #000;
-  }
-
-  .claim-btn:hover {
-    transform: scale(1.05);
   }
 
   .enter-code-container {
@@ -1039,9 +923,6 @@
       gap: 8px;
     }
 
-    .claim-btn {
-      display: none;
-    }
   }
 
   /* Mobile phones */

@@ -1,15 +1,23 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { recordPlayerPlay, getPlayerSessionStatus } from '$lib/server/db/gameSessions';
+import { verifyPlayerToken, processPlayerGamePlay, getPlayerBalance } from '$lib/server/db/playerUsers';
+import { calculatePrize, getPrizeSymbol } from '$lib/server/db/gameSessions';
 
-// POST - Play a game (spin/scratch) using unified player session
+// POST - Play a game (spin/scratch) using user's USDT balance
 export const POST: RequestHandler = async ({ request }) => {
   try {
-    const { code, gameId, bet = 1 } = await request.json();
-
-    if (!code || typeof code !== 'string') {
-      return json({ error: 'Invalid code' }, { status: 400 });
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const token = authHeader.substring(7);
+    const payload = verifyPlayerToken(token);
+    if (!payload || !payload.odSI) {
+      return json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const { gameId, bet = 1 } = await request.json();
 
     if (!gameId || !['slots', 'scratch'].includes(gameId)) {
       return json({ error: 'Invalid game' }, { status: 400 });
@@ -19,10 +27,12 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Invalid bet amount' }, { status: 400 });
     }
 
-    const upperCode = code.toUpperCase().trim();
+    // Calculate prize
+    const prize = calculatePrize(bet);
+    const symbol = getPrizeSymbol(prize);
 
-    // Record the play using unified player session (cross-game)
-    const result = await recordPlayerPlay(upperCode, gameId, bet);
+    // Process the play: deduct bet, add winnings, update wager
+    const result = await processPlayerGamePlay(payload.odSI, bet, prize);
 
     if (!result.success) {
       return json({ error: result.error }, { status: 400 });
@@ -30,10 +40,9 @@ export const POST: RequestHandler = async ({ request }) => {
 
     return json({
       success: true,
-      prize: result.prize,
-      symbol: result.symbol,
-      playsLeft: result.creditsLeft,  // Use creditsLeft instead of playsLeft
-      totalWinnings: result.totalWinnings,
+      prize,
+      symbol,
+      balance: result.newBalance,
       wagerRequired: result.wagerRequired,
       wagerCompleted: result.wagerCompleted,
       wagerMet: result.wagerMet
@@ -44,34 +53,34 @@ export const POST: RequestHandler = async ({ request }) => {
   }
 };
 
-// GET - Get unified player session status
-export const GET: RequestHandler = async ({ url }) => {
+// GET - Get user's balance status
+export const GET: RequestHandler = async ({ request }) => {
   try {
-    const code = url.searchParams.get('code');
-
-    if (!code) {
-      return json({ error: 'Code required' }, { status: 400 });
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const status = await getPlayerSessionStatus(code);
+    const token = authHeader.substring(7);
+    const payload = verifyPlayerToken(token);
+    if (!payload || !payload.odSI) {
+      return json({ error: 'Invalid token' }, { status: 401 });
+    }
 
-    if (!status) {
-      return json({ exists: false });
+    const balance = await getPlayerBalance(payload.odSI);
+
+    if (!balance) {
+      return json({ error: 'User not found' }, { status: 404 });
     }
 
     return json({
-      exists: status.exists,
-      playsLeft: status.creditsLeft,  // Alias for compatibility
-      creditsLeft: status.creditsLeft,
-      totalWinnings: status.totalWinnings,
-      claimed: status.claimed,
-      lastGameId: status.lastGameId,
-      wagerRequired: status.wagerRequired,
-      wagerCompleted: status.wagerCompleted,
-      wagerMet: status.wagerMet
+      balance: balance.balance,
+      wagerRequired: balance.wagerRequired,
+      wagerCompleted: balance.wagerCompleted,
+      wagerMet: balance.wagerMet
     });
   } catch (error) {
-    console.error('Session status error:', error);
+    console.error('Balance status error:', error);
     return json({ error: 'Server error' }, { status: 500 });
   }
 };
