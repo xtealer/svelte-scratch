@@ -17,19 +17,47 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { gameId, bet = 1 } = await request.json();
+    const { gameId, bet = 1, rollOver, isRollOver } = await request.json();
 
-    if (!gameId || !['slots', 'scratch'].includes(gameId)) {
+    if (!gameId || !['slots', 'scratch', 'dice'].includes(gameId)) {
       return json({ error: 'Invalid game' }, { status: 400 });
     }
 
-    if (typeof bet !== 'number' || bet < 1 || bet > 10) {
+    // Different bet validation for dice (allows smaller bets)
+    const minBet = gameId === 'dice' ? 0.00000001 : 1;
+    if (typeof bet !== 'number' || bet < minBet || bet > 10) {
       return json({ error: 'Invalid bet amount' }, { status: 400 });
     }
 
-    // Calculate prize
-    const prize = calculatePrize(bet);
-    const symbol = getPrizeSymbol(prize);
+    let prize = 0;
+    let symbol = '';
+    let diceResult: number | undefined;
+
+    if (gameId === 'dice') {
+      // Dice game logic
+      if (typeof rollOver !== 'number' || rollOver < 0.01 || rollOver > 99.98) {
+        return json({ error: 'Invalid roll over value' }, { status: 400 });
+      }
+
+      // Generate random result (0-99.99)
+      diceResult = Math.random() * 100;
+
+      // Calculate win chance and multiplier
+      const winChance = isRollOver ? (99.99 - rollOver) : rollOver;
+      const houseEdge = 0.01; // 1% house edge
+      const multiplier = (100 - houseEdge * 100) / winChance;
+
+      // Determine if player won
+      const won = isRollOver ? (diceResult > rollOver) : (diceResult < rollOver);
+
+      if (won) {
+        prize = bet * multiplier;
+      }
+    } else {
+      // Slots/Scratch game logic
+      prize = calculatePrize(bet);
+      symbol = getPrizeSymbol(prize);
+    }
 
     // Process the play: deduct bet, add winnings, update wager
     const result = await processPlayerGamePlay(payload.odSI, bet, prize);
@@ -42,6 +70,7 @@ export const POST: RequestHandler = async ({ request }) => {
       success: true,
       prize,
       symbol,
+      result: diceResult,
       balance: result.newBalance,
       wagerRequired: result.wagerRequired,
       wagerCompleted: result.wagerCompleted,

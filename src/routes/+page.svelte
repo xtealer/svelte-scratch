@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Ticket, Dices, Gamepad2, UserX } from "lucide-svelte";
+  import { Ticket, Dices, Gamepad2, UserX, Target } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
@@ -125,7 +125,8 @@
   function getGameIcon(gameId: string): string {
     const icons: Record<string, string> = {
       scratch: '🎫',
-      slots: '🎰'
+      slots: '🎰',
+      dice: '🎲'
     };
     return icons[gameId] || '🎮';
   }
@@ -133,7 +134,8 @@
   function getGameName(gameId: string): string {
     const names: Record<string, string> = {
       scratch: $t.gameMenu.scratchTitle,
-      slots: $t.gameMenu.slotsTitle
+      slots: $t.gameMenu.slotsTitle,
+      dice: $t.gameMenu.diceTitle || 'Dice'
     };
     return names[gameId] || gameId;
   }
@@ -172,6 +174,19 @@
           <div class="game-info">
             <div class="game-name">{$t.gameMenu.slotsTitle}</div>
             <div class="game-desc">{$t.gameMenu.slotsDesc}</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Dice -->
+        <a href="/dice" class="game-card">
+          <div class="game-image dice-bg">
+            <Target size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">{$t.gameMenu.diceTitle || 'Dice'}</div>
+            <div class="game-desc">{$t.gameMenu.diceDesc || 'Roll the dice!'}</div>
             <div class="game-prize">{$t.gameMenu.prizeText}</div>
           </div>
           <button class="play-btn">{$t.gameMenu.playNow}</button>
@@ -350,6 +365,10 @@
 
   .slots-bg {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .dice-bg {
+    background: linear-gradient(135deg, #00e701 0%, #007b00 100%);
   }
 
   .game-info {
