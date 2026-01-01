@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronDown, UserPlus, Mail, User, Lock, Globe, Languages, Eye, EyeOff } from 'lucide-svelte';
+  import { ChevronDown, UserPlus, Mail, User, Lock, Languages, Eye, EyeOff } from 'lucide-svelte';
   import { t, currentLanguage, setLanguage, type Language } from '$lib/i18n';
   import { playerAuth } from '$lib/stores/playerAuth';
   import type { SupportedLanguage } from '$lib/server/db/types';
@@ -12,32 +12,6 @@
     onSwitchToLogin?: () => void;
   } = $props();
 
-  // Country list for dropdown
-  const countries = [
-    { code: 'US', name: 'United States' },
-    { code: 'MX', name: 'México' },
-    { code: 'GT', name: 'Guatemala' },
-    { code: 'SV', name: 'El Salvador' },
-    { code: 'HN', name: 'Honduras' },
-    { code: 'NI', name: 'Nicaragua' },
-    { code: 'CR', name: 'Costa Rica' },
-    { code: 'PA', name: 'Panamá' },
-    { code: 'CO', name: 'Colombia' },
-    { code: 'VE', name: 'Venezuela' },
-    { code: 'EC', name: 'Ecuador' },
-    { code: 'PE', name: 'Perú' },
-    { code: 'BO', name: 'Bolivia' },
-    { code: 'CL', name: 'Chile' },
-    { code: 'AR', name: 'Argentina' },
-    { code: 'UY', name: 'Uruguay' },
-    { code: 'PY', name: 'Paraguay' },
-    { code: 'BR', name: 'Brasil' },
-    { code: 'ES', name: 'España' },
-    { code: 'DO', name: 'República Dominicana' },
-    { code: 'PR', name: 'Puerto Rico' },
-    { code: 'CU', name: 'Cuba' },
-  ];
-
   // Languages
   const languages: { code: SupportedLanguage; name: string }[] = [
     { code: 'en', name: 'English' },
@@ -48,7 +22,6 @@
   // Form state
   let email = $state('');
   let fullName = $state('');
-  let country = $state('US');
   let preferredLanguage = $state<SupportedLanguage>($currentLanguage as SupportedLanguage);
   let password = $state('');
   let confirmPassword = $state('');
@@ -115,7 +88,6 @@
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           fullName: fullName.trim(),
-          country,
           preferredLanguage,
           password
         })
@@ -209,21 +181,6 @@
             onkeydown={handleKeydown}
             disabled={submitting}
           />
-        </div>
-
-        <div class="form-group">
-          <label>
-            <Globe size={16} />
-            <span>{$t.authModal.country} <span class="required">*</span></span>
-          </label>
-          <div class="select-wrapper">
-            <select bind:value={country} disabled={submitting}>
-              {#each countries as c}
-                <option value={c.code}>{c.name}</option>
-              {/each}
-            </select>
-            <ChevronDown size={16} class="select-icon" />
-          </div>
         </div>
 
         <div class="form-group">
