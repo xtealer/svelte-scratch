@@ -126,14 +126,14 @@ export const POST: RequestHandler = async ({ request }) => {
       return json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { gameId, bet = 1, rollOver, isRollOver, targetMultiplier, selectedSide, difficulty, segments } = await request.json();
+    const { gameId, bet = 1, rollOver, isRollOver, targetMultiplier, selectedSide, difficulty, segments, action, multiplier, winnings } = await request.json();
 
-    if (!gameId || !['slots', 'scratch', 'dice', 'limbo', 'flip', 'wheel'].includes(gameId)) {
+    if (!gameId || !['slots', 'scratch', 'dice', 'limbo', 'flip', 'wheel', 'crash', 'mines', 'keno', 'chickenroad', 'blackjack'].includes(gameId)) {
       return json({ error: 'Invalid game' }, { status: 400 });
     }
 
     // Different bet validation for crypto games (allows smaller bets)
-    const cryptoGames = ['dice', 'limbo', 'flip', 'wheel'];
+    const cryptoGames = ['dice', 'limbo', 'flip', 'wheel', 'crash', 'mines', 'keno', 'chickenroad', 'blackjack'];
     const minBet = cryptoGames.includes(gameId) ? 0.00000001 : 1;
     if (typeof bet !== 'number' || bet < minBet || bet > 10) {
       return json({ error: 'Invalid bet amount' }, { status: 400 });
@@ -227,6 +227,57 @@ export const POST: RequestHandler = async ({ request }) => {
 
       if (winningMultiplier > 0) {
         prize = bet * winningMultiplier;
+      }
+    } else if (gameId === 'crash') {
+      // Crash game logic
+      if (action === 'bet') {
+        // Bet placement - just deduct the bet
+        prize = 0;
+      } else if (action === 'cashout' && multiplier) {
+        // Cashout - return bet * multiplier
+        prize = bet * multiplier;
+      } else {
+        prize = 0;
+      }
+    } else if (gameId === 'mines') {
+      // Mines game logic
+      if (action === 'start') {
+        // Starting game - deduct bet
+        prize = 0;
+      } else if (action === 'cashout' && multiplier) {
+        // Cashout - return bet * multiplier
+        prize = bet * multiplier;
+      } else {
+        prize = 0;
+      }
+    } else if (gameId === 'keno') {
+      // Keno game logic
+      if (multiplier && multiplier > 0) {
+        prize = bet * multiplier;
+      } else {
+        prize = 0;
+      }
+    } else if (gameId === 'chickenroad') {
+      // Chicken Road game logic
+      if (action === 'start') {
+        // Starting game - deduct bet
+        prize = 0;
+      } else if (action === 'cashout' && multiplier) {
+        // Cashout - return bet * multiplier
+        prize = bet * multiplier;
+      } else {
+        prize = 0;
+      }
+    } else if (gameId === 'blackjack') {
+      // Blackjack game logic
+      if (action === 'deal') {
+        // Starting game - deduct bet
+        prize = 0;
+      } else if (action === 'finish' && winnings !== undefined) {
+        // Game finished - return winnings
+        prize = winnings;
+      } else {
+        prize = 0;
       }
     } else {
       // Slots/Scratch game logic

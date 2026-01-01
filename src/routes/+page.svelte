@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Ticket, Dices, Gamepad2, UserX, Target, Coins, CircleDot, TrendingUp } from "lucide-svelte";
+  import { Ticket, Dices, Gamepad2, UserX, Target, Coins, CircleDot, TrendingUp, Bomb, Grid3X3, Car, Spade } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
@@ -129,7 +129,12 @@
       dice: '🎲',
       limbo: '🚀',
       flip: '🪙',
-      wheel: '🎡'
+      wheel: '🎡',
+      crash: '📈',
+      mines: '💎',
+      keno: '🔢',
+      chickenroad: '🐔',
+      blackjack: '🃏'
     };
     return icons[gameId] || '🎮';
   }
@@ -141,7 +146,12 @@
       dice: $t.gameMenu.diceTitle || 'Dice',
       limbo: 'Limbo',
       flip: 'Flip',
-      wheel: 'Wheel'
+      wheel: 'Wheel',
+      crash: 'Crash',
+      mines: 'Mines',
+      keno: 'Keno',
+      chickenroad: 'Chicken Road',
+      blackjack: 'Blackjack'
     };
     return names[gameId] || gameId;
   }
@@ -232,6 +242,71 @@
           <div class="game-info">
             <div class="game-name">Wheel</div>
             <div class="game-desc">Spin to win!</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Crash -->
+        <a href="/crash" class="game-card">
+          <div class="game-image crash-bg">
+            <TrendingUp size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Crash</div>
+            <div class="game-desc">Cash out before it crashes!</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Mines -->
+        <a href="/mines" class="game-card">
+          <div class="game-image mines-bg">
+            <Bomb size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Mines</div>
+            <div class="game-desc">Find the gems, avoid the mines!</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Keno -->
+        <a href="/keno" class="game-card">
+          <div class="game-image keno-bg">
+            <Grid3X3 size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Keno</div>
+            <div class="game-desc">Pick your lucky numbers!</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Chicken Road -->
+        <a href="/chickenroad" class="game-card">
+          <div class="game-image chickenroad-bg">
+            <Car size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Chicken Road</div>
+            <div class="game-desc">Cross the road safely!</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Blackjack -->
+        <a href="/blackjack" class="game-card">
+          <div class="game-image blackjack-bg">
+            <Spade size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Blackjack</div>
+            <div class="game-desc">Beat the dealer to 21!</div>
             <div class="game-prize">{$t.gameMenu.prizeText}</div>
           </div>
           <button class="play-btn">{$t.gameMenu.playNow}</button>
@@ -426,6 +501,26 @@
 
   .wheel-bg {
     background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  }
+
+  .crash-bg {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  }
+
+  .mines-bg {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+
+  .keno-bg {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  }
+
+  .chickenroad-bg {
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+  }
+
+  .blackjack-bg {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   }
 
   .game-info {
