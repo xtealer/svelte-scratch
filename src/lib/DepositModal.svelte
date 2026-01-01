@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Wallet, CreditCard, Bitcoin, Copy, Check } from 'lucide-svelte';
+  import { Wallet, CreditCard, CircleDollarSign, Copy, Check } from 'lucide-svelte';
   import { t } from '$lib/i18n';
   import { playerWallet, hasActiveSession } from '$lib/stores/playerWallet';
 
@@ -12,6 +12,7 @@
   } = $props();
 
   type DepositMode = 'select' | 'recharge' | 'crypto';
+  type Network = 'ethereum' | 'bsc' | 'polygon';
 
   // State
   let depositMode = $state<DepositMode>('select');
@@ -20,14 +21,26 @@
   let error = $state('');
   let copied = $state(false);
 
-  // Crypto deposit addresses (placeholder - would come from API in production)
-  const cryptoAddresses = {
-    btc: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
-    eth: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bE3d',
-    usdt: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9'
+  // USDT deposit addresses per network (placeholder - would come from API in production)
+  const usdtAddresses: Record<Network, string> = {
+    ethereum: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bE3d',
+    bsc: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bE3d',
+    polygon: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bE3d'
   };
 
-  let selectedCrypto = $state<'btc' | 'eth' | 'usdt'>('usdt');
+  const networkNames: Record<Network, string> = {
+    ethereum: 'Ethereum',
+    bsc: 'BNB Smart Chain',
+    polygon: 'Polygon'
+  };
+
+  const networkColors: Record<Network, string> = {
+    ethereum: '#627eea',
+    bsc: '#f3ba2f',
+    polygon: '#8247e5'
+  };
+
+  let selectedNetwork = $state<Network>('ethereum');
 
   function close(): void {
     show = false;
@@ -35,6 +48,7 @@
     code = '';
     error = '';
     copied = false;
+    selectedNetwork = 'ethereum';
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -66,7 +80,7 @@
 
   async function copyAddress(): Promise<void> {
     try {
-      await navigator.clipboard.writeText(cryptoAddresses[selectedCrypto]);
+      await navigator.clipboard.writeText(usdtAddresses[selectedNetwork]);
       copied = true;
       setTimeout(() => {
         copied = false;
@@ -74,7 +88,7 @@
     } catch {
       // Fallback for older browsers
       const textarea = document.createElement('textarea');
-      textarea.value = cryptoAddresses[selectedCrypto];
+      textarea.value = usdtAddresses[selectedNetwork];
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
@@ -135,10 +149,10 @@
             class="option-btn crypto"
             onclick={() => depositMode = 'crypto'}
           >
-            <Bitcoin size={24} />
+            <CircleDollarSign size={24} />
             <div class="option-text">
-              <span class="option-title">{$t.depositModal.depositCrypto}</span>
-              <span class="option-desc">{$t.depositModal.cryptoDesc}</span>
+              <span class="option-title">Deposit USDT</span>
+              <span class="option-desc">Ethereum, BSC, Polygon</span>
             </div>
           </button>
         </div>
@@ -185,40 +199,52 @@
         </div>
 
       {:else if depositMode === 'crypto'}
-        <!-- Crypto Deposit -->
+        <!-- USDT Deposit -->
         <div class="modal-header">
-          <Bitcoin size={24} />
-          <span>{$t.depositModal.depositCrypto}</span>
+          <CircleDollarSign size={24} />
+          <span>Deposit USDT</span>
         </div>
 
-        <div class="crypto-tabs">
+        <div class="usdt-badge">
+          <span class="usdt-icon">₮</span>
+          <span>Tether USDT</span>
+        </div>
+
+        <div class="network-label">Select Network</div>
+        <div class="network-tabs">
           <button
-            class="crypto-tab"
-            class:active={selectedCrypto === 'usdt'}
-            onclick={() => selectedCrypto = 'usdt'}
+            class="network-tab"
+            class:active={selectedNetwork === 'ethereum'}
+            onclick={() => selectedNetwork = 'ethereum'}
+            style="--network-color: {networkColors.ethereum}"
           >
-            USDT
+            <span class="network-icon">Ξ</span>
+            <span>Ethereum</span>
           </button>
           <button
-            class="crypto-tab"
-            class:active={selectedCrypto === 'btc'}
-            onclick={() => selectedCrypto = 'btc'}
+            class="network-tab"
+            class:active={selectedNetwork === 'bsc'}
+            onclick={() => selectedNetwork = 'bsc'}
+            style="--network-color: {networkColors.bsc}"
           >
-            BTC
+            <span class="network-icon">⬡</span>
+            <span>BSC</span>
           </button>
           <button
-            class="crypto-tab"
-            class:active={selectedCrypto === 'eth'}
-            onclick={() => selectedCrypto = 'eth'}
+            class="network-tab"
+            class:active={selectedNetwork === 'polygon'}
+            onclick={() => selectedNetwork = 'polygon'}
+            style="--network-color: {networkColors.polygon}"
           >
-            ETH
+            <span class="network-icon">⬡</span>
+            <span>Polygon</span>
           </button>
         </div>
 
         <div class="crypto-address">
-          <span class="address-label">{$t.depositModal.sendTo}</span>
+          <span class="address-label">Send USDT ({networkNames[selectedNetwork]}) to:</span>
           <div class="address-box">
-            <span class="address">{cryptoAddresses[selectedCrypto]}</span>
+            <span class="address">{usdtAddresses[selectedNetwork]}</span>
             <button class="copy-btn" onclick={copyAddress}>
               {#if copied}
                 <Check size={18} />
@@ -230,8 +256,8 @@
         </div>
 
         <div class="crypto-info">
-          <p>{$t.depositModal.cryptoInfo1}</p>
-          <p class="warning">{$t.depositModal.cryptoInfo2}</p>
+          <p>Your balance will be updated after network confirmation.</p>
+          <p class="warning">Only send USDT on the {networkNames[selectedNetwork]} network to this address!</p>
         </div>
 
         <div class="buttons">
@@ -339,7 +365,7 @@
   }
 
   .option-btn.crypto :global(svg) {
-    color: #f7931a;
+    color: #26a17b;
     flex-shrink: 0;
   }
 
@@ -402,32 +428,67 @@
     margin: 4px 0;
   }
 
-  .crypto-tabs {
+  .usdt-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(38, 161, 123, 0.15);
+    border: 1px solid rgba(38, 161, 123, 0.3);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    color: #26a17b;
+    font-weight: 600;
+  }
+
+  .usdt-icon {
+    font-size: 1.4em;
+    font-weight: bold;
+  }
+
+  .network-label {
+    color: #b1bad3;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .network-tabs {
     display: flex;
     gap: 8px;
     margin-bottom: 20px;
   }
 
-  .crypto-tab {
+  .network-tab {
     flex: 1;
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 8px;
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid #2d4a5e;
-    border-radius: 8px;
+    border-radius: 10px;
     color: #888;
     font-weight: 600;
+    font-size: 0.85em;
     cursor: pointer;
     transition: all 0.2s;
   }
 
-  .crypto-tab:hover {
+  .network-tab:hover {
     background: rgba(255, 255, 255, 0.1);
   }
 
-  .crypto-tab.active {
-    background: rgba(247, 147, 26, 0.2);
-    border-color: #f7931a;
-    color: #f7931a;
+  .network-tab.active {
+    background: rgba(var(--network-color-rgb, 98, 126, 234), 0.2);
+    border-color: var(--network-color, #627eea);
+    color: var(--network-color, #627eea);
+  }
+
+  .network-icon {
+    font-size: 1.3em;
   }
 
   .crypto-address {
