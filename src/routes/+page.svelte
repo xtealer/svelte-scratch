@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Ticket, Dices, Gamepad2, UserX, Target } from "lucide-svelte";
+  import { Ticket, Dices, Gamepad2, UserX, Target, Coins, CircleDot, TrendingUp } from "lucide-svelte";
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
@@ -126,7 +126,10 @@
     const icons: Record<string, string> = {
       scratch: '🎫',
       slots: '🎰',
-      dice: '🎲'
+      dice: '🎲',
+      limbo: '🚀',
+      flip: '🪙',
+      wheel: '🎡'
     };
     return icons[gameId] || '🎮';
   }
@@ -135,7 +138,10 @@
     const names: Record<string, string> = {
       scratch: $t.gameMenu.scratchTitle,
       slots: $t.gameMenu.slotsTitle,
-      dice: $t.gameMenu.diceTitle || 'Dice'
+      dice: $t.gameMenu.diceTitle || 'Dice',
+      limbo: 'Limbo',
+      flip: 'Flip',
+      wheel: 'Wheel'
     };
     return names[gameId] || gameId;
   }
@@ -187,6 +193,45 @@
           <div class="game-info">
             <div class="game-name">{$t.gameMenu.diceTitle || 'Dice'}</div>
             <div class="game-desc">{$t.gameMenu.diceDesc || 'Roll the dice!'}</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Limbo -->
+        <a href="/limbo" class="game-card">
+          <div class="game-image limbo-bg">
+            <TrendingUp size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Limbo</div>
+            <div class="game-desc">Beat the multiplier!</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Flip -->
+        <a href="/flip" class="game-card">
+          <div class="game-image flip-bg">
+            <Coins size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Flip</div>
+            <div class="game-desc">Heads or tails?</div>
+            <div class="game-prize">{$t.gameMenu.prizeText}</div>
+          </div>
+          <button class="play-btn">{$t.gameMenu.playNow}</button>
+        </a>
+
+        <!-- Wheel -->
+        <a href="/wheel" class="game-card">
+          <div class="game-image wheel-bg">
+            <CircleDot size={64} strokeWidth={1.5} />
+          </div>
+          <div class="game-info">
+            <div class="game-name">Wheel</div>
+            <div class="game-desc">Spin to win!</div>
             <div class="game-prize">{$t.gameMenu.prizeText}</div>
           </div>
           <button class="play-btn">{$t.gameMenu.playNow}</button>
@@ -321,7 +366,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
-    max-width: 600px;
+    max-width: 900px;
   }
 
   .game-card {
@@ -369,6 +414,18 @@
 
   .dice-bg {
     background: linear-gradient(135deg, #00e701 0%, #007b00 100%);
+  }
+
+  .limbo-bg {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  }
+
+  .flip-bg {
+    background: linear-gradient(135deg, #f7931a 0%, #c67600 100%);
+  }
+
+  .wheel-bg {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
   }
 
   .game-info {
