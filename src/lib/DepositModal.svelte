@@ -273,7 +273,7 @@
 <style>
   .modal {
     position: fixed;
-    z-index: 100;
+    z-index: 1100;
     left: 0;
     top: 0;
     width: 100%;

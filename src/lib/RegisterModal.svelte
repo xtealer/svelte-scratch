@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ChevronDown, UserPlus, Mail, User, Lock, Globe, Languages, Eye, EyeOff } from 'lucide-svelte';
-  import { t, currentLanguage } from '$lib/i18n';
+  import { t, currentLanguage, setLanguage, type Language } from '$lib/i18n';
   import { playerAuth } from '$lib/stores/playerAuth';
   import type { SupportedLanguage } from '$lib/server/db/types';
 
@@ -131,6 +131,10 @@
 
       // Login the user with the returned token
       playerAuth.login(data.token, data.user);
+      // Set language from user preference
+      if (data.user.preferredLanguage) {
+        setLanguage(data.user.preferredLanguage as Language);
+      }
       success = true;
       submitting = false;
 
@@ -320,7 +324,7 @@
 <style>
   .modal {
     position: fixed;
-    z-index: 100;
+    z-index: 1100;
     left: 0;
     top: 0;
     width: 100%;
