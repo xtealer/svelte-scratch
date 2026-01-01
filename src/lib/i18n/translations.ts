@@ -412,6 +412,20 @@ export interface ProfileTranslations {
   savingLanguage: string;
 }
 
+export interface TwoFactorTranslations {
+  title: string;
+  instruction: string;
+  enterCode: string;
+  invalidCode: string;
+  verify: string;
+  verifying: string;
+  resendCode: string;
+  sending: string;
+  codeSent: string;
+  resendError: string;
+  expiresNote: string;
+}
+
 export interface Translations {
   rechargeCard: RechargeCardTranslations;
   cardsAdmin: CardsAdminTranslations;
@@ -432,6 +446,7 @@ export interface Translations {
   depositModal: DepositModalTranslations;
   withdrawModal: WithdrawModalTranslations;
   profile: ProfileTranslations;
+  twoFactor: TwoFactorTranslations;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -823,6 +838,19 @@ export const translations: Record<Language, Translations> = {
       languageSaved: 'Language saved!',
       savingLanguage: 'Saving...',
     },
+    twoFactor: {
+      title: 'VERIFICATION CODE',
+      instruction: 'Enter the 6-digit code sent to your email',
+      enterCode: 'Please enter the verification code',
+      invalidCode: 'Invalid verification code',
+      verify: 'Verify',
+      verifying: 'Verifying...',
+      resendCode: 'Resend Code',
+      sending: 'Sending...',
+      codeSent: 'New code sent!',
+      resendError: 'Failed to resend code',
+      expiresNote: 'Code expires in 5 minutes',
+    },
   },
   es: {
     rechargeCard: {
@@ -1212,6 +1240,19 @@ export const translations: Record<Language, Translations> = {
       languageSaved: '¡Idioma guardado!',
       savingLanguage: 'Guardando...',
     },
+    twoFactor: {
+      title: 'CÓDIGO DE VERIFICACIÓN',
+      instruction: 'Ingresa el código de 6 dígitos enviado a tu correo',
+      enterCode: 'Por favor ingresa el código de verificación',
+      invalidCode: 'Código de verificación inválido',
+      verify: 'Verificar',
+      verifying: 'Verificando...',
+      resendCode: 'Reenviar Código',
+      sending: 'Enviando...',
+      codeSent: '¡Nuevo código enviado!',
+      resendError: 'Error al reenviar código',
+      expiresNote: 'El código expira en 5 minutos',
+    },
   },
   ar: {
     rechargeCard: {
@@ -1600,6 +1641,19 @@ export const translations: Record<Language, Translations> = {
       preferredLanguage: 'اللغة المفضلة',
       languageSaved: 'تم حفظ اللغة!',
       savingLanguage: 'جاري الحفظ...',
+    },
+    twoFactor: {
+      title: 'رمز التحقق',
+      instruction: 'أدخل الرمز المكون من 6 أرقام المرسل إلى بريدك الإلكتروني',
+      enterCode: 'الرجاء إدخال رمز التحقق',
+      invalidCode: 'رمز التحقق غير صالح',
+      verify: 'تحقق',
+      verifying: 'جاري التحقق...',
+      resendCode: 'إعادة إرسال الرمز',
+      sending: 'جاري الإرسال...',
+      codeSent: 'تم إرسال رمز جديد!',
+      resendError: 'فشل في إعادة إرسال الرمز',
+      expiresNote: 'الرمز صالح لمدة 5 دقائق',
     },
   },
 };

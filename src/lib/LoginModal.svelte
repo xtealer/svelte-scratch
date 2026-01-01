@@ -2,6 +2,7 @@
   import { LogIn, Mail, Lock, Wallet, Link, Eye, EyeOff } from 'lucide-svelte';
   import { t, setLanguage, type Language } from '$lib/i18n';
   import { playerAuth, isPlayerLoggedIn } from '$lib/stores/playerAuth';
+  import TwoFactorModal from '$lib/TwoFactorModal.svelte';
 
   let {
     show = $bindable(false),
@@ -25,6 +26,11 @@
   let showPassword = $state(false);
   let showLinkPassword = $state(false);
 
+  // 2FA state
+  let show2FA = $state(false);
+  let twoFactorUserId = $state('');
+  let twoFactorEmail = $state('');
+
   // Check if metamask is available
   let hasMetamask = $state(false);
 
@@ -45,6 +51,9 @@
     metamaskAddress = '';
     showPassword = false;
     showLinkPassword = false;
+    show2FA = false;
+    twoFactorUserId = '';
+    twoFactorEmail = '';
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -141,6 +150,15 @@
 
       if (!response.ok) {
         error = data.error || $t.authModal.loginError;
+        submitting = false;
+        return;
+      }
+
+      // Check if 2FA is required
+      if (data.requires2FA) {
+        twoFactorUserId = data.userId;
+        twoFactorEmail = data.email;
+        show2FA = true;
         submitting = false;
         return;
       }
@@ -274,6 +292,17 @@
         close();
       }
     }
+  }
+
+  function handle2FACancel(): void {
+    show2FA = false;
+    twoFactorUserId = '';
+    twoFactorEmail = '';
+    // Keep email/password in form so user can try again
+  }
+
+  function handle2FASuccess(): void {
+    close();
   }
 </script>
 
@@ -465,6 +494,13 @@
     </div>
   </div>
 {/if}
+
+<TwoFactorModal
+  bind:show={show2FA}
+  userId={twoFactorUserId}
+  email={twoFactorEmail}
+  onCancel={handle2FACancel}
+/>
 
 <style>
   .modal {
