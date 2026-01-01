@@ -11,6 +11,7 @@
     onLogin,
     onRegister,
     onDeposit,
+    onWithdraw,
     onProfile,
   }: {
     onEndSession?: () => void;
@@ -18,6 +19,7 @@
     onLogin?: () => void;
     onRegister?: () => void;
     onDeposit?: () => void;
+    onWithdraw?: () => void;
     onProfile?: () => void;
   } = $props();
 
@@ -64,6 +66,12 @@
     }
   }
 
+  function handleWithdraw() {
+    if (onWithdraw) {
+      onWithdraw();
+    }
+  }
+
   function handleProfile() {
     if (onProfile) {
       onProfile();
@@ -103,7 +111,10 @@
           </button>
         {/if}
 
-        <div class="deposit-group">
+        <div class="balance-group">
+          <button class="withdraw-btn" onclick={handleWithdraw} title={$t.navbar.withdraw}>
+            {$t.navbar.withdraw}
+          </button>
           <div class="usdt-balance">
             <div class="tether-icon">
               <span>T</span>
@@ -273,7 +284,7 @@
     transform: scale(0.98);
   }
 
-  .deposit-group {
+  .balance-group {
     display: flex;
     align-items: center;
     background: #2d3d4a;
@@ -287,6 +298,29 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
+  }
+
+  .withdraw-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    height: 100%;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9em;
+    transition: all 0.2s;
+  }
+
+  .withdraw-btn:hover {
+    background: linear-gradient(135deg, #ea580c, #c2410c);
+  }
+
+  .withdraw-btn:active {
+    transform: scale(0.98);
   }
 
   .tether-icon {
@@ -387,7 +421,7 @@
       font-size: 0.85em;
     }
 
-    .deposit-group {
+    .balance-group {
       border-radius: 6px;
     }
 
@@ -409,7 +443,8 @@
       font-size: 0.85em;
     }
 
-    .deposit-btn {
+    .deposit-btn,
+    .withdraw-btn {
       padding: 6px 10px;
       font-size: 0.8em;
     }

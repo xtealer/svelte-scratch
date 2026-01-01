@@ -5,6 +5,7 @@
   import GameNavbar from "$lib/GameNavbar.svelte";
   import ScratchCodeModal from "$lib/ScratchCodeModal.svelte";
   import DepositModal from "$lib/DepositModal.svelte";
+  import WithdrawModal from "$lib/WithdrawModal.svelte";
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
   import ProfileModal from "$lib/ProfileModal.svelte";
@@ -24,6 +25,7 @@
 
   let showCodeModal = $state(false);
   let showDepositModal = $state(false);
+  let showWithdrawModal = $state(false);
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
   let showProfileModal = $state(false);
@@ -53,6 +55,7 @@
   function closeAllModals() {
     showCodeModal = false;
     showDepositModal = false;
+    showWithdrawModal = false;
     showLoginModal = false;
     showRegisterModal = false;
     showProfileModal = false;
@@ -66,6 +69,11 @@
   function openDepositModal() {
     closeAllModals();
     showDepositModal = true;
+  }
+
+  function openWithdrawModal() {
+    closeAllModals();
+    showWithdrawModal = true;
   }
 
   function openLoginModal() {
@@ -131,7 +139,7 @@
   }
 </script>
 
-<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
+<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} />
 
 <div class="page" dir={$direction}>
   <main class="container">
@@ -232,6 +240,7 @@
 
 <ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
 <DepositModal bind:show={showDepositModal} onCodeSubmit={handleCodeSubmit} />
+<WithdrawModal bind:show={showWithdrawModal} />
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
 <ProfileModal bind:show={showProfileModal} />

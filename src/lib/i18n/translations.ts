@@ -262,6 +262,7 @@ export interface NavbarTranslations {
   login: string;
   register: string;
   deposit: string;
+  withdraw: string;
   logout: string;
   confirmLogout: string;
 }
@@ -327,6 +328,51 @@ export interface DepositModalTranslations {
   cryptoInfo2: string;
 }
 
+export interface WithdrawModalTranslations {
+  title: string;
+  availableBalance: string;
+  amount: string;
+  // Method selection
+  cryptoTitle: string;
+  cryptoDesc: string;
+  cashTitle: string;
+  cashDesc: string;
+  // Crypto fields
+  selectNetwork: string;
+  walletAddress: string;
+  addressPlaceholder: string;
+  cryptoInfo1: string;
+  cryptoInfo2: string;
+  // Cash fields
+  fullName: string;
+  namePlaceholder: string;
+  phoneNumber: string;
+  phonePlaceholder: string;
+  cashInfo1: string;
+  cashInfo2: string;
+  // Errors
+  amountError: string;
+  insufficientBalance: string;
+  addressError: string;
+  invalidAddress: string;
+  nameError: string;
+  phoneError: string;
+  requestError: string;
+  // Actions
+  processing: string;
+  submit: string;
+  cancel: string;
+  back: string;
+  // Success
+  requestSent: string;
+  amountRequested: string;
+  cryptoSuccessInfo1: string;
+  cryptoSuccessInfo2: string;
+  cashSuccessInfo1: string;
+  cashSuccessInfo2: string;
+  close: string;
+}
+
 export interface ClaimModalTranslations {
   requestSent: string;
   amountRequested: string;
@@ -364,7 +410,6 @@ export interface CodeModalTranslations {
   placeholder: string;
   enterCodeError: string;
   info1: string;
-  info2: string;
   loadPlays: string;
   loading: string;
   cancel: string;
@@ -418,6 +463,7 @@ export interface Translations {
   prizeModal: PrizeModalTranslations;
   authModal: AuthModalTranslations;
   depositModal: DepositModalTranslations;
+  withdrawModal: WithdrawModalTranslations;
   profile: ProfileTranslations;
 }
 
@@ -674,6 +720,7 @@ export const translations: Record<Language, Translations> = {
       login: 'Login',
       register: 'Register',
       deposit: 'Deposit',
+      withdraw: 'Withdraw',
       logout: 'Logout',
       confirmLogout: 'Are you sure you want to logout?',
     },
@@ -713,8 +760,7 @@ export const translations: Record<Language, Translations> = {
       placeholder: 'Enter code (e.g.: ABC123)',
       enterCodeError: 'Please enter a code',
       info1: 'Enter your code to claim your recharge.',
-      info2: 'Each code can have multiple plays.',
-      loadPlays: 'Load Plays',
+      loadPlays: 'Claim',
       loading: 'Loading...',
       cancel: 'Cancel',
       activeSessionTitle: 'ACTIVE SESSION',
@@ -789,6 +835,44 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'Send to this address:',
       cryptoInfo1: 'Your balance will be updated after network confirmation.',
       cryptoInfo2: 'Only send the selected cryptocurrency to this address.',
+    },
+    withdrawModal: {
+      title: 'WITHDRAW',
+      availableBalance: 'Available Balance',
+      amount: 'Amount',
+      cryptoTitle: 'Withdraw USDT',
+      cryptoDesc: 'Send to your wallet address',
+      cashTitle: 'Cash Withdrawal',
+      cashDesc: 'Request handled by partner',
+      selectNetwork: 'Select Network',
+      walletAddress: 'Wallet Address',
+      addressPlaceholder: '0x...',
+      cryptoInfo1: 'Withdrawals are processed within 24 hours.',
+      cryptoInfo2: 'Only send to the selected network!',
+      fullName: 'Full Name',
+      namePlaceholder: 'Your full name',
+      phoneNumber: 'Phone Number',
+      phonePlaceholder: 'Phone number',
+      cashInfo1: 'Our partner will contact you to arrange payment.',
+      cashInfo2: 'Please ensure your contact information is correct.',
+      amountError: 'Please enter a valid amount',
+      insufficientBalance: 'Insufficient balance',
+      addressError: 'Please enter a wallet address',
+      invalidAddress: 'Please enter a valid wallet address',
+      nameError: 'Please enter your full name',
+      phoneError: 'Please enter a valid phone number',
+      requestError: 'Error processing withdrawal request',
+      processing: 'Processing...',
+      submit: 'Request Withdrawal',
+      cancel: 'Cancel',
+      back: 'Back',
+      requestSent: 'REQUEST SENT!',
+      amountRequested: 'Amount Requested',
+      cryptoSuccessInfo1: 'Your withdrawal request has been submitted.',
+      cryptoSuccessInfo2: 'You will receive your USDT within 24 hours.',
+      cashSuccessInfo1: 'Your cash withdrawal request has been submitted.',
+      cashSuccessInfo2: 'Our partner will contact you shortly.',
+      close: 'Close',
     },
     profile: {
       title: 'PROFILE',
@@ -1056,6 +1140,7 @@ export const translations: Record<Language, Translations> = {
       login: 'Iniciar Sesión',
       register: 'Registrarse',
       deposit: 'Depositar',
+      withdraw: 'Retirar',
       logout: 'Cerrar Sesión',
       confirmLogout: '¿Estás seguro de cerrar sesión?',
     },
@@ -1095,8 +1180,7 @@ export const translations: Record<Language, Translations> = {
       placeholder: 'Ingresa código (ej: ABC123)',
       enterCodeError: 'Por favor ingresa un código',
       info1: 'Ingresa el código de tu boleto para cargar tus jugadas.',
-      info2: 'Cada código puede tener varias jugadas.',
-      loadPlays: 'Cargar Jugadas',
+      loadPlays: 'Reclamar',
       loading: 'Cargando...',
       cancel: 'Cancelar',
       activeSessionTitle: 'SESIÓN ACTIVA',
@@ -1171,6 +1255,44 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'Enviar a esta dirección:',
       cryptoInfo1: 'Tu saldo se actualizará después de la confirmación de la red.',
       cryptoInfo2: 'Solo envía la criptomoneda seleccionada a esta dirección.',
+    },
+    withdrawModal: {
+      title: 'RETIRAR',
+      availableBalance: 'Saldo Disponible',
+      amount: 'Monto',
+      cryptoTitle: 'Retirar USDT',
+      cryptoDesc: 'Enviar a tu billetera',
+      cashTitle: 'Retiro en Efectivo',
+      cashDesc: 'Solicitud manejada por socio',
+      selectNetwork: 'Seleccionar Red',
+      walletAddress: 'Dirección de Billetera',
+      addressPlaceholder: '0x...',
+      cryptoInfo1: 'Los retiros se procesan en 24 horas.',
+      cryptoInfo2: '¡Solo envía a la red seleccionada!',
+      fullName: 'Nombre Completo',
+      namePlaceholder: 'Tu nombre completo',
+      phoneNumber: 'Número de Teléfono',
+      phonePlaceholder: 'Número de teléfono',
+      cashInfo1: 'Nuestro socio te contactará para coordinar el pago.',
+      cashInfo2: 'Por favor asegúrate de que tu información de contacto sea correcta.',
+      amountError: 'Por favor ingresa un monto válido',
+      insufficientBalance: 'Saldo insuficiente',
+      addressError: 'Por favor ingresa una dirección de billetera',
+      invalidAddress: 'Por favor ingresa una dirección de billetera válida',
+      nameError: 'Por favor ingresa tu nombre completo',
+      phoneError: 'Por favor ingresa un número de teléfono válido',
+      requestError: 'Error al procesar la solicitud de retiro',
+      processing: 'Procesando...',
+      submit: 'Solicitar Retiro',
+      cancel: 'Cancelar',
+      back: 'Volver',
+      requestSent: '¡SOLICITUD ENVIADA!',
+      amountRequested: 'Monto Solicitado',
+      cryptoSuccessInfo1: 'Tu solicitud de retiro ha sido enviada.',
+      cryptoSuccessInfo2: 'Recibirás tu USDT en 24 horas.',
+      cashSuccessInfo1: 'Tu solicitud de retiro en efectivo ha sido enviada.',
+      cashSuccessInfo2: 'Nuestro socio te contactará pronto.',
+      close: 'Cerrar',
     },
     profile: {
       title: 'PERFIL',
@@ -1438,6 +1560,7 @@ export const translations: Record<Language, Translations> = {
       login: 'تسجيل الدخول',
       register: 'إنشاء حساب',
       deposit: 'إيداع',
+      withdraw: 'سحب',
       logout: 'تسجيل الخروج',
       confirmLogout: 'هل أنت متأكد من تسجيل الخروج؟',
     },
@@ -1477,8 +1600,7 @@ export const translations: Record<Language, Translations> = {
       placeholder: 'أدخل الرمز (مثال: ABC123)',
       enterCodeError: 'الرجاء إدخال رمز',
       info1: 'أدخل رمز تذكرتك لتحميل لعباتك.',
-      info2: 'كل رمز يمكن أن يحتوي على عدة لعبات.',
-      loadPlays: 'تحميل اللعبات',
+      loadPlays: 'مطالبة',
       loading: 'جاري التحميل...',
       cancel: 'إلغاء',
       activeSessionTitle: 'جلسة نشطة',
@@ -1553,6 +1675,44 @@ export const translations: Record<Language, Translations> = {
       sendTo: 'أرسل إلى هذا العنوان:',
       cryptoInfo1: 'سيتم تحديث رصيدك بعد تأكيد الشبكة.',
       cryptoInfo2: 'أرسل فقط العملة المشفرة المحددة إلى هذا العنوان.',
+    },
+    withdrawModal: {
+      title: 'سحب',
+      availableBalance: 'الرصيد المتاح',
+      amount: 'المبلغ',
+      cryptoTitle: 'سحب USDT',
+      cryptoDesc: 'إرسال إلى عنوان محفظتك',
+      cashTitle: 'سحب نقدي',
+      cashDesc: 'طلب يتم التعامل معه من قبل الشريك',
+      selectNetwork: 'اختر الشبكة',
+      walletAddress: 'عنوان المحفظة',
+      addressPlaceholder: '0x...',
+      cryptoInfo1: 'تتم معالجة عمليات السحب خلال 24 ساعة.',
+      cryptoInfo2: 'أرسل فقط إلى الشبكة المحددة!',
+      fullName: 'الاسم الكامل',
+      namePlaceholder: 'اسمك الكامل',
+      phoneNumber: 'رقم الهاتف',
+      phonePlaceholder: 'رقم الهاتف',
+      cashInfo1: 'سيتصل بك شريكنا لترتيب الدفع.',
+      cashInfo2: 'يرجى التأكد من صحة معلومات الاتصال الخاصة بك.',
+      amountError: 'الرجاء إدخال مبلغ صالح',
+      insufficientBalance: 'رصيد غير كافي',
+      addressError: 'الرجاء إدخال عنوان المحفظة',
+      invalidAddress: 'الرجاء إدخال عنوان محفظة صالح',
+      nameError: 'الرجاء إدخال اسمك الكامل',
+      phoneError: 'الرجاء إدخال رقم هاتف صالح',
+      requestError: 'خطأ في معالجة طلب السحب',
+      processing: 'جاري المعالجة...',
+      submit: 'طلب السحب',
+      cancel: 'إلغاء',
+      back: 'رجوع',
+      requestSent: 'تم إرسال الطلب!',
+      amountRequested: 'المبلغ المطلوب',
+      cryptoSuccessInfo1: 'تم تقديم طلب السحب الخاص بك.',
+      cryptoSuccessInfo2: 'ستتلقى USDT الخاص بك في غضون 24 ساعة.',
+      cashSuccessInfo1: 'تم تقديم طلب السحب النقدي الخاص بك.',
+      cashSuccessInfo2: 'سيتصل بك شريكنا قريباً.',
+      close: 'إغلاق',
     },
     profile: {
       title: 'الملف الشخصي',

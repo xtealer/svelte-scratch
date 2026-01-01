@@ -182,7 +182,6 @@
 
         <div class="info">
           <p>{$t.codeModal.info1}</p>
-          <p>{$t.codeModal.info2}</p>
         </div>
 
         {#if error}
