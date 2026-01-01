@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LogIn, Home, UserPlus, LogOut, User } from 'lucide-svelte';
+  import { LogIn, Home, UserPlus, LogOut, User, History } from 'lucide-svelte';
   import { playerAuth, isPlayerLoggedIn, playerUser } from '$lib/stores/playerAuth';
   import { t } from '$lib/i18n';
   import { page } from '$app/stores';
@@ -11,6 +11,7 @@
     onDeposit,
     onWithdraw,
     onProfile,
+    onHistory,
   }: {
     onEnterCode?: () => void;
     onLogin?: () => void;
@@ -18,6 +19,7 @@
     onDeposit?: () => void;
     onWithdraw?: () => void;
     onProfile?: () => void;
+    onHistory?: () => void;
   } = $props();
 
   // Check if we're on the home page
@@ -59,6 +61,12 @@
   function handleProfile() {
     if (onProfile) {
       onProfile();
+    }
+  }
+
+  function handleHistory() {
+    if (onHistory) {
+      onHistory();
     }
   }
 
@@ -104,6 +112,9 @@
         </div>
 
         <div class="user-menu">
+          <button class="history-btn" onclick={handleHistory} title={$t.navbar.history}>
+            <History size={16} />
+          </button>
           <button class="user-btn" onclick={handleProfile} title={$playerUser?.fullName}>
             <User size={16} />
           </button>
@@ -329,7 +340,8 @@
   }
 
   .user-btn,
-  .logout-btn {
+  .logout-btn,
+  .history-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -347,12 +359,17 @@
     color: #00bfff;
   }
 
+  .history-btn :global(svg) {
+    color: #00bfff;
+  }
+
   .logout-btn :global(svg) {
     color: #ff6b6b;
   }
 
   .user-btn:hover,
-  .logout-btn:hover {
+  .logout-btn:hover,
+  .history-btn:hover {
     background: rgba(255, 255, 255, 0.1);
   }
 
@@ -401,7 +418,8 @@
     }
 
     .user-btn,
-    .logout-btn {
+    .logout-btn,
+    .history-btn {
       width: 34px;
       height: 34px;
     }

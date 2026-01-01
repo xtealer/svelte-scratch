@@ -1,5 +1,5 @@
 import { getDB } from './index';
-import type { PlayerUser, SupportedLanguage } from './types';
+import type { PlayerUser, SupportedLanguage, PlayerDeposit, PlayerWithdrawal, DepositType, GamePlay } from './types';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -525,4 +525,275 @@ export async function verify2FACode(
   // Return updated user
   const updatedUser = await db.collection<PlayerUser>(COLLECTION).findOne({ _id: objectId });
   return { valid: true, user: updatedUser! };
+}
+
+// ==================== PLAYER TRANSACTION HISTORY ====================
+
+const DEPOSITS_COLLECTION = 'playerDeposits';
+const WITHDRAWALS_COLLECTION = 'playerWithdrawals';
+const PLAYS_COLLECTION = 'gamePlays';
+
+// Record a player deposit
+export async function recordPlayerDeposit(
+  playerId: string | ObjectId,
+  type: DepositType,
+  amount: number,
+  options?: {
+    rechargeCode?: string;
+    network?: string;
+    txHash?: string;
+  }
+): Promise<PlayerDeposit> {
+  const db = await getDB();
+  const playerObjectId = typeof playerId === 'string' ? new ObjectId(playerId) : playerId;
+
+  const deposit: PlayerDeposit = {
+    playerId: playerObjectId,
+    type,
+    amount,
+    rechargeCode: options?.rechargeCode,
+    network: options?.network,
+    txHash: options?.txHash,
+    createdAt: new Date()
+  };
+
+  const result = await db.collection<PlayerDeposit>(DEPOSITS_COLLECTION).insertOne(deposit);
+  deposit._id = result.insertedId;
+
+  return deposit;
+}
+
+// Get player's deposit history
+export async function getPlayerDeposits(
+  playerId: string | ObjectId,
+  limit = 50,
+  offset = 0
+): Promise<{ deposits: PlayerDeposit[]; total: number }> {
+  const db = await getDB();
+  const playerObjectId = typeof playerId === 'string' ? new ObjectId(playerId) : playerId;
+
+  const [deposits, total] = await Promise.all([
+    db.collection<PlayerDeposit>(DEPOSITS_COLLECTION)
+      .find({ playerId: playerObjectId })
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray(),
+    db.collection<PlayerDeposit>(DEPOSITS_COLLECTION)
+      .countDocuments({ playerId: playerObjectId })
+  ]);
+
+  return { deposits, total };
+}
+
+// Record a player withdrawal request
+export async function recordPlayerWithdrawal(
+  playerId: string | ObjectId,
+  type: 'crypto' | 'cash',
+  amount: number,
+  options?: {
+    network?: string;
+    walletAddress?: string;
+    playerName?: string;
+    playerPhone?: string;
+    playerCountry?: string;
+  }
+): Promise<PlayerWithdrawal> {
+  const db = await getDB();
+  const playerObjectId = typeof playerId === 'string' ? new ObjectId(playerId) : playerId;
+
+  const withdrawal: PlayerWithdrawal = {
+    playerId: playerObjectId,
+    type,
+    amount,
+    status: 'pending',
+    network: options?.network,
+    walletAddress: options?.walletAddress,
+    playerName: options?.playerName,
+    playerPhone: options?.playerPhone,
+    playerCountry: options?.playerCountry,
+    createdAt: new Date()
+  };
+
+  const result = await db.collection<PlayerWithdrawal>(WITHDRAWALS_COLLECTION).insertOne(withdrawal);
+  withdrawal._id = result.insertedId;
+
+  return withdrawal;
+}
+
+// Get player's withdrawal history
+export async function getPlayerWithdrawals(
+  playerId: string | ObjectId,
+  limit = 50,
+  offset = 0
+): Promise<{ withdrawals: PlayerWithdrawal[]; total: number }> {
+  const db = await getDB();
+  const playerObjectId = typeof playerId === 'string' ? new ObjectId(playerId) : playerId;
+
+  const [withdrawals, total] = await Promise.all([
+    db.collection<PlayerWithdrawal>(WITHDRAWALS_COLLECTION)
+      .find({ playerId: playerObjectId })
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray(),
+    db.collection<PlayerWithdrawal>(WITHDRAWALS_COLLECTION)
+      .countDocuments({ playerId: playerObjectId })
+  ]);
+
+  return { withdrawals, total };
+}
+
+// Get player's bet/play history
+export async function getPlayerBetHistory(
+  playerId: string | ObjectId,
+  limit = 50,
+  offset = 0
+): Promise<{ bets: GamePlay[]; total: number }> {
+  const db = await getDB();
+  const playerObjectId = typeof playerId === 'string' ? new ObjectId(playerId) : playerId;
+
+  // Get all plays associated with this player via their deposited sessions
+  // First, get all deposit codes for this player
+  const deposits = await db.collection<PlayerDeposit>(DEPOSITS_COLLECTION)
+    .find({ playerId: playerObjectId, type: 'recharge' })
+    .project({ rechargeCode: 1 })
+    .toArray();
+
+  const codes = deposits.map(d => d.rechargeCode).filter(Boolean) as string[];
+
+  if (codes.length === 0) {
+    // If no codes, try to find plays by playerId directly (for USDT balance plays)
+    const [bets, total] = await Promise.all([
+      db.collection<GamePlay>(PLAYS_COLLECTION)
+        .find({ playerId: playerObjectId })
+        .sort({ playedAt: -1 })
+        .skip(offset)
+        .limit(limit)
+        .toArray(),
+      db.collection<GamePlay>(PLAYS_COLLECTION)
+        .countDocuments({ playerId: playerObjectId })
+    ]);
+    return { bets, total };
+  }
+
+  // Get plays for all codes
+  const [bets, total] = await Promise.all([
+    db.collection<GamePlay>(PLAYS_COLLECTION)
+      .find({ $or: [{ code: { $in: codes } }, { playerId: playerObjectId }] })
+      .sort({ playedAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .toArray(),
+    db.collection<GamePlay>(PLAYS_COLLECTION)
+      .countDocuments({ $or: [{ code: { $in: codes } }, { playerId: playerObjectId }] })
+  ]);
+
+  return { bets, total };
+}
+
+// Get combined transaction history (deposits, withdrawals, and bets)
+export async function getPlayerTransactionHistory(
+  playerId: string | ObjectId,
+  filter: 'all' | 'deposits' | 'withdrawals' | 'bets' = 'all',
+  limit = 50,
+  offset = 0
+): Promise<{
+  transactions: Array<{
+    id: string;
+    type: 'deposit' | 'withdrawal' | 'bet';
+    amount: number;
+    status?: string;
+    gameId?: string;
+    prizeAmount?: number;
+    createdAt: Date;
+    details?: Record<string, unknown>;
+  }>;
+  total: number;
+}> {
+  const db = await getDB();
+  const playerObjectId = typeof playerId === 'string' ? new ObjectId(playerId) : playerId;
+
+  const transactions: Array<{
+    id: string;
+    type: 'deposit' | 'withdrawal' | 'bet';
+    amount: number;
+    status?: string;
+    gameId?: string;
+    prizeAmount?: number;
+    createdAt: Date;
+    details?: Record<string, unknown>;
+  }> = [];
+
+  // Get deposits if filter allows
+  if (filter === 'all' || filter === 'deposits') {
+    const deposits = await db.collection<PlayerDeposit>(DEPOSITS_COLLECTION)
+      .find({ playerId: playerObjectId })
+      .toArray();
+
+    for (const d of deposits) {
+      transactions.push({
+        id: d._id!.toString(),
+        type: 'deposit',
+        amount: d.amount,
+        createdAt: d.createdAt,
+        details: {
+          depositType: d.type,
+          rechargeCode: d.rechargeCode,
+          network: d.network,
+          txHash: d.txHash
+        }
+      });
+    }
+  }
+
+  // Get withdrawals if filter allows
+  if (filter === 'all' || filter === 'withdrawals') {
+    const withdrawals = await db.collection<PlayerWithdrawal>(WITHDRAWALS_COLLECTION)
+      .find({ playerId: playerObjectId })
+      .toArray();
+
+    for (const w of withdrawals) {
+      transactions.push({
+        id: w._id!.toString(),
+        type: 'withdrawal',
+        amount: w.amount,
+        status: w.status,
+        createdAt: w.createdAt,
+        details: {
+          withdrawalType: w.type,
+          network: w.network,
+          walletAddress: w.walletAddress
+        }
+      });
+    }
+  }
+
+  // Get bets if filter allows
+  if (filter === 'all' || filter === 'bets') {
+    const betHistory = await getPlayerBetHistory(playerObjectId, 1000, 0);
+
+    for (const b of betHistory.bets) {
+      transactions.push({
+        id: b._id!.toString(),
+        type: 'bet',
+        amount: b.betAmount,
+        gameId: b.gameId,
+        prizeAmount: b.prizeAmount,
+        createdAt: b.playedAt,
+        details: {
+          symbol: b.symbol
+        }
+      });
+    }
+  }
+
+  // Sort by date descending
+  transactions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  // Apply pagination
+  const total = transactions.length;
+  const paginated = transactions.slice(offset, offset + limit);
+
+  return { transactions: paginated, total };
 }
