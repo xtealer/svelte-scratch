@@ -13,7 +13,7 @@
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { ArrowLeft, Trophy, X, Volume2, VolumeX, RotateCw, Grid3x3, Play, Pause } from "lucide-svelte";
-  import { playerWallet, hasActiveSession as walletHasSession } from "$lib/stores/playerWallet";
+  import { playerWallet, hasActiveSession as walletHasSession, wagerMet, wagerProgress, wagerRemaining } from "$lib/stores/playerWallet";
   import { WinCelebration, LowBalanceIndicator, BetPresets } from "$lib/components";
   import { hapticWin, haptic } from "$lib/utils/haptics";
 
@@ -320,8 +320,15 @@
       throw new Error(data.error || "Código inválido");
     }
 
-    // Update unified wallet
-    playerWallet.loadCode(data.code, data.plays, data.totalWinnings || 0, 'slots');
+    // Update unified wallet with wager requirements
+    playerWallet.loadCode(
+      data.code,
+      data.plays,
+      data.totalWinnings || 0,
+      'slots',
+      data.wagerRequired || 0,
+      data.wagerCompleted || 0
+    );
 
     betSize = Math.min(betSize, data.plays);
     if (betSize < 1) betSize = 1;
@@ -395,8 +402,8 @@
     clearInterval(spinAnimation);
 
     if (result.success) {
-      // Update unified wallet
-      playerWallet.updateCredits(result.playsLeft, result.totalWinnings);
+      // Update unified wallet with wager progress
+      playerWallet.updateCredits(result.playsLeft, result.totalWinnings, result.wagerCompleted);
 
       if (result.prize > 0) {
         currentPrize = result.prize;
@@ -518,6 +525,12 @@
           <div class="info-row winnings">
             <span class="info-label">{$t.gameUI.won}:</span>
             <span class="info-value winnings-value">${sessionWinnings}</span>
+          </div>
+        {/if}
+        {#if $playerWallet.wagerRequired > 0 && !$wagerMet}
+          <div class="info-row wager">
+            <span class="info-label">Wager:</span>
+            <span class="info-value wager-value">{Math.round($wagerProgress)}%</span>
           </div>
         {/if}
       </div>
@@ -799,6 +812,18 @@
   .winnings-value {
     color: #00ff00 !important;
     text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  }
+
+  .info-row.wager {
+    background: rgba(255, 165, 0, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 165, 0, 0.3);
+  }
+
+  .wager-value {
+    color: #ffa500 !important;
+    text-shadow: 0 0 8px rgba(255, 165, 0, 0.5);
   }
 
   .center-controls {

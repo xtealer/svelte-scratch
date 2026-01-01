@@ -8,13 +8,18 @@ export interface PlayerWallet {
   credits: number;
   winnings: number;
   lastGameId: string;
+  // Wager requirement tracking
+  wagerRequired: number;
+  wagerCompleted: number;
 }
 
 const defaultWallet: PlayerWallet = {
   code: '',
   credits: 0,
   winnings: 0,
-  lastGameId: ''
+  lastGameId: '',
+  wagerRequired: 0,
+  wagerCompleted: 0
 };
 
 // Load from localStorage
@@ -50,12 +55,14 @@ function createWalletStore() {
     subscribe,
 
     // Load a new code with credits
-    loadCode: (code: string, credits: number, winnings: number = 0, gameId: string = '') => {
+    loadCode: (code: string, credits: number, winnings: number = 0, gameId: string = '', wagerRequired: number = 0, wagerCompleted: number = 0) => {
       const wallet: PlayerWallet = {
         code: code.toUpperCase().trim(),
         credits,
         winnings,
-        lastGameId: gameId
+        lastGameId: gameId,
+        wagerRequired,
+        wagerCompleted
       };
       set(wallet);
       if (browser) {
@@ -64,9 +71,14 @@ function createWalletStore() {
     },
 
     // Update credits after a play
-    updateCredits: (credits: number, winnings: number) => {
+    updateCredits: (credits: number, winnings: number, wagerCompleted?: number) => {
       update(w => {
-        const updated = { ...w, credits, winnings };
+        const updated = {
+          ...w,
+          credits,
+          winnings,
+          ...(wagerCompleted !== undefined && { wagerCompleted })
+        };
         if (browser) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         }
@@ -138,4 +150,21 @@ export const hasActiveSession = derived(playerWallet, $wallet =>
 // Derived store to get total balance (credits + winnings)
 export const totalBalance = derived(playerWallet, $wallet =>
   $wallet.credits + $wallet.winnings
+);
+
+// Derived store to check if wager requirement is met
+export const wagerMet = derived(playerWallet, $wallet =>
+  $wallet.wagerRequired === 0 || $wallet.wagerCompleted >= $wallet.wagerRequired
+);
+
+// Derived store to get wager progress percentage
+export const wagerProgress = derived(playerWallet, $wallet =>
+  $wallet.wagerRequired > 0
+    ? Math.min(100, ($wallet.wagerCompleted / $wallet.wagerRequired) * 100)
+    : 100
+);
+
+// Derived store to get remaining wager amount
+export const wagerRemaining = derived(playerWallet, $wallet =>
+  Math.max(0, $wallet.wagerRequired - $wallet.wagerCompleted)
 );

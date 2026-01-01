@@ -13,7 +13,7 @@
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { Trophy, Volume2, VolumeX } from "lucide-svelte";
-  import { playerWallet, hasActiveSession as walletHasSession } from "$lib/stores/playerWallet";
+  import { playerWallet, hasActiveSession as walletHasSession, wagerMet, wagerProgress, wagerRemaining } from "$lib/stores/playerWallet";
   import { WinCelebration, LowBalanceIndicator, MiniPrizeTable } from "$lib/components";
   import { hapticWin } from "$lib/utils/haptics";
 
@@ -317,8 +317,8 @@
       const result = await response.json();
 
       if (result.success) {
-        // Update unified wallet
-        playerWallet.updateCredits(result.playsLeft, result.totalWinnings);
+        // Update unified wallet with wager progress
+        playerWallet.updateCredits(result.playsLeft, result.totalWinnings, result.wagerCompleted);
         pendingPlayResult = { prize: result.prize, symbol: result.symbol };
 
         // Generate symbols based on server result
@@ -535,8 +535,15 @@
       throw new Error(data.error || "Código inválido");
     }
 
-    // Load the session using unified wallet
-    playerWallet.loadCode(data.code, data.plays, data.totalWinnings || 0, 'scratch');
+    // Load the session using unified wallet with wager requirements
+    playerWallet.loadCode(
+      data.code,
+      data.plays,
+      data.totalWinnings || 0,
+      'scratch',
+      data.wagerRequired || 0,
+      data.wagerCompleted || 0
+    );
 
     // Start first play automatically if we have plays
     if (data.plays > 0) {

@@ -33,7 +33,10 @@ export const POST: RequestHandler = async ({ request }) => {
       prize: result.prize,
       symbol: result.symbol,
       playsLeft: result.creditsLeft,  // Use creditsLeft instead of playsLeft
-      totalWinnings: result.totalWinnings
+      totalWinnings: result.totalWinnings,
+      wagerRequired: result.wagerRequired,
+      wagerCompleted: result.wagerCompleted,
+      wagerMet: result.wagerMet
     });
   } catch (error) {
     console.error('Game play error:', error);
@@ -62,7 +65,10 @@ export const GET: RequestHandler = async ({ url }) => {
       creditsLeft: status.creditsLeft,
       totalWinnings: status.totalWinnings,
       claimed: status.claimed,
-      lastGameId: status.lastGameId
+      lastGameId: status.lastGameId,
+      wagerRequired: status.wagerRequired,
+      wagerCompleted: status.wagerCompleted,
+      wagerMet: status.wagerMet
     });
   } catch (error) {
     console.error('Session status error:', error);

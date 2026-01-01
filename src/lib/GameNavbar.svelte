@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Wallet, Coins, Trophy, X, LogIn, Home, UserPlus, PlusCircle, LogOut, User } from 'lucide-svelte';
+  import { X, LogIn, Home, UserPlus, LogOut, User } from 'lucide-svelte';
   import { playerWallet, hasActiveSession } from '$lib/stores/playerWallet';
   import { playerAuth, isPlayerLoggedIn, playerUser } from '$lib/stores/playerAuth';
   import { t } from '$lib/i18n';
@@ -23,6 +23,13 @@
 
   // Check if we're on the home page
   let isHomePage = $derived($page.url.pathname === '/');
+
+  // Balance combines recharge card credits + winnings + any USDT balance
+  let totalUsdtBalance = $derived(
+    ($playerWallet.credits || 0) +
+    ($playerWallet.winnings || 0) +
+    ($playerUser?.usdtBalance ?? 0)
+  );
 
   function handleEndSession() {
     if (confirm($t.navbar.confirmEndSession)) {
@@ -91,34 +98,22 @@
       {#if $isPlayerLoggedIn}
         <!-- Logged in state -->
         {#if $hasActiveSession}
-          <div class="balance-section">
-            <div class="balance-item code">
-              <Wallet size={14} />
-              <span class="value">{$playerWallet.code}</span>
-            </div>
-
-            <div class="balance-item credits">
-              <Coins size={14} />
-              <span class="value">${$playerWallet.credits}</span>
-            </div>
-
-            {#if $playerWallet.winnings > 0}
-              <div class="balance-item winnings">
-                <Trophy size={14} />
-                <span class="value">${$playerWallet.winnings.toFixed(2)}</span>
-              </div>
-            {/if}
-          </div>
-
           <button class="end-session-btn" onclick={handleEndSession} title={$t.navbar.endSession}>
             <X size={18} />
           </button>
         {/if}
 
-        <button class="deposit-btn" onclick={handleDeposit} title={$t.navbar.deposit}>
-          <PlusCircle size={16} />
-          <span class="btn-text">{$t.navbar.deposit}</span>
-        </button>
+        <div class="deposit-group">
+          <div class="usdt-balance">
+            <div class="tether-icon">
+              <span>T</span>
+            </div>
+            <span class="balance-amount">${totalUsdtBalance.toFixed(2)}</span>
+          </div>
+          <button class="deposit-btn" onclick={handleDeposit} title={$t.navbar.deposit}>
+            {$t.navbar.deposit}
+          </button>
+        </div>
 
         <div class="user-menu">
           <button class="user-btn" onclick={handleProfile} title={$playerUser?.fullName}>
@@ -212,65 +207,6 @@
     gap: 10px;
   }
 
-  .balance-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .balance-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    font-size: 0.85em;
-  }
-
-  .balance-item :global(svg) {
-    flex-shrink: 0;
-  }
-
-  .balance-item.code :global(svg) {
-    color: #ffc107;
-  }
-
-  .balance-item.credits :global(svg) {
-    color: #00bfff;
-  }
-
-  .balance-item.winnings :global(svg) {
-    color: #00e701;
-  }
-
-  .balance-item .value {
-    font-weight: 600;
-    color: #fff;
-  }
-
-  .balance-item.code .value {
-    color: #ffc107;
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 0.9em;
-  }
-
-  .balance-item.credits .value {
-    color: #00bfff;
-  }
-
-  .balance-item.winnings {
-    background: rgba(0, 231, 1, 0.15);
-    border: 1px solid rgba(0, 231, 1, 0.3);
-  }
-
-  .balance-item.winnings .value {
-    color: #00e701;
-  }
-
   .end-session-btn {
     display: flex;
     align-items: center;
@@ -337,26 +273,64 @@
     transform: scale(0.98);
   }
 
+  .deposit-group {
+    display: flex;
+    align-items: center;
+    background: #2d3d4a;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .usdt-balance {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .tether-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #26a17b, #1a8a6a);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .tether-icon span {
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .balance-amount {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95em;
+    white-space: nowrap;
+  }
+
   .deposit-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 10px 16px;
-    background: #00e701;
+    padding: 8px 16px;
+    height: 100%;
+    background: linear-gradient(135deg, #4ade80, #22c55e);
     color: #0f1923;
     border: none;
-    border-radius: 8px;
     cursor: pointer;
     font-weight: 700;
     font-size: 0.9em;
     transition: all 0.2s;
-    flex-shrink: 0;
   }
 
   .deposit-btn:hover {
-    background: #00c700;
-    transform: scale(1.02);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
   }
 
   .deposit-btn:active {
@@ -407,32 +381,37 @@
       font-size: 1.1em;
     }
 
-    .balance-section {
-      gap: 6px;
-    }
-
-    .balance-item {
-      padding: 6px 8px;
-      font-size: 0.8em;
-    }
-
-    .balance-item.code {
-      display: none;
-    }
-
     .login-btn,
-    .register-btn,
-    .deposit-btn {
+    .register-btn {
       padding: 8px 12px;
       font-size: 0.85em;
     }
 
-    .btn-text {
-      display: none;
+    .deposit-group {
+      border-radius: 6px;
+    }
+
+    .usdt-balance {
+      padding: 6px 8px;
+      gap: 6px;
+    }
+
+    .tether-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .tether-icon span {
+      font-size: 12px;
+    }
+
+    .balance-amount {
+      font-size: 0.85em;
     }
 
     .deposit-btn {
-      padding: 8px 10px;
+      padding: 6px 10px;
+      font-size: 0.8em;
     }
 
     .user-btn,
@@ -451,16 +430,6 @@
 
     .logo {
       font-size: 1em;
-    }
-
-    .balance-item {
-      padding: 5px 6px;
-      font-size: 0.75em;
-    }
-
-    .balance-item :global(svg) {
-      width: 12px;
-      height: 12px;
     }
 
     .login-btn span,
