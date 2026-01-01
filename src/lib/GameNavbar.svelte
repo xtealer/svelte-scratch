@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Wallet, Coins, Trophy, X, LogIn, Home, UserPlus, PlusCircle, LogOut, User } from 'lucide-svelte';
+  import { Wallet, Trophy, X, LogIn, Home, UserPlus, LogOut, User } from 'lucide-svelte';
   import { playerWallet, hasActiveSession } from '$lib/stores/playerWallet';
   import { playerAuth, isPlayerLoggedIn, playerUser } from '$lib/stores/playerAuth';
   import { t } from '$lib/i18n';
@@ -24,8 +24,8 @@
   // Check if we're on the home page
   let isHomePage = $derived($page.url.pathname === '/');
 
-  // USDT balance (placeholder - can be connected to real balance later)
-  let usdtBalance = $derived($playerUser?.usdtBalance ?? 0);
+  // Balance combines recharge card credits with any USDT balance
+  let totalUsdtBalance = $derived(($playerWallet.credits || 0) + ($playerUser?.usdtBalance ?? 0));
 
   function handleEndSession() {
     if (confirm($t.navbar.confirmEndSession)) {
@@ -100,11 +100,6 @@
               <span class="value">{$playerWallet.code}</span>
             </div>
 
-            <div class="balance-item credits">
-              <Coins size={14} />
-              <span class="value">${$playerWallet.credits}</span>
-            </div>
-
             {#if $playerWallet.winnings > 0}
               <div class="balance-item winnings">
                 <Trophy size={14} />
@@ -123,7 +118,7 @@
             <div class="tether-icon">
               <span>T</span>
             </div>
-            <span class="balance-amount">${usdtBalance.toFixed(2)}</span>
+            <span class="balance-amount">${totalUsdtBalance.toFixed(2)}</span>
           </div>
           <button class="deposit-btn" onclick={handleDeposit} title={$t.navbar.deposit}>
             {$t.navbar.deposit}
@@ -246,10 +241,6 @@
     color: #ffc107;
   }
 
-  .balance-item.credits :global(svg) {
-    color: #00bfff;
-  }
-
   .balance-item.winnings :global(svg) {
     color: #00e701;
   }
@@ -266,10 +257,6 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 0.9em;
-  }
-
-  .balance-item.credits .value {
-    color: #00bfff;
   }
 
   .balance-item.winnings {
