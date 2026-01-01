@@ -364,7 +364,6 @@ export interface CodeModalTranslations {
   placeholder: string;
   enterCodeError: string;
   info1: string;
-  info2: string;
   loadPlays: string;
   loading: string;
   cancel: string;
@@ -713,8 +712,7 @@ export const translations: Record<Language, Translations> = {
       placeholder: 'Enter code (e.g.: ABC123)',
       enterCodeError: 'Please enter a code',
       info1: 'Enter your code to claim your recharge.',
-      info2: 'Each code can have multiple plays.',
-      loadPlays: 'Load Plays',
+      loadPlays: 'Claim',
       loading: 'Loading...',
       cancel: 'Cancel',
       activeSessionTitle: 'ACTIVE SESSION',
@@ -1095,8 +1093,7 @@ export const translations: Record<Language, Translations> = {
       placeholder: 'Ingresa código (ej: ABC123)',
       enterCodeError: 'Por favor ingresa un código',
       info1: 'Ingresa el código de tu boleto para cargar tus jugadas.',
-      info2: 'Cada código puede tener varias jugadas.',
-      loadPlays: 'Cargar Jugadas',
+      loadPlays: 'Reclamar',
       loading: 'Cargando...',
       cancel: 'Cancelar',
       activeSessionTitle: 'SESIÓN ACTIVA',
@@ -1477,8 +1474,7 @@ export const translations: Record<Language, Translations> = {
       placeholder: 'أدخل الرمز (مثال: ABC123)',
       enterCodeError: 'الرجاء إدخال رمز',
       info1: 'أدخل رمز تذكرتك لتحميل لعباتك.',
-      info2: 'كل رمز يمكن أن يحتوي على عدة لعبات.',
-      loadPlays: 'تحميل اللعبات',
+      loadPlays: 'مطالبة',
       loading: 'جاري التحميل...',
       cancel: 'إلغاء',
       activeSessionTitle: 'جلسة نشطة',
