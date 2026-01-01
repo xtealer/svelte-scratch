@@ -18,17 +18,11 @@
     show = $bindable(false),
     onDeposit,
     onWithdraw,
-    onTransactions,
-    onBetHistory,
-    onProfile,
     onLogout,
   }: {
     show: boolean;
     onDeposit?: () => void;
     onWithdraw?: () => void;
-    onTransactions?: () => void;
-    onBetHistory?: () => void;
-    onProfile?: () => void;
     onLogout?: () => void;
   } = $props();
 
@@ -135,22 +129,22 @@
 
       <div class="menu-divider"></div>
 
-      <button class="menu-item" onclick={() => handleMenuItem(onTransactions)}>
+      <a href="/transactions" class="menu-item" onclick={close}>
         <History size={20} class="icon" />
         <span>{$t.userMenu.transactions}</span>
-      </button>
+      </a>
 
-      <button class="menu-item" onclick={() => handleMenuItem(onBetHistory)}>
+      <a href="/bets" class="menu-item" onclick={close}>
         <Dices size={20} class="icon" />
         <span>{$t.userMenu.betHistory}</span>
-      </button>
+      </a>
 
       <div class="menu-divider"></div>
 
-      <button class="menu-item" onclick={() => handleMenuItem(onProfile)}>
+      <a href="/profile" class="menu-item" onclick={close}>
         <User size={20} class="icon" />
         <span>{$t.userMenu.myProfile}</span>
-      </button>
+      </a>
 
       <div class="menu-divider"></div>
 
@@ -319,6 +313,7 @@
     font-size: 0.95em;
     transition: all 0.15s;
     text-align: left;
+    text-decoration: none;
   }
 
   .menu-item:hover {

@@ -9,7 +9,6 @@
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
   import ProfileModal from "$lib/ProfileModal.svelte";
-  import TransactionHistoryModal from "$lib/TransactionHistoryModal.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
   import { playerWallet } from "$lib/stores/playerWallet";
 
@@ -30,8 +29,6 @@
   let showLoginModal = $state(false);
   let showRegisterModal = $state(false);
   let showProfileModal = $state(false);
-  let showHistoryModal = $state(false);
-  let historyFilter = $state<'all' | 'deposits' | 'withdrawals' | 'bets'>('all');
   let recentPlays = $state<RecentPlay[]>([]);
   let loadingPlays = $state(true);
 
@@ -62,7 +59,6 @@
     showLoginModal = false;
     showRegisterModal = false;
     showProfileModal = false;
-    showHistoryModal = false;
   }
 
   function openCodeModal() {
@@ -93,18 +89,6 @@
   function openProfileModal() {
     closeAllModals();
     showProfileModal = true;
-  }
-
-  function openHistoryModal() {
-    closeAllModals();
-    historyFilter = 'all';
-    showHistoryModal = true;
-  }
-
-  function openBetHistoryModal() {
-    closeAllModals();
-    historyFilter = 'bets';
-    showHistoryModal = true;
   }
 
   function switchToRegister() {
@@ -155,7 +139,7 @@
   }
 </script>
 
-<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} onProfile={openProfileModal} onHistory={openHistoryModal} onBetHistory={openBetHistoryModal} />
+<GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} />
 
 <div class="page" dir={$direction}>
   <main class="container">
@@ -260,7 +244,6 @@
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
 <ProfileModal bind:show={showProfileModal} />
-<TransactionHistoryModal bind:show={showHistoryModal} initialFilter={historyFilter} />
 
 <style>
   .page {

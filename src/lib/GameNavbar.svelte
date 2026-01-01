@@ -11,18 +11,12 @@
     onRegister,
     onDeposit,
     onWithdraw,
-    onProfile,
-    onHistory,
-    onBetHistory,
   }: {
     onEnterCode?: () => void;
     onLogin?: () => void;
     onRegister?: () => void;
     onDeposit?: () => void;
     onWithdraw?: () => void;
-    onProfile?: () => void;
-    onHistory?: () => void;
-    onBetHistory?: () => void;
   } = $props();
 
   // Check if we're on the home page
@@ -63,30 +57,6 @@
     showDropdown = false;
     if (onWithdraw) {
       onWithdraw();
-    }
-  }
-
-  function handleProfile() {
-    showDropdown = false;
-    if (onProfile) {
-      onProfile();
-    }
-  }
-
-  function handleHistory() {
-    showDropdown = false;
-    if (onHistory) {
-      onHistory();
-    }
-  }
-
-  function handleBetHistory() {
-    showDropdown = false;
-    // Use onHistory with bets filter for bet history
-    if (onBetHistory) {
-      onBetHistory();
-    } else if (onHistory) {
-      onHistory();
     }
   }
 
@@ -139,9 +109,6 @@
             bind:show={showDropdown}
             onDeposit={handleDeposit}
             onWithdraw={handleWithdraw}
-            onTransactions={handleHistory}
-            onBetHistory={handleBetHistory}
-            onProfile={handleProfile}
             onLogout={handleLogout}
           />
         </div>
