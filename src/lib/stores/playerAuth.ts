@@ -168,3 +168,9 @@ export const usdtBalance = derived(playerAuth, $auth => $auth.user?.usdtBalance 
 export const canPlay = derived(playerAuth, $auth =>
   $auth.user !== null && ($auth.user.usdtBalance ?? 0) > 0
 );
+
+// Derived store to check if player is email-only (requires 2FA for withdrawals)
+// Returns true if user has email but no MetaMask address
+export const isEmailOnlyUser = derived(playerAuth, $auth =>
+  $auth.user !== null && !!$auth.user.email && !$auth.user.metamaskAddress
+);

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { ArrowUpFromLine, Wallet, CircleDollarSign, Banknote, ChevronDown } from 'lucide-svelte';
+  import { ArrowUpFromLine, Wallet, CircleDollarSign, Banknote, ChevronDown, Shield } from 'lucide-svelte';
   import { t } from '$lib/i18n';
-  import { usdtBalance } from '$lib/stores/playerAuth';
+  import { usdtBalance, isEmailOnlyUser, playerAuth } from '$lib/stores/playerAuth';
 
   let {
     show = $bindable(false),
@@ -11,7 +11,7 @@
     onWithdrawSubmit?: (data: WithdrawData) => Promise<void>;
   } = $props();
 
-  type WithdrawMode = 'select' | 'crypto' | 'cash';
+  type WithdrawMode = 'select' | 'crypto' | 'cash' | '2fa';
   type Network = 'ethereum' | 'bsc' | 'polygon';
 
   interface WithdrawData {
@@ -77,6 +77,12 @@
   let success = $state(false);
   let successType = $state<'crypto' | 'cash'>('crypto');
 
+  // 2FA state
+  let verificationCode = $state('');
+  let pendingWithdrawType = $state<'crypto' | 'cash'>('crypto');
+  let sending2FA = $state(false);
+  let codeSentMessage = $state('');
+
   // Calculate available balance - now unified from USDT balance
   let availableBalance = $derived($usdtBalance);
 
@@ -93,6 +99,8 @@
     phoneNumber = '';
     error = '';
     success = false;
+    verificationCode = '';
+    codeSentMessage = '';
   }
 
   function handleBackdropClick(event: MouseEvent): void {
@@ -118,6 +126,85 @@
     return true;
   }
 
+  async function request2FACode(): Promise<boolean> {
+    const authState = playerAuth.get();
+    if (!authState.token) return false;
+
+    sending2FA = true;
+    codeSentMessage = '';
+    error = '';
+
+    try {
+      const response = await fetch('/api/withdraw/request-2fa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authState.token}`
+        },
+        body: JSON.stringify({ amount: parseFloat(amount) })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        error = data.error || $t.withdrawModal.codeError;
+        return false;
+      }
+
+      // If user doesn't require 2FA (MetaMask user), return true to proceed directly
+      if (data.requires2FA === false) {
+        return true;
+      }
+
+      return true;
+    } catch (e) {
+      error = $t.withdrawModal.codeError;
+      return false;
+    } finally {
+      sending2FA = false;
+    }
+  }
+
+  async function verify2FACode(): Promise<boolean> {
+    const authState = playerAuth.get();
+    if (!authState.token) return false;
+
+    try {
+      const response = await fetch('/api/withdraw/verify-2fa', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authState.token}`
+        },
+        body: JSON.stringify({ code: verificationCode })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        error = data.error || $t.withdrawModal.invalidCode;
+        return false;
+      }
+
+      return data.verified === true;
+    } catch (e) {
+      error = $t.withdrawModal.invalidCode;
+      return false;
+    }
+  }
+
+  async function resend2FACode(): Promise<void> {
+    sending2FA = true;
+    codeSentMessage = '';
+    error = '';
+
+    const success = await request2FACode();
+    if (success) {
+      codeSentMessage = $t.withdrawModal.codeSent;
+    }
+    sending2FA = false;
+  }
+
   async function handleCryptoSubmit(): Promise<void> {
     if (!validateAmount()) return;
 
@@ -132,6 +219,21 @@
       return;
     }
 
+    // Check if user is email-only (requires 2FA)
+    if ($isEmailOnlyUser) {
+      loading = true;
+      error = '';
+      const codeRequested = await request2FACode();
+      loading = false;
+
+      if (codeRequested) {
+        pendingWithdrawType = 'crypto';
+        withdrawMode = '2fa';
+      }
+      return;
+    }
+
+    // MetaMask users proceed directly
     loading = true;
     error = '';
 
@@ -166,6 +268,21 @@
       return;
     }
 
+    // Check if user is email-only (requires 2FA)
+    if ($isEmailOnlyUser) {
+      loading = true;
+      error = '';
+      const codeRequested = await request2FACode();
+      loading = false;
+
+      if (codeRequested) {
+        pendingWithdrawType = 'cash';
+        withdrawMode = '2fa';
+      }
+      return;
+    }
+
+    // MetaMask users proceed directly
     loading = true;
     error = '';
 
@@ -190,9 +307,64 @@
     }
   }
 
+  async function handle2FAVerifyAndSubmit(): Promise<void> {
+    if (!verificationCode.trim() || !/^\d{6}$/.test(verificationCode.trim())) {
+      error = $t.withdrawModal.invalidCode;
+      return;
+    }
+
+    loading = true;
+    error = '';
+
+    // First verify the 2FA code
+    const verified = await verify2FACode();
+    if (!verified) {
+      loading = false;
+      return;
+    }
+
+    // Then proceed with the actual withdrawal
+    try {
+      if (pendingWithdrawType === 'crypto') {
+        if (onWithdrawSubmit) {
+          await onWithdrawSubmit({
+            type: 'crypto',
+            amount: parseFloat(amount),
+            network: selectedNetwork,
+            walletAddress: walletAddress.trim()
+          });
+        }
+        successType = 'crypto';
+      } else {
+        const fullPhone = `${selectedCountryInfo.dial} ${phoneNumber.trim()}`;
+        if (onWithdrawSubmit) {
+          await onWithdrawSubmit({
+            type: 'cash',
+            amount: parseFloat(amount),
+            playerName: playerName.trim(),
+            playerPhone: fullPhone,
+            playerCountry: selectedCountry
+          });
+        }
+        successType = 'cash';
+      }
+      success = true;
+    } catch (e) {
+      error = e instanceof Error ? e.message : $t.withdrawModal.requestError;
+    } finally {
+      loading = false;
+    }
+  }
+
   function handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
-      if (withdrawMode !== 'select' && !success) {
+      if (withdrawMode === '2fa') {
+        // Go back to the previous form (crypto or cash)
+        withdrawMode = pendingWithdrawType;
+        verificationCode = '';
+        error = '';
+        codeSentMessage = '';
+      } else if (withdrawMode !== 'select' && !success) {
         withdrawMode = 'select';
         error = '';
       } else {
@@ -423,6 +595,59 @@
             {loading ? $t.withdrawModal.processing : $t.withdrawModal.submit}
           </button>
           <button class="cancel-btn" onclick={() => { withdrawMode = 'select'; error = ''; }} disabled={loading}>
+            {$t.withdrawModal.back}
+          </button>
+        </div>
+
+      {:else if withdrawMode === '2fa'}
+        <!-- 2FA Verification -->
+        <div class="modal-header">
+          <Shield size={24} />
+          <span>{$t.withdrawModal.verificationTitle}</span>
+        </div>
+
+        <div class="amount-display verification">
+          <span class="label">{$t.withdrawModal.amountRequested}</span>
+          <span class="value">${parseFloat(amount).toFixed(2)}</span>
+        </div>
+
+        <div class="verification-instruction">
+          <p>{$t.withdrawModal.verificationInstruction}</p>
+        </div>
+
+        <div class="form-group">
+          <input
+            type="text"
+            bind:value={verificationCode}
+            placeholder={$t.withdrawModal.verificationPlaceholder}
+            disabled={loading || sending2FA}
+            maxlength="6"
+            class="verification-input"
+            inputmode="numeric"
+            pattern="[0-9]*"
+          />
+        </div>
+
+        <div class="expires-note">
+          <p>{$t.withdrawModal.codeExpires}</p>
+        </div>
+
+        {#if codeSentMessage}
+          <div class="success-message">{codeSentMessage}</div>
+        {/if}
+
+        {#if error}
+          <div class="error">{error}</div>
+        {/if}
+
+        <div class="buttons">
+          <button class="submit-btn" onclick={handle2FAVerifyAndSubmit} disabled={loading || sending2FA}>
+            {loading ? $t.withdrawModal.verifying : $t.withdrawModal.verify}
+          </button>
+          <button class="resend-btn" onclick={resend2FACode} disabled={loading || sending2FA}>
+            {sending2FA ? $t.withdrawModal.sending : $t.withdrawModal.resendCode}
+          </button>
+          <button class="cancel-btn" onclick={() => { withdrawMode = pendingWithdrawType; verificationCode = ''; error = ''; codeSentMessage = ''; }} disabled={loading || sending2FA}>
             {$t.withdrawModal.back}
           </button>
         </div>
@@ -866,6 +1091,93 @@
 
   .cancel-btn:active:not(:disabled) {
     transform: scale(0.98);
+  }
+
+  /* 2FA Verification styles */
+  .amount-display.verification {
+    background: rgba(249, 115, 22, 0.1);
+    border-color: rgba(249, 115, 22, 0.3);
+    text-align: center;
+  }
+
+  .amount-display.verification .value {
+    color: #f97316;
+  }
+
+  .verification-instruction {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .verification-instruction p {
+    color: #b1bad3;
+    font-size: 0.95em;
+  }
+
+  .verification-input {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 8px;
+    background: #0f1923;
+    border: 2px solid #2d4a5e;
+    border-radius: 10px;
+    color: #00e701;
+  }
+
+  .verification-input:focus {
+    outline: none;
+    border-color: #00e701;
+    box-shadow: 0 0 10px rgba(0, 231, 1, 0.3);
+  }
+
+  .verification-input::placeholder {
+    color: #666;
+    letter-spacing: 2px;
+    font-size: 0.7em;
+  }
+
+  .expires-note {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .expires-note p {
+    color: #888;
+    font-size: 0.85em;
+  }
+
+  .success-message {
+    color: #4ade80;
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 0.9em;
+    padding: 8px;
+    background: rgba(74, 222, 128, 0.1);
+    border-radius: 8px;
+  }
+
+  .resend-btn {
+    padding: 12px;
+    font-size: 0.95em;
+    width: 100%;
+    background: rgba(0, 231, 1, 0.1);
+    color: #00e701;
+    border: 1px solid rgba(0, 231, 1, 0.3);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .resend-btn:hover:not(:disabled) {
+    background: rgba(0, 231, 1, 0.2);
+  }
+
+  .resend-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   @media (min-width: 400px) {
