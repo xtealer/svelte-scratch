@@ -57,6 +57,7 @@ export interface CommonTranslations {
   username: string;
   password: string;
   backToGames: string;
+  backToHome: string;
 }
 
 export interface DashboardTranslations {
@@ -391,6 +392,8 @@ export interface ProfileTranslations {
   linkEmailInfo: string;
   linkEmail: string;
   emailLinkedSuccess: string;
+  accountInfo: string;
+  editProfile: string;
 }
 
 export interface Translations {
@@ -473,6 +476,7 @@ export const translations: Record<Language, Translations> = {
       username: 'Username',
       password: 'Password',
       backToGames: 'Back to Games',
+      backToHome: 'Back to Home',
     },
     dashboard: {
       title: 'Dashboard',
@@ -790,6 +794,8 @@ export const translations: Record<Language, Translations> = {
       linkEmailInfo: 'Add an email and password to your account for additional login options.',
       linkEmail: 'Link Email',
       emailLinkedSuccess: 'Email linked successfully!',
+      accountInfo: 'Account Information',
+      editProfile: 'Edit Profile',
     },
   },
   es: {
@@ -849,6 +855,7 @@ export const translations: Record<Language, Translations> = {
       username: 'Usuario',
       password: 'Contraseña',
       backToGames: 'Volver a Juegos',
+      backToHome: 'Volver al Inicio',
     },
     dashboard: {
       title: 'Panel',
@@ -1166,6 +1173,8 @@ export const translations: Record<Language, Translations> = {
       linkEmailInfo: 'Agrega un correo y contraseña a tu cuenta para opciones adicionales de inicio de sesión.',
       linkEmail: 'Vincular Correo',
       emailLinkedSuccess: '¡Correo vinculado exitosamente!',
+      accountInfo: 'Información de la Cuenta',
+      editProfile: 'Editar Perfil',
     },
   },
   ar: {
@@ -1225,6 +1234,7 @@ export const translations: Record<Language, Translations> = {
       username: 'اسم المستخدم',
       password: 'كلمة المرور',
       backToGames: 'العودة للألعاب',
+      backToHome: 'العودة للرئيسية',
     },
     dashboard: {
       title: 'لوحة التحكم',
@@ -1542,6 +1552,8 @@ export const translations: Record<Language, Translations> = {
       linkEmailInfo: 'أضف بريدًا إلكترونيًا وكلمة مرور إلى حسابك للحصول على خيارات تسجيل دخول إضافية.',
       linkEmail: 'ربط البريد الإلكتروني',
       emailLinkedSuccess: 'تم ربط البريد الإلكتروني بنجاح!',
+      accountInfo: 'معلومات الحساب',
+      editProfile: 'تعديل الملف الشخصي',
     },
   },
 };
