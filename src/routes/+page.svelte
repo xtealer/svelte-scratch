@@ -584,25 +584,44 @@
       font-size: 0.85em;
     }
 
-    /* Responsive table - allow horizontal scroll */
+    /* Responsive table - hide columns like Stake */
     .bets-table-container {
       border-radius: 8px;
     }
 
     .bets-table {
-      font-size: 0.85em;
-      min-width: 600px;
+      font-size: 0.9em;
+      min-width: unset;
     }
 
     .bets-table th,
     .bets-table td {
-      padding: 12px 12px;
+      padding: 14px 12px;
+    }
+
+    /* Hide User, Time, Bet Amount, Multiplier - show only Game and Payout */
+    .th-user,
+    .th-time,
+    .th-bet,
+    .th-multiplier,
+    .user-cell,
+    .time-cell,
+    .bet-cell,
+    .multiplier-cell {
+      display: none;
     }
 
     .game-icon {
       width: 28px;
       height: 28px;
       font-size: 0.9em;
+    }
+
+    .game-label {
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .currency-icon {
@@ -640,8 +659,13 @@
       font-size: 0.8em;
     }
 
-    .bets-table {
-      min-width: 550px;
+    .game-label {
+      max-width: 100px;
+    }
+
+    .game-icon {
+      width: 24px;
+      height: 24px;
     }
   }
 </style>
