@@ -11,7 +11,7 @@
   import Footer from "$lib/Footer.svelte";
   import GameNavbar from "$lib/GameNavbar.svelte";
   import { initLanguage, direction, t } from "$lib/i18n";
-  import { ArrowLeft, Trophy, Volume2, VolumeX, RotateCw, Grid3x3, Play, Pause } from "lucide-svelte";
+  import { Trophy, Volume2, VolumeX, RotateCw, Grid3x3, Play, Pause } from "lucide-svelte";
   import { playerAuth, isPlayerLoggedIn, playerUser, usdtBalance } from "$lib/stores/playerAuth";
   import { WinCelebration, LowBalanceIndicator, BetPresets } from "$lib/components";
   import { hapticWin, haptic } from "$lib/utils/haptics";
@@ -424,9 +424,6 @@
 <div class="container" dir={$direction}>
   <!-- Top controls -->
   <div class="top-controls">
-    <a href="/" class="control-btn back-btn" title={$t.gameUI.backToMenu}>
-      <ArrowLeft size={20} />
-    </a>
     <div class="spacer"></div>
     <button class="control-btn" class:muted={muted} onclick={toggleMute} title={muted ? $t.gameUI.unmute : $t.gameUI.mute}>
       {#if muted}
