@@ -37,6 +37,9 @@ export async function createPlayerUser(input: CreatePlayerUserInput): Promise<Pl
     preferredLanguage: input.preferredLanguage,
     active: true,
     createdAt: new Date(),
+    usdtBalance: 0,
+    wagerRequired: 0,
+    wagerCompleted: 0,
   };
 
   const result = await db.collection<PlayerUser>(COLLECTION).insertOne(user);
@@ -53,7 +56,7 @@ export async function validatePlayerLogin(email: string, password: string): Prom
     active: true
   });
 
-  if (!user) return null;
+  if (!user || !user.password) return null;
 
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return null;
@@ -109,7 +112,10 @@ export async function createMetamaskUser(metamaskAddress: string): Promise<Playe
     metamaskAddress: normalizedAddress,
     active: true,
     createdAt: new Date(),
-    lastLogin: new Date()
+    lastLogin: new Date(),
+    usdtBalance: 0,
+    wagerRequired: 0,
+    wagerCompleted: 0,
   };
 
   const result = await db.collection<PlayerUser>(COLLECTION).insertOne(user);

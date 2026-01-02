@@ -9,7 +9,7 @@
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
   import ProfileModal from "$lib/ProfileModal.svelte";
-  import { initLanguage, direction, t, currentLang } from "$lib/i18n";
+  import { initLanguage, direction, t, currentLanguage } from "$lib/i18n";
   import { playerWallet } from "$lib/stores/playerWallet";
 
   interface TranslatedText {
@@ -69,7 +69,7 @@
 
   function getLocalizedText(text: TranslatedText | undefined, fallback: string): string {
     if (!text) return fallback;
-    const lang = $currentLang as keyof TranslatedText;
+    const lang = $currentLanguage as keyof TranslatedText;
     return text[lang] || text.en || fallback;
   }
 
@@ -347,7 +347,7 @@
 </div>
 
 <ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
-<DepositModal bind:show={showDepositModal} onCodeSubmit={handleCodeSubmit} />
+<DepositModal bind:show={showDepositModal} />
 <WithdrawModal bind:show={showWithdrawModal} />
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />

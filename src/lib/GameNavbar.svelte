@@ -11,12 +11,14 @@
     onRegister,
     onDeposit,
     onWithdraw,
+    onProfile,
   }: {
     onEnterCode?: () => void;
     onLogin?: () => void;
     onRegister?: () => void;
     onDeposit?: () => void;
     onWithdraw?: () => void;
+    onProfile?: () => void;
   } = $props();
 
   // Check if we're on the home page
