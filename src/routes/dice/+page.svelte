@@ -531,9 +531,6 @@
         {/if}
       </button>
     </div>
-    <div class="footer-center">
-      <span class="stake-logo">Stake</span>
-    </div>
     <div class="footer-right">
       <button class="fairness-btn">
         <RefreshCw size={14} />
@@ -1013,19 +1010,6 @@
   .footer-btn:hover {
     background: #1a2c38;
     color: #fff;
-  }
-
-  .footer-center {
-    flex: 1;
-    text-align: center;
-  }
-
-  .stake-logo {
-    font-family: 'Georgia', serif;
-    font-style: italic;
-    font-size: 1.2em;
-    color: #fff;
-    font-weight: 600;
   }
 
   .fairness-btn {
