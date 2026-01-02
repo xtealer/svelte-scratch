@@ -228,6 +228,7 @@ export interface GameUITranslations {
   mute: string;
   unmute: string;
   credit: string;
+  balance: string;
   bet: string;
   won: string;
   spin: string;
@@ -727,6 +728,7 @@ export const translations: Record<Language, Translations> = {
       mute: 'Mute',
       unmute: 'Unmute',
       credit: 'Credit',
+      balance: 'Balance',
       bet: 'Bet',
       won: 'Won',
       spin: 'SPIN',
@@ -1182,6 +1184,7 @@ export const translations: Record<Language, Translations> = {
       mute: 'Silenciar',
       unmute: 'Activar Sonido',
       credit: 'Crédito',
+      balance: 'Saldo',
       bet: 'Apuesta',
       won: 'Ganado',
       spin: 'GIRAR',
@@ -1637,6 +1640,7 @@ export const translations: Record<Language, Translations> = {
       mute: 'كتم الصوت',
       unmute: 'تفعيل الصوت',
       credit: 'الرصيد',
+      balance: 'الرصيد',
       bet: 'الرهان',
       won: 'ربحت',
       spin: 'دوران',

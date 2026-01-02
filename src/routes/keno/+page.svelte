@@ -22,7 +22,7 @@
   const DRAW_COUNT = 10; // Numbers drawn each round
 
   // Payout tables based on difficulty and selections matched
-  type PayoutTable = Record<number, Record<number, number[]>>;
+  type PayoutTable = Record<'easy' | 'medium' | 'hard', Record<number, number[]>>;
   const payoutTables: PayoutTable = {
     // Easy difficulty - lower risk, lower rewards
     easy: {

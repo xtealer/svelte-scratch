@@ -392,7 +392,7 @@ export async function processPayoutRequest(
   // Build the query based on allowed transitions
   // pending -> approved/rejected
   // approved -> paid
-  let allowedCurrentStatus: string[];
+  let allowedCurrentStatus: ('pending' | 'approved' | 'rejected' | 'paid')[];
   if (status === 'approved' || status === 'rejected') {
     allowedCurrentStatus = ['pending'];
   } else if (status === 'paid') {

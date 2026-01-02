@@ -9,8 +9,20 @@
   import LoginModal from "$lib/LoginModal.svelte";
   import RegisterModal from "$lib/RegisterModal.svelte";
   import ProfileModal from "$lib/ProfileModal.svelte";
-  import { initLanguage, direction, t } from "$lib/i18n";
+  import { initLanguage, direction, t, currentLanguage } from "$lib/i18n";
   import { playerWallet } from "$lib/stores/playerWallet";
+
+  interface TranslatedText {
+    en: string;
+    es: string;
+    ar: string;
+  }
+
+  interface GameFromDB {
+    gameId: string;
+    name: TranslatedText;
+    description?: TranslatedText;
+  }
 
   interface RecentPlay {
     id: string;
@@ -31,14 +43,35 @@
   let showProfileModal = $state(false);
   let recentPlays = $state<RecentPlay[]>([]);
   let loadingPlays = $state(true);
+  let games = $state<GameFromDB[]>([]);
+  let loadingGames = $state(true);
 
   onMount(() => {
     initLanguage();
+    fetchGames();
     fetchRecentPlays();
     // Refresh plays every 10 seconds
     const interval = setInterval(fetchRecentPlays, 10000);
     return () => clearInterval(interval);
   });
+
+  async function fetchGames() {
+    try {
+      const response = await fetch('/api/games');
+      const data = await response.json();
+      games = data.games || [];
+    } catch (error) {
+      console.error('Failed to fetch games:', error);
+    } finally {
+      loadingGames = false;
+    }
+  }
+
+  function getLocalizedText(text: TranslatedText | undefined, fallback: string): string {
+    if (!text) return fallback;
+    const lang = $currentLanguage as keyof TranslatedText;
+    return text[lang] || text.en || fallback;
+  }
 
   async function fetchRecentPlays() {
     try {
@@ -159,6 +192,25 @@
     };
     return names[gameId] || gameId;
   }
+
+  function getGameBgClass(gameId: string): string {
+    const bgClasses: Record<string, string> = {
+      scratch: 'scratch-bg',
+      slots: 'slots-bg',
+      dice: 'dice-bg',
+      limbo: 'limbo-bg',
+      flip: 'flip-bg',
+      wheel: 'wheel-bg',
+      crash: 'crash-bg',
+      mines: 'mines-bg',
+      keno: 'keno-bg',
+      chickenroad: 'chickenroad-bg',
+      blackjack: 'blackjack-bg',
+      baccarat: 'baccarat-bg',
+      bingo: 'bingo-bg'
+    };
+    return bgClasses[gameId] || 'slots-bg';
+  }
 </script>
 
 <GameNavbar onEnterCode={openCodeModal} onDeposit={openDepositModal} onWithdraw={openWithdrawModal} onLogin={openLoginModal} onRegister={openRegisterModal} />
@@ -173,174 +225,53 @@
       </div>
 
       <div class="games-grid">
-        <!-- Scratch Card -->
-        <a href="/scratch" class="game-card">
-          <div class="game-image scratch-bg">
-            <Ticket size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">{$t.gameMenu.scratchTitle}</div>
-            <div class="game-desc">{$t.gameMenu.scratchDesc}</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Slots -->
-        <a href="/slots" class="game-card">
-          <div class="game-image slots-bg">
-            <Dices size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">{$t.gameMenu.slotsTitle}</div>
-            <div class="game-desc">{$t.gameMenu.slotsDesc}</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Dice -->
-        <a href="/dice" class="game-card">
-          <div class="game-image dice-bg">
-            <Target size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">{$t.gameMenu.diceTitle || 'Dice'}</div>
-            <div class="game-desc">{$t.gameMenu.diceDesc || 'Roll the dice!'}</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Limbo -->
-        <a href="/limbo" class="game-card">
-          <div class="game-image limbo-bg">
-            <TrendingUp size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Limbo</div>
-            <div class="game-desc">Beat the multiplier!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Flip -->
-        <a href="/flip" class="game-card">
-          <div class="game-image flip-bg">
-            <Coins size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Flip</div>
-            <div class="game-desc">Heads or tails?</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Wheel -->
-        <a href="/wheel" class="game-card">
-          <div class="game-image wheel-bg">
-            <CircleDot size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Wheel</div>
-            <div class="game-desc">Spin to win!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Crash -->
-        <a href="/crash" class="game-card">
-          <div class="game-image crash-bg">
-            <TrendingUp size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Crash</div>
-            <div class="game-desc">Cash out before it crashes!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Mines -->
-        <a href="/mines" class="game-card">
-          <div class="game-image mines-bg">
-            <Bomb size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Mines</div>
-            <div class="game-desc">Find the gems, avoid the mines!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Keno -->
-        <a href="/keno" class="game-card">
-          <div class="game-image keno-bg">
-            <Grid3X3 size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Keno</div>
-            <div class="game-desc">Pick your lucky numbers!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Chicken Road -->
-        <a href="/chickenroad" class="game-card">
-          <div class="game-image chickenroad-bg">
-            <Car size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Chicken Road</div>
-            <div class="game-desc">Cross the road safely!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Blackjack -->
-        <a href="/blackjack" class="game-card">
-          <div class="game-image blackjack-bg">
-            <Spade size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Blackjack</div>
-            <div class="game-desc">Beat the dealer to 21!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Baccarat -->
-        <a href="/baccarat" class="game-card">
-          <div class="game-image baccarat-bg">
-            <Club size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Baccarat</div>
-            <div class="game-desc">Player, Banker, or Tie?</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
-
-        <!-- Bingo -->
-        <a href="/bingo" class="game-card">
-          <div class="game-image bingo-bg">
-            <LayoutGrid size={64} strokeWidth={1.5} />
-          </div>
-          <div class="game-info">
-            <div class="game-name">Bingo</div>
-            <div class="game-desc">Match the numbers, win big!</div>
-            <div class="game-prize">{$t.gameMenu.prizeText}</div>
-          </div>
-          <button class="play-btn">{$t.gameMenu.playNow}</button>
-        </a>
+        {#if loadingGames}
+          <div class="loading-games">Loading games...</div>
+        {:else if games.length === 0}
+          <div class="no-games">No games available</div>
+        {:else}
+          {#each games as game}
+            <a href="/{game.gameId}" class="game-card">
+              <div class="game-image {getGameBgClass(game.gameId)}">
+                {#if game.gameId === 'scratch'}
+                  <Ticket size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'slots'}
+                  <Dices size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'dice'}
+                  <Target size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'limbo'}
+                  <TrendingUp size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'flip'}
+                  <Coins size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'wheel'}
+                  <CircleDot size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'crash'}
+                  <TrendingUp size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'mines'}
+                  <Bomb size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'keno'}
+                  <Grid3X3 size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'chickenroad'}
+                  <Car size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'blackjack'}
+                  <Spade size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'baccarat'}
+                  <Club size={64} strokeWidth={1.5} />
+                {:else if game.gameId === 'bingo'}
+                  <LayoutGrid size={64} strokeWidth={1.5} />
+                {:else}
+                  <Gamepad2 size={64} strokeWidth={1.5} />
+                {/if}
+              </div>
+              <div class="game-info">
+                <div class="game-name">{getLocalizedText(game.name, game.gameId)}</div>
+                <div class="game-desc">{getLocalizedText(game.description, '')}</div>
+                <div class="game-prize">{$t.gameMenu.prizeText}</div>
+              </div>
+              <button class="play-btn">{$t.gameMenu.playNow}</button>
+            </a>
+          {/each}
+        {/if}
       </div>
     </section>
 
@@ -416,7 +347,7 @@
 </div>
 
 <ScratchCodeModal bind:show={showCodeModal} onCodeSubmit={handleCodeSubmit} />
-<DepositModal bind:show={showDepositModal} onCodeSubmit={handleCodeSubmit} />
+<DepositModal bind:show={showDepositModal} />
 <WithdrawModal bind:show={showWithdrawModal} />
 <LoginModal bind:show={showLoginModal} onSwitchToRegister={switchToRegister} />
 <RegisterModal bind:show={showRegisterModal} onSwitchToLogin={switchToLogin} />
@@ -472,6 +403,15 @@
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
     max-width: 900px;
+  }
+
+  .loading-games,
+  .no-games {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 16px;
+    color: #7f8c8d;
+    font-size: 1em;
   }
 
   .game-card {

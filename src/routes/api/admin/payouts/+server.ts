@@ -33,10 +33,10 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
     const userId = new ObjectId(user.userId);
     const isAdmin = isAdminOrSuper(user);
 
-    let payouts = [];
-    let stats = null;
-    let requests = [];
-    let requestStats = null;
+    let payouts: Awaited<ReturnType<typeof getAllPayouts>> = [];
+    let stats: Awaited<ReturnType<typeof getPayoutStats>> | null = null;
+    let requests: Awaited<ReturnType<typeof getPayoutRequests>> = [];
+    let requestStats: Awaited<ReturnType<typeof getPayoutRequestStats>> | null = null;
 
     if (type === 'all' || type === 'payouts') {
       if (isAdmin) {
