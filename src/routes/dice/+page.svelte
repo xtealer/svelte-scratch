@@ -29,9 +29,6 @@
   let lastWin = $state(false);
   let showResult = $state(false);
 
-  // Mode state
-  let mode = $state<'manual' | 'auto'>('manual');
-
   // Settings panel
   let showSettings = $state(false);
   let instantBet = $state(false);
@@ -335,19 +332,6 @@
   <div class="game-container">
     <!-- Left Panel - Controls -->
     <div class="controls-panel">
-      <!-- Mode Toggle -->
-      <div class="mode-toggle">
-        <button class="mode-btn" class:active={mode === 'manual'} onclick={() => mode = 'manual'}>
-          Manual
-        </button>
-        <button class="mode-btn" class:active={mode === 'auto'} onclick={() => mode = 'auto'}>
-          Auto
-        </button>
-        <button class="mode-icon" onclick={toggleSettings}>
-          <Zap size={16} />
-        </button>
-      </div>
-
       <!-- Bet Amount -->
       <div class="control-group">
         <div class="control-label">
@@ -602,44 +586,6 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-  }
-
-  .mode-toggle {
-    display: flex;
-    background: #0f212e;
-    border-radius: 24px;
-    padding: 4px;
-    gap: 4px;
-  }
-
-  .mode-btn {
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 20px;
-    background: transparent;
-    color: #7f8c8d;
-    font-weight: 600;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .mode-btn.active {
-    background: #2a3f4f;
-    color: #fff;
-  }
-
-  .mode-icon {
-    padding: 10px;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: #7f8c8d;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .control-group {
