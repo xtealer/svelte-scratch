@@ -78,9 +78,6 @@
   let revealIndex = $state(0);
   let isRevealing = $state(false);
 
-  // Mode state
-  let mode = $state<'manual' | 'auto'>('manual');
-
   // Settings panel
   let showSettings = $state(false);
 
@@ -333,17 +330,7 @@
   <div class="game-container">
     <!-- Left Panel - Controls -->
     <div class="controls-panel">
-      <!-- Mode Toggle -->
-      <div class="mode-toggle">
-        <button class="mode-btn" class:active={mode === 'manual'} onclick={() => mode = 'manual'}>
-          Manual
-        </button>
-        <button class="mode-btn" class:active={mode === 'auto'} onclick={() => mode = 'auto'}>
-          Auto
-        </button>
-      </div>
-
-      <!-- Bet Amount -->
+        <!-- Bet Amount -->
       <div class="control-group">
         <div class="control-label">
           <span>Bet Amount</span>
@@ -462,9 +449,6 @@
         {/if}
       </button>
     </div>
-    <div class="footer-center">
-      <span class="stake-logo">Stake</span>
-    </div>
     <div class="footer-right">
       <button class="fairness-btn">
         <RefreshCw size={14} />
@@ -517,32 +501,6 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-  }
-
-  .mode-toggle {
-    display: flex;
-    background: #0f212e;
-    border-radius: 24px;
-    padding: 4px;
-    gap: 4px;
-  }
-
-  .mode-btn {
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 20px;
-    background: transparent;
-    color: #7f8c8d;
-    font-weight: 600;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .mode-btn.active {
-    background: #2a3f4f;
-    color: #fff;
   }
 
   .control-group {
@@ -863,19 +821,6 @@
   .footer-btn:hover {
     background: #1a2c38;
     color: #fff;
-  }
-
-  .footer-center {
-    flex: 1;
-    text-align: center;
-  }
-
-  .stake-logo {
-    font-family: 'Georgia', serif;
-    font-style: italic;
-    font-size: 1.2em;
-    color: #fff;
-    font-weight: 600;
   }
 
   .fairness-btn {
